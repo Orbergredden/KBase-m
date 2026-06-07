@@ -1,0 +1,66 @@
+<!--HEAD_BEGIN css_{[templateId]}-->
+<style>
+.divMain_{[templateId]} {
+    margin: 7px; /* Значение отступов */
+    padding: 2px; /* Поля вокруг текста */
+    border: 0px solid black; /* Параметры границы */
+}
+.aTitle_{[templateId]} {
+	font-weight: bold;
+    color: rgb(93,83,167);
+    margin: 0px; /* Значение отступов */
+    padding: 0px; /* Поля вокруг текста */
+}
+.aDescr_{[templateId]} {
+    color: rgb(133,123,207);
+	margin: 0px; /* Значение отступов */
+	padding: 0px; /* Поля вокруг текста */
+}
+.pre_{[templateId]} {
+	color : #000000;
+    white-space: pre-wrap;       /* CSS 3 */
+    white-space: -moz-pre-wrap;  /* Mozilla, since 1999 */
+    white-space: -pre-wrap;      /* Opera 4-6 */
+    white-space: -o-pre-wrap;    /* Opera 7 */
+    word-wrap: break-word;       /* Internet Explorer 5.5+ */
+    padding: 0px; 
+    margin: 0px;
+}
+</style>
+<!--HEAD_END css_{[templateId]}-->
+
+<!--BODY_BEGIN {[InfoBlockId]}-->
+<div class="divMain_{[templateId]}">
+
+<SCRIPT type="text/javascript">
+var v_InfoFileTitle = "{[InfoFileTitle]}";
+var v_InfoFilePath = "{[InfoFilePath]}";
+var v_InfoFileName = "{[InfoFileName]}";
+var v_InfoIconPath = "{[InfoIconPath]}";
+var v_InfoFileDescr = "{[InfoFileDescr]}";
+var v_isShowTitle = {[isShowTitle]};
+var v_isShowDescr = {[isShowDescr]};
+//var v_isShowText = {[isShowText]};
+
+if (v_isShowTitle == 1) {
+	document.write("<a id='{[InfoBlockId]}' class='aTitle_{[templateId]}'>" + v_InfoFileTitle + "</a>");
+	document.write("<br>");
+} else {
+	document.write("<a id='{[InfoBlockId]}'></a>");
+}
+
+document.write("<img src='" + v_InfoIconPath + "'>");
+document.write("<a href='" + v_InfoFilePath + 
+	"' onclick='window.javaInfoFile.saveToDisk(\"{[InfoBlockId]}\",\"" + v_InfoFileName + "\");'>" + v_InfoFileName + "</a>");
+document.write("<br>");
+
+if (v_isShowDescr == 1) {
+	document.write("<a class='aDescr_{[templateId]}'>" + v_InfoFileDescr + "</a>");
+	document.write("<br>");
+}
+</SCRIPT>
+
+<pre id="pre_{[InfoBlockId]}" class="pre_{[templateId]}">{[InfoFileText]}</pre>
+
+</div>
+<!--BODY_END-->

@@ -1,0 +1,46 @@
+.pre_highlight_agate code.hljs{display:block;overflow-x:auto;padding:1em}
+.pre_highlight_agate code.hljs{padding:3px 5px}
+.pre_highlight_agate .hljs{background:#333;color:#fff}
+.pre_highlight_agate .hljs-doctag,
+.pre_highlight_agate .hljs-meta-keyword,
+.pre_highlight_agate .hljs-name,
+.pre_highlight_agate .hljs-strong{font-weight:700}
+.pre_highlight_agate .hljs-code,
+.pre_highlight_agate .hljs-emphasis{font-style:italic}
+.pre_highlight_agate .hljs-section,
+.pre_highlight_agate .hljs-tag{color:#62c8f3}
+.pre_highlight_agate .hljs-selector-class,
+.pre_highlight_agate .hljs-selector-id,
+.pre_highlight_agate .hljs-template-variable,
+.pre_highlight_agate .hljs-variable{color:#ade5fc}
+.pre_highlight_agate .hljs-meta-string,
+.pre_highlight_agate .hljs-string{color:#a2fca2}
+.pre_highlight_agate .hljs-attr,
+.pre_highlight_agate .hljs-quote,
+.pre_highlight_agate .hljs-selector-attr{color:#7bd694}
+.pre_highlight_agate .hljs-tag .hljs-attr{color:inherit}
+.pre_highlight_agate .hljs-attribute,
+.pre_highlight_agate .hljs-title,
+.pre_highlight_agate .hljs-type{color:#ffa}
+.pre_highlight_agate .hljs-number,
+.pre_highlight_agate .hljs-symbol{color:#d36363}
+.pre_highlight_agate .hljs-bullet,
+.pre_highlight_agate .hljs-template-tag{color:#b8d8a2}
+.pre_highlight_agate .hljs-built_in,
+.pre_highlight_agate .hljs-keyword,
+.pre_highlight_agate .hljs-literal,
+.pre_highlight_agate .hljs-selector-tag{color:#fcc28c}
+.pre_highlight_agate .hljs-code,
+.pre_highlight_agate .hljs-comment,
+.pre_highlight_agate .hljs-formula{color:#888}
+.pre_highlight_agate .hljs-link,
+.pre_highlight_agate .hljs-regexp,
+.pre_highlight_agate .hljs-selector-pseudo{color:#c6b4f0}
+.pre_highlight_agate .hljs-meta{color:#fc9b9b}
+.pre_highlight_agate .hljs-deletion{background:#fc9b9b;color:#333}
+.pre_highlight_agate .hljs-addition{background:#a2fca2;color:#333}
+.pre_highlight_agate .hljs-subst{color:#fff}
+.pre_highlight_agate .hljs a{color:inherit}
+.pre_highlight_agate .hljs a:focus,
+.pre_highlight_agate .hljs a:hover{color:inherit;text-decoration:underline}
+.pre_highlight_agate .hljs mark{background:#555;color:inherit}

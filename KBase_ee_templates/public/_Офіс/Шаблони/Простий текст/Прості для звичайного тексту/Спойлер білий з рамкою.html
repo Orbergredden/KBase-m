@@ -1,0 +1,118 @@
+<!--HEAD_BEGIN css_{[templateId]}-->
+<style>
+.divMain_{[templateId]} {
+	border: 1px solid #ccc;
+	border-radius: 10px; 
+	background: #fff; 
+	color: #333;
+	margin: 0px 10px 0px 0px;
+}
+.divTitle_{[templateId]} {
+	border-bottom: 1px solid #ccc;
+    border-radius: 10px;
+    background: #f0f0f0;
+    font-size: 0.9em;
+	position: relative;
+    padding: 7px 7px 7px 34px;
+    font-weight: bold;
+}
+.spoiler-sign_{[templateId]} {
+	position: absolute;
+	border: 1px solid #ccc;
+	border-radius: 10px;
+	left: 5px;
+    top: 5px;
+    display: block;
+    width: 20px;
+    height: 20px;
+    line-height: 21px;
+    text-align: center;
+    font-size: 14px;
+    font-family: FontAwesome;
+    font-weight: normal;
+    font-style: normal;
+    -webkit-font-smoothing: antialiased;
+    cursor: pointer;
+}
+.aCopy_{[templateId]} {
+	font-weight: bold;
+    color: rgb(255,255,255);
+	background-color: rgb(220,220,220);
+    margin: 0px; /* Значение отступов */
+    padding: 0px; /* Поля вокруг текста */
+	cursor: pointer;
+}
+.divBody_{[templateId]} {
+	padding: 0px 0px 0px 7px;
+}
+.pre_{[templateId]} {
+	color : #000000;
+    white-space: pre-wrap;       /* CSS 3 */
+    white-space: -moz-pre-wrap;  /* Mozilla, since 1999 */
+    white-space: -pre-wrap;      /* Opera 4-6 */
+    white-space: -o-pre-wrap;    /* Opera 7 */
+    word-wrap: break-word;       /* Internet Explorer 5.5+ */
+    padding: 0px; 
+    padding-top: 8px;
+    margin: 0px;
+}
+</style>
+<!--HEAD_END css_{[templateId]}-->
+
+<!--HEAD_BEGIN jquery-->
+<script type="text/javascript" src='_files/JavaScript_lib/jquery.js'></script>
+<!--HEAD_END jquery-->
+
+<!--HEAD_BEGIN copyTextToClipboard-->
+<script type="text/javascript" src='_files/JavaScript/Простий_текст/copyTextToClipboard.js'></script>
+<!--HEAD_END copyTextToClipboard-->
+
+<!--BODY_BEGIN {[InfoBlockId]}-->
+<script type="text/javascript">
+$(document).ready(function(){
+  $('#spoiler-sign_{[InfoBlockId]}').click(function(){
+    $('#divTitle_{[InfoBlockId]}').toggleClass('opened').toggleClass('closed').next().toggle();
+    if($('#divTitle_{[InfoBlockId]}').hasClass('opened')) {
+        $(this).html('+');
+    }
+    else {
+        $(this).html('-');
+    }
+  });
+});
+/*	
+$(document).ready(function(){
+$('#divTitle_{[InfoBlockId]}').click(function(){
+	$(this).toggleClass('opened').toggleClass('closed').next().toggle();
+    if($(this).hasClass('opened')) {
+        $('#spoiler-sign_{[InfoBlockId]}').html('+');
+    }
+    else {
+        $('#spoiler-sign_{[InfoBlockId]}').html('-');
+    }
+});
+});
+*/
+var v_InfoBlockId = {[InfoBlockId]};
+var v_isShowDescr = {[isShowDescr]};
+var v_InfoDescr = "{[InfoDescr]}";
+</script>
+
+<div class="divMain_{[templateId]}">
+<div id="divTitle_{[InfoBlockId]}" class="divTitle_{[templateId]}">
+<span id="spoiler-sign_{[InfoBlockId]}" class="spoiler-sign_{[templateId]}">-</span>
+<script type="text/javascript">
+if (v_isShowDescr == 1) {
+	document.write("<a id='" + v_InfoBlockId + "'>" + v_InfoDescr + "</a>");
+} else {
+	document.write("<a id='" + v_InfoBlockId + "'></a>");
+}
+document.write("&nbsp;&nbsp;&nbsp;");
+document.write("<a class='aCopy_{[templateId]}' onclick='copyTextToClipboard(document.getElementById(\"pre_{[InfoBlockId]}\").innerText); return false'>[copy]</a>");
+</script>
+</div>
+<div class="divBody_{[templateId]}">
+<pre id="pre_{[InfoBlockId]}" class="pre_{[templateId]}">{[kbase_Info_Text]}</pre>
+</div>
+</div>
+<!--BODY_END-->

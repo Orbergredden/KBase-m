@@ -1,0 +1,38 @@
+.pre_stackoverflow_dark code.hljs{display:block;overflow-x:auto;padding:1em}
+.pre_stackoverflow_dark code.hljs{padding:3px 5px}
+.pre_stackoverflow_dark .hljs{color:#fff;background:#1c1b1b}
+.pre_stackoverflow_dark .hljs-subst{color:#fff}
+.pre_stackoverflow_dark .hljs-comment{color:#999}
+.pre_stackoverflow_dark .hljs-attr,
+.pre_stackoverflow_dark .hljs-doctag,
+.pre_stackoverflow_dark .hljs-keyword,
+.pre_stackoverflow_dark .hljs-meta .hljs-keyword,
+.pre_stackoverflow_dark .hljs-section,
+.pre_stackoverflow_dark .hljs-selector-tag{color:#88aece}
+.pre_stackoverflow_dark .hljs-attribute{color:#c59bc1}
+.pre_stackoverflow_dark .hljs-name,
+.pre_stackoverflow_dark .hljs-number,
+.pre_stackoverflow_dark .hljs-quote,
+.pre_stackoverflow_dark .hljs-selector-id,
+.pre_stackoverflow_dark .hljs-template-tag,
+.pre_stackoverflow_dark .hljs-type{color:#f08d49}
+.pre_stackoverflow_dark .hljs-selector-class{color:#88aece}
+.pre_stackoverflow_dark .hljs-link,
+.pre_stackoverflow_dark .hljs-regexp,
+.pre_stackoverflow_dark .hljs-selector-attr,
+.pre_stackoverflow_dark .hljs-string,
+.pre_stackoverflow_dark .hljs-symbol,
+.pre_stackoverflow_dark .hljs-template-variable,
+.pre_stackoverflow_dark .hljs-variable{color:#b5bd68}
+.pre_stackoverflow_dark .hljs-meta,
+.pre_stackoverflow_dark .hljs-selector-pseudo{color:#88aece}
+.pre_stackoverflow_dark .hljs-built_in,
+.pre_stackoverflow_dark .hljs-literal,
+.pre_stackoverflow_dark .hljs-title{color:#f08d49}
+.pre_stackoverflow_dark .hljs-bullet,
+.pre_stackoverflow_dark .hljs-code{color:#ccc}
+.pre_stackoverflow_dark .hljs-meta .hljs-string{color:#b5bd68}
+.pre_stackoverflow_dark .hljs-deletion{color:#de7176}
+.pre_stackoverflow_dark .hljs-addition{color:#76c490}
+.pre_stackoverflow_dark .hljs-emphasis{font-style:italic}
+.pre_stackoverflow_dark .hljs-strong{font-weight:700}

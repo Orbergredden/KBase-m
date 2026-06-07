@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.CheckBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.RadioButton?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.control.SplitPane?>
+<?import javafx.scene.control.Tab?>
+<?import javafx.scene.control.TabPane?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.ToggleButton?>
+<?import javafx.scene.control.ToggleGroup?>
+<?import javafx.scene.control.ToolBar?>
+<?import javafx.scene.control.TreeTableColumn?>
+<?import javafx.scene.control.TreeTableView?>
+<?import javafx.scene.layout.AnchorPane?>
+
+<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="521.0" prefWidth="698.0" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="app.view.business.FindInfo_Controller">
+	<children>
+		<TabPane fx:id="tabPane_Main" prefHeight="200.0" prefWidth="200.0" tabClosingPolicy="UNAVAILABLE" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+			<tabs>
+				<Tab fx:id="tab_Parameters" text="Параметри">
+					<content>
+						<AnchorPane prefHeight="200.0" prefWidth="200.0">
+							<children>
+								<Label layoutX="14.0" layoutY="14.0" text="Початок пошуку" />
+								<RadioButton fx:id="radioButton_StartInTree_Root" disable="true" layoutX="14.0" layoutY="45.0" mnemonicParsing="false" text="корінь">
+									<toggleGroup>
+										<ToggleGroup fx:id="StartInTree" />
+									</toggleGroup>
+								</RadioButton>
+								<RadioButton fx:id="radioButton_StartInTree_Current" disable="true" layoutX="14.0" layoutY="62.0" mnemonicParsing="false" text="поточний" toggleGroup="$StartInTree" />
+								<Label fx:id="label_StartInTree_Root" layoutX="123.0" layoutY="45.0" text="Label" />
+								<Label fx:id="label_StartInTree_Current" layoutX="123.0" layoutY="62.0" text="Label" />
+								<RadioButton fx:id="radioButton_StartInTree_All" disable="true" layoutX="14.0" layoutY="29.0" mnemonicParsing="false" selected="true" text="Все" toggleGroup="$StartInTree" />
+								<Label layoutX="14.0" layoutY="86.0" text="ID розділу : одиночний, перелік &amp;quot;,&amp;quot;, діапазон &amp;quot;-&amp;quot;, умови &amp;quot;&amp;gt;&amp;quot; та &amp;quot;&amp;lt;&amp;quot;" />
+								<TextField fx:id="textField_sectionId" disable="true" layoutX="15.0" layoutY="103.0" AnchorPane.leftAnchor="15.0" AnchorPane.rightAnchor="15.0" />
+								<Label layoutX="14.0" layoutY="137.0" text="Дата або період, формат &amp;quot;YYYY-MM-DD HH24:MI:SS&amp;quot;" />
+								<TextField fx:id="textField_dateBegin" disable="true" layoutX="15.0" layoutY="154.0" />
+								<TextField fx:id="textField_dateEnd" disable="true" layoutX="175.0" layoutY="154.0" />
+								<Label layoutX="14.0" layoutY="189.0" text="Шукати текст в :" />
+                <CheckBox fx:id="checkBox_Section" layoutX="15.0" layoutY="206.0" mnemonicParsing="false" selected="true" text="розділах" />
+                <CheckBox fx:id="checkBox_Text" layoutX="15.0" layoutY="229.0" mnemonicParsing="false" selected="true" text="тексті" />
+                <CheckBox fx:id="checkBox_InfoHeader" layoutX="139.0" layoutY="206.0" mnemonicParsing="false" text="заголовках інфоблоків" />
+                <CheckBox fx:id="checkBox_Dictionary" layoutX="324.0" layoutY="206.0" mnemonicParsing="false" selected="true" text="словниках" />
+                <CheckBox fx:id="checkBox_Image" layoutX="139.0" layoutY="229.0" mnemonicParsing="false" selected="true" text="малюнках" />
+                <CheckBox fx:id="checkBox_File" layoutX="324.0" layoutY="229.0" mnemonicParsing="false" selected="true" text="файлах" />
+                <Label layoutX="14.0" layoutY="253.0" text="Текст :" />
+                <TextArea fx:id="textArea_Text" layoutX="15.0" layoutY="270.0" prefHeight="52.0" prefWidth="200.0" AnchorPane.leftAnchor="15.0" AnchorPane.rightAnchor="15.0" />
+                <Label layoutX="17.0" layoutY="347.0" text="Користувач (або підготовлений список користувачів) :" />
+                <TextField fx:id="textField_User" disable="true" layoutX="15.0" layoutY="364.0" AnchorPane.leftAnchor="15.0" AnchorPane.rightAnchor="15.0" />
+                <CheckBox fx:id="checkBox_Text_IgnoreRegistr" layoutX="15.0" layoutY="322.0" mnemonicParsing="false" selected="true" text="ігнорувати регістр" />
+                <Label layoutX="14.0" layoutY="397.0" text="Сортувати по : Даті" />
+                <CheckBox fx:id="checkBox_SortTypeDesc" disable="true" layoutX="128.0" layoutY="397.0" mnemonicParsing="false" selected="true" text="з більшого до меншого" />
+                <Label layoutX="15.0" layoutY="417.0" text="Кількість елементів на сторінці результату" />
+                <TextField fx:id="textField_NumberOfElements" disable="true" layoutX="253.0" layoutY="413.0" prefHeight="25.0" prefWidth="45.0" text="30" />
+                <Button fx:id="button_Find" layoutX="15.0" layoutY="447.0" mnemonicParsing="false" onAction="#handleButtonFind" prefHeight="25.0" prefWidth="171.0" text="Шукати    >>" />
+							</children>
+						</AnchorPane>
+					</content>
+				</Tab>
+				<Tab fx:id="tab_Result" text="Результат">
+					<content>
+						<AnchorPane prefHeight="200.0" prefWidth="200.0">
+							<children>
+								<SplitPane fx:id="splitPane_Result" dividerPositions="0.6925287356321839" prefHeight="160.0" prefWidth="200.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+									<items>
+										<AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="160.0" prefWidth="100.0">
+											<children>
+												<ToolBar prefHeight="40.0" prefWidth="200.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+													<items>
+														<Button fx:id="button_ResultChangeSplitOrientation" mnemonicParsing="false" onAction="#handleButtonResultChangeSplitOrientation" />
+														<Separator orientation="VERTICAL" />
+														<Button fx:id="button_ResultGoTo" mnemonicParsing="false" onAction="#handleButtonResultGoTo" />
+														<Button fx:id="button_ResultOpen" mnemonicParsing="false" onAction="#handleButtonResultOpen" />
+														<Separator orientation="VERTICAL" />
+														<Button fx:id="button_ResultCount" mnemonicParsing="false" onAction="#handleButtonResultCount" text="Count" />
+														<Label fx:id="label_ResultCount" text="???" />
+														<Separator orientation="VERTICAL" />
+														<Label text="Pager : " />
+														<Button fx:id="button_ResultPageLeft" mnemonicParsing="false" onAction="#handleButtonResultPageLeft" text="&amp;lt;" />
+														<Label fx:id="label_ResultPageCur" text="0" />
+														<Button fx:id="button_ResultPageRight" mnemonicParsing="false" onAction="#handleButtonResultPageRight" text="&amp;gt;" />
+													</items>
+												</ToolBar>
+                        <TreeTableView fx:id="treeTableView_Result" layoutX="40.0" layoutY="77.0" prefHeight="200.0" prefWidth="200.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="40.0">
+                          <columns>
+                            <TreeTableColumn fx:id="treeTableColumn_TextType" prefWidth="120.0" text="Text Type" />
+                            <TreeTableColumn fx:id="treeTableColumn_SectionId" prefWidth="75.0" text="Section Id" />
+                            <TreeTableColumn fx:id="treeTableColumn_SectionName" prefWidth="200.0" text="Section Name" />
+                            <TreeTableColumn fx:id="treeTableColumn_SectionPathName" prefWidth="200.0" text="Section Path" />
+                            <TreeTableColumn fx:id="treeTableColumn_InfoId" prefWidth="75.0" text="Info Id" />
+                            <TreeTableColumn fx:id="treeTableColumn_InfoName" prefWidth="150.0" text="Info Name" />
+                            <TreeTableColumn fx:id="treeTableColumn_Text" prefWidth="300.0" text="Text" />
+                            <TreeTableColumn fx:id="treeTableColumn_DateCreated" prefWidth="75.0" text="Date Created" />
+                            <TreeTableColumn fx:id="treeTableColumn_DateModified" prefWidth="75.0" text="Date Modified" />
+                            <TreeTableColumn fx:id="treeTableColumn_UserCreated" prefWidth="75.0" text="User Created" />
+                            <TreeTableColumn fx:id="treeTableColumn_UserModified" prefWidth="75.0" text="User Modified" />
+                          </columns>
+                        </TreeTableView>
+											</children>
+										</AnchorPane>
+										<AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="160.0" prefWidth="100.0">
+											<children>
+												<SplitPane fx:id="splitPane_Details" dividerPositions="0.913855980861244" prefHeight="160.0" prefWidth="200.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="40.0">
+													<items>
+														<AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="160.0" prefWidth="100.0">
+															<children>
+																<TextArea fx:id="textArea_ResultText" prefHeight="200.0" prefWidth="200.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+															</children>
+														</AnchorPane>
+														<AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="160.0" prefWidth="100.0" />
+													</items>
+												</SplitPane>
+												<ToolBar prefHeight="40.0" prefWidth="200.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+													<items>
+														<Button fx:id="button_DetailsChangeSplitOrientation" mnemonicParsing="false" onAction="#handleButtonDetailsChangeSplitOrientation" />
+														<Separator orientation="VERTICAL" />
+														<ToggleButton fx:id="toggleButton_ResultText_WordWrap" mnemonicParsing="false" onAction="#handleToggleButtonResultText_WordWrap" />
+													</items>
+												</ToolBar>
+											</children>
+										</AnchorPane>
+									</items>
+								</SplitPane>
+							</children>
+						</AnchorPane>
+					</content>
+				</Tab>
+			</tabs>
+		</TabPane>
+	</children>
+</AnchorPane>

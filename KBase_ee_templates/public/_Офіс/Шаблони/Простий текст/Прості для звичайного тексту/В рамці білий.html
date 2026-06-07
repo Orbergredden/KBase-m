@@ -1,0 +1,62 @@
+<!--HEAD_BEGIN css_{[templateId]}-->
+<style>
+.divMain_{[templateId]} {
+	margin: 7px; /* Значение отступов */
+	padding: 10px; /* Поля вокруг текста */
+    border: 1px solid #bcd; /* Параметры границы */
+    background: #ffffff; /* Цвет фона */
+	/*font-family: monospace;*/
+}
+.aTitle_{[templateId]} {
+	font-weight: bold;                    
+    color: rgb(93,83,167);
+    margin: 0px; /* Значение отступов */  
+    padding: 0px; /* Поля вокруг текста */
+}
+.aCopy_{[templateId]} {
+	font-weight: bold;
+    color: rgb(255,255,255);
+	background-color: rgb(200,200,200);
+    margin: 0px; /* Значение отступов */
+    padding: 0px; /* Поля вокруг текста */
+	/*border: 1px solid black;*/ /* Параметры границы */
+	cursor: pointer;
+}
+.pre_{[templateId]} {
+	color : #000000;
+    white-space: pre-wrap;       /* CSS 3 */
+    white-space: -moz-pre-wrap;  /* Mozilla, since 1999 */
+    white-space: -pre-wrap;      /* Opera 4-6 */
+    white-space: -o-pre-wrap;    /* Opera 7 */
+    word-wrap: break-word;       /* Internet Explorer 5.5+ */
+    padding: 0px; 
+    padding-top: 8px;
+    margin: 0px;
+}
+</style>
+<!--HEAD_END css_{[templateId]}-->
+
+<!--HEAD_BEGIN copyTextToClipboard-->
+<script type="text/javascript" src='_files/JavaScript/Простий_текст/copyTextToClipboard.js'></script>
+<!--HEAD_END copyTextToClipboard-->
+
+<!--BODY_BEGIN {[InfoBlockId]}-->
+<div class="divMain_{[templateId]}">
+	
+<SCRIPT type="text/javascript">
+var v_isShowDescr = {[isShowDescr]};
+var v_InfoDescr = "{[InfoDescr]}";
+
+if (v_isShowDescr == 1) {
+	document.write("<a id='{[InfoBlockId]}' class='aTitle_{[templateId]}'>" + v_InfoDescr + "</a>");
+} else {
+	document.write("<a id='{[InfoBlockId]}'></a>");
+}
+document.write("&nbsp;&nbsp;&nbsp;");
+document.write("<a class='aCopy_{[templateId]}' onclick='copyTextToClipboard(document.getElementById(\"pre_{[InfoBlockId]}\").innerText); return false'>[copy]</a>");
+</SCRIPT>
+
+<pre id="pre_{[InfoBlockId]}" class="pre_{[templateId]}">{[kbase_Info_Text]}</pre>
+
+</div>
+<!--BODY_END-->

@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<ConfigMainList>
+    <ConfigMainItem>
+        <id>-1128660070</id>
+        <isEditable>true</isEditable>
+        <isShow>true</isShow>
+        <lastModified>2017-04-04</lastModified>
+        <name>PathDirCache</name>
+        <sectionName>directories</sectionName>
+        <value>cache/</value>
+    </ConfigMainItem>
+    <ConfigMainItem>
+        <descr>Сохранять сосотояние программы при выходе и восстанавливать при старте</descr>
+        <id>1482215445</id>
+        <isEditable>true</isEditable>
+        <isShow>true</isShow>
+        <lastModified>2025-09-03</lastModified>
+        <name>SaveAppStateOnExit</name>
+        <sectionName>AppState</sectionName>
+        <value>1</value>
+    </ConfigMainItem>
+    <ConfigMainItem>
+        <descr>Удаляет каталог на диске с кешированными документами при выходе</descr>
+        <id>2684626</id>
+        <isEditable>true</isEditable>
+        <isShow>true</isShow>
+        <lastModified>2019-09-12</lastModified>
+        <name>DeleteCacheOnExit</name>
+        <sectionName>AppState</sectionName>
+        <value>1</value>
+    </ConfigMainItem>
+    <ConfigMainItem>
+        <descr>Вікно розділів документів, позиція сплітера в пікселях відносно лівої сторони</descr>
+        <id>2123037758</id>
+        <isEditable>true</isEditable>
+        <isShow>true</isShow>
+        <lastModified>2025-01-16</lastModified>
+        <name>sections.spliter.pos</name>
+        <sectionName>AppState</sectionName>
+        <value>420</value>
+    </ConfigMainItem>
+    <ConfigMainItem>
+        <descr>Вікно документа, позиція сплітера в пікселях відносно правої/нижньої сторони</descr>
+        <id>-281082072</id>
+        <isEditable>true</isEditable>
+        <isShow>true</isShow>
+        <lastModified>2025-01-17</lastModified>
+        <name>document.spliter.pos</name>
+        <sectionName>AppState</sectionName>
+        <value>250</value>
+    </ConfigMainItem>
+    <ConfigMainItem>
+        <descr>Файл зі шляхом БД Планувальника</descr>
+        <id>-1253864407</id>
+        <isEditable>true</isEditable>
+        <isShow>true</isShow>
+        <lastModified>2025-03-10</lastModified>
+        <name>scheduler.path</name>
+        <sectionName>db</sectionName>
+        <value>db/scheduler.db</value>
+    </ConfigMainItem>
+    <ConfigMainItem>
+        <descr>Файл зі шляхом БД експорту даних Бази Знань</descr>
+        <id>-726463823</id>
+        <isEditable>true</isEditable>
+        <isShow>true</isShow>
+        <lastModified>2025-03-14</lastModified>
+        <name>export_kbase.path</name>
+        <sectionName>db</sectionName>
+        <value>db/export_kbase.db</value>
+    </ConfigMainItem>
+    <ConfigMainItem>
+        <descr>Скільки секунд показувати попап повідомлення (старт/стоп)</descr>
+        <id>-1785935737</id>
+        <isEditable>true</isEditable>
+        <isShow>true</isShow>
+        <lastModified>2025-09-03</lastModified>
+        <name>scheduler.msg.waitSec</name>
+        <sectionName>Scheduler</sectionName>
+        <value>5</value>
+    </ConfigMainItem>
+</ConfigMainList>

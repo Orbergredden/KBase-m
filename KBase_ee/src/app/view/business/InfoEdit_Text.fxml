@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.CheckBox?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.AnchorPane?>
+
+<AnchorPane prefHeight="300.0" prefWidth="400.0" xmlns="http://javafx.com/javafx/8.0.141" xmlns:fx="http://javafx.com/fxml/1" fx:controller="app.view.business.InfoEdit_Text_Controller">
+   <children>
+      <CheckBox fx:id="checkBox_isShowTitle" layoutX="14.0" layoutY="14.0" mnemonicParsing="false" AnchorPane.leftAnchor="14.0" AnchorPane.topAnchor="14.0" />
+      <TextField fx:id="textField_title" layoutX="35.0" layoutY="10.0" promptText="отображаемый заголовок" AnchorPane.leftAnchor="35.0" AnchorPane.rightAnchor="14.0" AnchorPane.topAnchor="10.0" />
+      <TextArea fx:id="textArea_text" layoutX="14.0" layoutY="42.0" prefHeight="200.0" prefWidth="200.0" promptText="текст блока" AnchorPane.bottomAnchor="4.0" AnchorPane.leftAnchor="4.0" AnchorPane.rightAnchor="4.0" AnchorPane.topAnchor="42.0" />
+   </children>
+</AnchorPane>

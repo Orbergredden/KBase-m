@@ -1,0 +1,51 @@
+.pre_highlight_kbase_xquery_dark_wrap code.hljs {
+	display:block;
+	overflow-x:auto;
+	padding:1em;
+	white-space: pre-wrap;
+}
+.pre_highlight_kbase_xquery_dark_wrap code.hljs{padding:3px 5px}
+.pre_highlight_kbase_xquery_dark_wrap .hljs{background:#333;color:#fff}
+.pre_highlight_kbase_xquery_dark_wrap .hljs-doctag,
+.pre_highlight_kbase_xquery_dark_wrap .hljs-meta-keyword,
+.pre_highlight_kbase_xquery_dark_wrap .hljs-name,
+.pre_highlight_kbase_xquery_dark_wrap .hljs-strong{font-weight:700}
+.pre_highlight_kbase_xquery_dark_wrap .hljs-code,
+.pre_highlight_kbase_xquery_dark_wrap .hljs-emphasis{font-style:italic}
+.pre_highlight_kbase_xquery_dark_wrap .hljs-section,
+.pre_highlight_kbase_xquery_dark_wrap .hljs-tag{color:#62c8f3}
+.pre_highlight_kbase_xquery_dark_wrap .hljs-selector-class,
+.pre_highlight_kbase_xquery_dark_wrap .hljs-selector-id,
+.pre_highlight_kbase_xquery_dark_wrap .hljs-template-variable,
+.pre_highlight_kbase_xquery_dark_wrap .hljs-variable{color:#ade5fc}
+.pre_highlight_kbase_xquery_dark_wrap .hljs-meta-string,
+.pre_highlight_kbase_xquery_dark_wrap .hljs-string{color:#a2fca2}
+.pre_highlight_kbase_xquery_dark_wrap .hljs-attr,
+.pre_highlight_kbase_xquery_dark_wrap .hljs-quote,
+.pre_highlight_kbase_xquery_dark_wrap .hljs-selector-attr{color:#7bd694}
+.pre_highlight_kbase_xquery_dark_wrap .hljs-tag .hljs-attr{color:inherit}
+.pre_highlight_kbase_xquery_dark_wrap .hljs-attribute,
+.pre_highlight_kbase_xquery_dark_wrap .hljs-title,
+.pre_highlight_kbase_xquery_dark_wrap .hljs-type{color:#ffa}
+.pre_highlight_kbase_xquery_dark_wrap .hljs-number,
+.pre_highlight_kbase_xquery_dark_wrap .hljs-symbol{color:#d36363}
+.pre_highlight_kbase_xquery_dark_wrap .hljs-bullet,
+.pre_highlight_kbase_xquery_dark_wrap .hljs-template-tag{color:#b8d8a2}
+.pre_highlight_kbase_xquery_dark_wrap .hljs-built_in,
+.pre_highlight_kbase_xquery_dark_wrap .hljs-keyword,
+.pre_highlight_kbase_xquery_dark_wrap .hljs-literal,
+.pre_highlight_kbase_xquery_dark_wrap .hljs-selector-tag{color:#fcc28c}
+.pre_highlight_kbase_xquery_dark_wrap .hljs-code,
+.pre_highlight_kbase_xquery_dark_wrap .hljs-comment,
+.pre_highlight_kbase_xquery_dark_wrap .hljs-formula{color:#888}
+.pre_highlight_kbase_xquery_dark_wrap .hljs-link,
+.pre_highlight_kbase_xquery_dark_wrap .hljs-regexp,
+.pre_highlight_kbase_xquery_dark_wrap .hljs-selector-pseudo{color:#c6b4f0}
+.pre_highlight_kbase_xquery_dark_wrap .hljs-meta{color:#fc9b9b}
+.pre_highlight_kbase_xquery_dark_wrap .hljs-deletion{background:#fc9b9b;color:#333}
+.pre_highlight_kbase_xquery_dark_wrap .hljs-addition{background:#a2fca2;color:#333}
+.pre_highlight_kbase_xquery_dark_wrap .hljs-subst{color:#fff}
+.pre_highlight_kbase_xquery_dark_wrap .hljs a{color:inherit}
+.pre_highlight_kbase_xquery_dark_wrap .hljs a:focus,
+.pre_highlight_kbase_xquery_dark_wrap .hljs a:hover{color:inherit;text-decoration:underline}
+.pre_highlight_kbase_xquery_dark_wrap .hljs mark{background:#555;color:inherit}

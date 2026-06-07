@@ -1,0 +1,87 @@
+<!--HEAD_BEGIN css_{[templateId]}-->
+<style>
+.divMain_{[templateId]} {
+    margin: 7px; /* Значение отступов */
+    padding: 2px; /* Поля вокруг текста */
+    /*padding-right: 100px;*/
+    border: 0px solid black; /* Параметры границы */
+}
+.aTitle_{[templateId]} {
+	font-weight: bold;
+    color: rgb(93,83,167);
+    margin: 0px; /* Значение отступов */
+    padding: 0px; /* Поля вокруг текста */
+}
+</style>
+<!--HEAD_END css_{[templateId]}-->
+
+<!--BODY_BEGIN {[InfoBlockId]}-->
+<div id="div_css_{[InfoBlockId]}">{[kbase_Info_Text]}</div>
+<div id="div_{[InfoBlockId]}" class="divMain_{[templateId]}">
+
+<SCRIPT type="text/javascript">
+var v_isShowDescr = {[isShowDescr]};
+var v_InfoDescr = "{[InfoDescr]}";
+
+document.getElementById("div_css_{[InfoBlockId]}").style.display = "none";
+
+if (v_isShowDescr == 1) {
+	document.write("<a id='{[InfoBlockId]}' class='aTitle_{[templateId]}'>" + v_InfoDescr + "</a>");
+} else {
+	document.write("<a id='{[InfoBlockId]}'></a>");
+}
+</SCRIPT>
+
+<script type="text/javascript">
+var obj = JSON.parse(document.getElementById("div_css_{[InfoBlockId]}").innerHTML);
+var _table_ = document.createElement('table'),
+  _tr_ = document.createElement('tr'),
+  _th_ = document.createElement('th'),
+  _td_ = document.createElement('td');
+  
+_table_.style = 'border-collapse: collapse; border: 1px solid black;';
+_tr_.style = 'border: 1px solid black; padding: 3px;';
+_th_.style = 'background-color: #4CAF50; color: white; border: 1px solid black; padding: 3px;';
+_td_.style = 'background-color: #f5f5f5; border: 1px solid black; padding: 3px;';
+  
+// Builds the HTML Table out of myList json data from Ivy restful service.
+function buildHtmlTable(arr) {
+  var table = _table_.cloneNode(false),
+    columns = addAllColumnHeaders(arr, table);
+  for (var i = 0, maxi = arr.length; i < maxi; ++i) {
+    var tr = _tr_.cloneNode(false);
+    for (var j = 0, maxj = columns.length; j < maxj; ++j) {
+      var td = _td_.cloneNode(false);
+      cellValue = arr[i][columns[j]];
+      td.appendChild(document.createTextNode(arr[i][columns[j]] || ''));
+      tr.appendChild(td);
+    }
+    table.appendChild(tr);
+  }
+  return table;
+}
+
+// Adds a header row to the table and returns the set of columns.
+// Need to do union of keys from all records as some records may not contain
+// all records
+function addAllColumnHeaders(arr, table) {
+  var columnSet = [],
+    tr = _tr_.cloneNode(false);
+  for (var i = 0, l = arr.length; i < l; i++) {
+    for (var key in arr[i]) {
+      if (arr[i].hasOwnProperty(key) && columnSet.indexOf(key) === -1) {
+        columnSet.push(key);
+        var th = _th_.cloneNode(false);
+        th.appendChild(document.createTextNode(key));
+        tr.appendChild(th);
+      }
+    }
+  }
+  table.appendChild(tr);
+  return columnSet;
+}  
+
+document.getElementById("div_{[InfoBlockId]}").appendChild(buildHtmlTable(obj));  
+</script>
+</div>
+<!--BODY_END-->

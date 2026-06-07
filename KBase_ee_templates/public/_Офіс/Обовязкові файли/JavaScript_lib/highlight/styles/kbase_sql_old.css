@@ -1,0 +1,48 @@
+.pre_highlight_kbase_sql_old code.hljs{display:block;overflow-x:auto;padding:1em}
+.pre_highlight_kbase_sql_old code.hljs{padding:3px 5px}
+
+/*.pre_highlight_kbase_sql_old .hljs{color:#000;background:rgb(254, 239, 237)}*/
+.pre_highlight_kbase_sql_old .hljs{
+	color:#000;
+	background-color:rgb(238, 238, 238);
+	background-image:linear-gradient(295deg,rgb(200, 200, 200) 0, rgb(238, 238, 238) 100%);
+	}
+.pre_highlight_kbase_sql_old .hljs-function,
+.pre_highlight_kbase_sql_old .hljs-keyword,
+.pre_highlight_kbase_sql_old .hljs-name,
+.pre_highlight_kbase_sql_old .hljs-section,
+.pre_highlight_kbase_sql_old .hljs-selector-tag,
+.pre_highlight_kbase_sql_old .hljs-symbol{color:rgb(193, 36, 2)}
+.pre_highlight_kbase_sql_old .hljs-comment{color:rgb(128, 128, 128)}
+.pre_highlight_kbase_sql_old .hljs-bullet,
+.pre_highlight_kbase_sql_old .hljs-literal,
+.pre_highlight_kbase_sql_old .hljs-number,
+.pre_highlight_kbase_sql_old .hljs-quote,
+.pre_highlight_kbase_sql_old .hljs-regexp{color:rgb(0, 0, 255)}
+
+.pre_highlight_kbase_sql_old .hljs-emphasis,
+.pre_highlight_kbase_sql_old .hljs-strong{color:#000}
+.pre_highlight_kbase_sql_old .hljs-code .hljs-selector-class{color:purple}
+.pre_highlight_kbase_sql_old .hljs-emphasis,
+.pre_highlight_kbase_sql_old .hljs-stronge,
+.pre_highlight_kbase_sql_old .hljs-type{font-style:italic}
+.pre_highlight_kbase_sql_old .hljs-subst,
+.pre_highlight_kbase_sql_old .hljs-tag,
+.pre_highlight_kbase_sql_old .hljs-title{color:#000}
+.pre_highlight_kbase_sql_old .hljs-attribute{color:maroon}
+.pre_highlight_kbase_sql_old .hljs-class .hljs-title,
+.pre_highlight_kbase_sql_old .hljs-params,
+.pre_highlight_kbase_sql_old .hljs-title.class_,
+.pre_highlight_kbase_sql_old .hljs-variable{color:#0055af}
+.pre_highlight_kbase_sql_old .hljs-addition,
+.pre_highlight_kbase_sql_old .hljs-built_in,
+.pre_highlight_kbase_sql_old .hljs-deletion,
+.pre_highlight_kbase_sql_old .hljs-link,
+.pre_highlight_kbase_sql_old .hljs-meta,
+.pre_highlight_kbase_sql_old .hljs-selector-attr,
+.pre_highlight_kbase_sql_old .hljs-selector-id,
+.pre_highlight_kbase_sql_old .hljs-selector-pseudo,
+.pre_highlight_kbase_sql_old .hljs-string,
+.pre_highlight_kbase_sql_old .hljs-template-tag,
+.pre_highlight_kbase_sql_old .hljs-template-variable,
+.pre_highlight_kbase_sql_old .hljs-type{color:green}

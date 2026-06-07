@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<ConfigMainList>
+    <ConfigMainItem>
+        <descr>Префікс шляху до користувацьких файлів (з підтримкою макро {HOMEDIR}</descr>
+        <id>-1785925387</id>
+        <isEditable>false</isEditable>
+        <isShow>true</isShow>
+        <lastModified>2025-09-04</lastModified>
+        <name>UserFilesPathPrefix</name>
+        <sectionName>Program</sectionName>
+        <value>{HOMEDIR}/KBase/KBase_ee_dev</value>
+    </ConfigMainItem>
+</ConfigMainList>

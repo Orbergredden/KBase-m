@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ContextMenu?>
+<?import javafx.scene.control.MenuItem?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.control.SeparatorMenuItem?>
+<?import javafx.scene.control.TitledPane?>
+<?import javafx.scene.control.ToolBar?>
+<?import javafx.scene.control.TreeTableColumn?>
+<?import javafx.scene.control.TreeTableView?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.text.Font?>
+
+<AnchorPane prefHeight="700.0" prefWidth="957.0" xmlns="http://javafx.com/javafx/8.0.65" xmlns:fx="http://javafx.com/fxml/1" fx:controller="app.view.business.template.TemplateList_Controller">
+   <children>
+      <Button fx:id="button_Exit" layoutY="10.0" mnemonicParsing="false" onAction="#handleButtonExit" prefHeight="25.0" prefWidth="0.0" text="X" textAlignment="CENTER" AnchorPane.leftAnchor="0.0" AnchorPane.topAnchor="0.0">
+         <font>
+            <Font name="System Bold" size="12.0" />
+         </font>
+      </Button>
+      <TitledPane fx:id="titledPane_Title" animated="false" layoutX="34.0" layoutY="10.0" prefHeight="56.0" prefWidth="202.0" text="Каталог шаблонов" AnchorPane.leftAnchor="24.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+         <content>
+            <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0" />
+         </content>
+      </TitledPane>
+      <ToolBar layoutX="10.0" layoutY="10.0" prefHeight="40.0" prefWidth="200.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="25.0">
+         <items>
+            <Button fx:id="button_templateAdd" mnemonicParsing="false" onAction="#handleButtonAddItem" />
+            <Button fx:id="button_templateUpdate" mnemonicParsing="false" onAction="#handleButtonUpdateItem" />
+            <Button fx:id="button_templateDelete" mnemonicParsing="false" onAction="#handleButtonDeleteItem" />
+            <Separator orientation="VERTICAL" />
+            <Button fx:id="button_templateCopy" mnemonicParsing="false" onAction="#handleButtonItemCopy" />
+            <Button fx:id="button_templateCut" mnemonicParsing="false" onAction="#handleButtonItemCut" />
+            <Button fx:id="button_templatePaste" mnemonicParsing="false" onAction="#handleButtonItemPaste" />
+            <Separator orientation="VERTICAL" />
+            <Button fx:id="button_treeRefresh" mnemonicParsing="false" onAction="#handleButtonRefreshTree" />
+         </items></ToolBar>
+      <TreeTableView fx:id="treeTableView_templates" layoutX="56.0" layoutY="64.0" prefHeight="636.0" prefWidth="900.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="64.0">
+        <columns>
+          <TreeTableColumn fx:id="treeTableColumn_name" prefWidth="250.0" text="Название" />
+          <TreeTableColumn fx:id="treeTableColumn_descr" prefWidth="250.0" text="Описание" />
+            <TreeTableColumn fx:id="treeTableColumn_id" prefWidth="50.0" text="id" />
+            <TreeTableColumn fx:id="treeTableColumn_dateCreated" prefWidth="100.0" text="Дата создания" />
+            <TreeTableColumn fx:id="treeTableColumn_dateModified" prefWidth="100.0" text="Дата изменения" />
+            <TreeTableColumn fx:id="treeTableColumn_userCreated" prefWidth="100.0" text="Кто создал" />
+            <TreeTableColumn fx:id="treeTableColumn_userModified" prefWidth="100.0" text="Кто изменил" />
+        </columns>
+         <contextMenu>
+            <ContextMenu>
+              <items>
+                  <MenuItem fx:id="menuitem_templateAdd" mnemonicParsing="false" onAction="#handleButtonAddItem" text="Новый..." />
+                  <MenuItem fx:id="menuitem_templateUpdate" mnemonicParsing="false" onAction="#handleButtonUpdateItem" text="Редактировать..." />
+                  <MenuItem fx:id="menuitem_templateDelete" mnemonicParsing="false" onAction="#handleButtonDeleteItem" text="Удалить" />
+                  <SeparatorMenuItem mnemonicParsing="false" />
+                  <MenuItem fx:id="menuitem_templateCopy" mnemonicParsing="false" onAction="#handleButtonItemCopy" text="Копировать" />
+                  <MenuItem fx:id="menuitem_templateCut" mnemonicParsing="false" onAction="#handleButtonItemCut" text="Вырезать" />
+                  <MenuItem fx:id="menuitem_templatePaste" mnemonicParsing="false" onAction="#handleButtonItemPaste" text="Вставить" />
+                  <SeparatorMenuItem mnemonicParsing="false" />
+                  <MenuItem fx:id="menuitem_treeRefresh" mnemonicParsing="false" onAction="#handleButtonRefreshTree" text="Оновити" />
+              </items>
+            </ContextMenu>
+         </contextMenu>
+      </TreeTableView>
+   </children>
+</AnchorPane>

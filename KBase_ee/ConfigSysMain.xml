@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<ConfigMainList>
+    <ConfigMainItem>
+        <id>-1284171030</id>
+        <isEditable>false</isEditable>
+        <isShow>true</isShow>
+        <lastModified>2018-02-05</lastModified>
+        <name>name</name>
+        <sectionName>AboutProgram</sectionName>
+        <value>KBase-ee</value>
+    </ConfigMainItem>
+    <ConfigMainItem>
+        <id>-1284171031</id>
+        <isEditable>true</isEditable>
+        <isShow>true</isShow>
+        <lastModified>2025-11-21</lastModified>
+        <name>version</name>
+        <sectionName>AboutProgram</sectionName>
+        <value>3.12.00.765</value>
+    </ConfigMainItem>
+    <ConfigMainItem>
+        <id>-1284171032</id>
+        <isEditable>false</isEditable>
+        <isShow>true</isShow>
+        <lastModified>2018-02-05</lastModified>
+        <name>BeginDate</name>
+        <sectionName>AboutProgram</sectionName>
+        <value>02.2017</value>
+    </ConfigMainItem>
+    <ConfigMainItem>
+        <id>-1284171033</id>
+        <isEditable>true</isEditable>
+        <isShow>true</isShow>
+        <lastModified>2025-11-21</lastModified>
+        <name>EndDate</name>
+        <sectionName>AboutProgram</sectionName>
+        <value>20.05.2026</value>
+    </ConfigMainItem>
+    <ConfigMainItem>
+        <id>-1284171034</id>
+        <isEditable>true</isEditable>
+        <isShow>true</isShow>
+        <lastModified>2025-11-21</lastModified>
+        <name>CodeName</name>
+        <sectionName>AboutProgram</sectionName>
+        <value>find information (DEV)</value>
+    </ConfigMainItem>
+    <ConfigMainItem>
+        <id>-1284171035</id>
+        <isEditable>false</isEditable>
+        <isShow>true</isShow>
+        <lastModified>2018-02-05</lastModified>
+        <name>Author</name>
+        <sectionName>AboutProgram</sectionName>
+        <value>Igor Makarevich</value>
+    </ConfigMainItem>
+    <ConfigMainItem>
+        <id>-1284171036</id>
+        <isEditable>false</isEditable>
+        <isShow>true</isShow>
+        <lastModified>2018-02-05</lastModified>
+        <name>site</name>
+        <sectionName>AboutProgram</sectionName>
+        <value>https://github.com/Orbergredden/KBase-ee</value>
+    </ConfigMainItem>
+    <ConfigMainItem>
+        <descr>Необхідна версія БД для роботи з програмою</descr>
+        <id>60312096</id>
+        <isEditable>false</isEditable>
+        <isShow>true</isShow>
+        <lastModified>2025-03-11</lastModified>
+        <name>Required version.KBase Pg</name>
+        <sectionName>DB</sectionName>
+        <value>2.02.01.*</value>
+    </ConfigMainItem>
+    <ConfigMainItem>
+        <descr>Необхідна версія БД для роботи з програмою</descr>
+        <id>60312096</id>
+        <isEditable>false</isEditable>
+        <isShow>true</isShow>
+        <lastModified>2025-03-11</lastModified>
+        <name>Required version.KBase Lite</name>
+        <sectionName>DB</sectionName>
+        <value>2.02.01.*</value>
+    </ConfigMainItem>
+    <ConfigMainItem>
+        <descr>Необхідна версія БД для роботи з програмою</descr>
+        <id>60312096</id>
+        <isEditable>false</isEditable>
+        <isShow>true</isShow>
+        <lastModified>2025-03-11</lastModified>
+        <name>Required version.Scheduler</name>
+        <sectionName>DB</sectionName>
+        <value>1.03.00.*</value>
+    </ConfigMainItem>
+    <ConfigMainItem>
+        <descr>Необхідна версія БД для роботи з програмою</descr>
+        <id>-791295135</id>
+        <isEditable>false</isEditable>
+        <isShow>true</isShow>
+        <lastModified>2025-03-14</lastModified>
+        <name>Required version.export_kbase</name>
+        <sectionName>DB</sectionName>
+        <value>1.00.00.*</value>
+    </ConfigMainItem>
+</ConfigMainList>

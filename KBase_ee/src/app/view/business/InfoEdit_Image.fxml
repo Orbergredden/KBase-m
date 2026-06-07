@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.CheckBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.control.SplitPane?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.ToolBar?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.AnchorPane?>
+
+<AnchorPane prefHeight="458.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="app.view.business.InfoEdit_Image_Controller">
+   <children>
+      <CheckBox fx:id="checkBox_isShowTitle" layoutX="14.0" layoutY="14.0" mnemonicParsing="false" AnchorPane.leftAnchor="14.0" AnchorPane.topAnchor="14.0" />
+      <TextField fx:id="textField_title" layoutX="35.0" layoutY="10.0" promptText="отображаемый заголовок" AnchorPane.leftAnchor="35.0" AnchorPane.rightAnchor="14.0" AnchorPane.topAnchor="10.0" />
+      <CheckBox fx:id="checkBox_isShowDescr" layoutX="14.0" layoutY="39.0" mnemonicParsing="false" AnchorPane.leftAnchor="14.0" AnchorPane.topAnchor="39.0" />
+      <TextField fx:id="textField_descr" layoutX="35.0" layoutY="35.0" promptText="описание" AnchorPane.leftAnchor="35.0" AnchorPane.rightAnchor="14.0" AnchorPane.topAnchor="35.0" />
+      <CheckBox fx:id="checkBox_isShowText" layoutX="14.0" layoutY="64.0" mnemonicParsing="false" AnchorPane.leftAnchor="14.0" AnchorPane.topAnchor="64.0" />
+      <Label layoutX="35.0" layoutY="64.0" text="показывать текст" AnchorPane.leftAnchor="35.0" AnchorPane.topAnchor="64.0" />
+      <TextField fx:id="textField_width" layoutX="278.0" layoutY="60.0" prefHeight="25.0" prefWidth="66.0" promptText="ширина" />
+      <TextField fx:id="textField_height" layoutX="359.0" layoutY="60.0" prefHeight="25.0" prefWidth="58.0" promptText="высота" />
+      <Label layoutX="348.0" layoutY="66.0" text="X" />
+      <AnchorPane layoutX="13.0" layoutY="91.0" prefHeight="200.0" prefWidth="200.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="90.0">
+         <children>
+            <SplitPane fx:id="splitPane_Main" dividerPositions="0.34782608695652173" layoutX="22.0" layoutY="11.0" prefHeight="275.0" prefWidth="471.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+              <items>
+                <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="160.0" prefWidth="100.0">
+                     <children>
+                        <ImageView fx:id="imageView_Preview" fitHeight="131.0" fitWidth="194.0" layoutX="6.0" layoutY="40.0" pickOnBounds="true" preserveRatio="true" AnchorPane.leftAnchor="0.0" AnchorPane.topAnchor="40.0" />
+                        <ToolBar layoutX="3.0" prefHeight="40.0" prefWidth="200.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                           <items>
+                              <Label fx:id="label_width" prefHeight="17.0" prefWidth="38.0" text="000" />
+                              <Label minWidth="8.0" prefHeight="17.0" prefWidth="8.0" text="x" />
+                              <Label fx:id="label_height" prefHeight="17.0" prefWidth="39.0" text="000" />
+                              <Separator orientation="VERTICAL" />
+                              <Button fx:id="button_LoadFromFile" mnemonicParsing="false" onAction="#handleButtonLoadFromFile" />
+                              <Button fx:id="button_CopyToClipboard" mnemonicParsing="false" onAction="#handleButtonCopyToClipboard" />
+                              <Button fx:id="button_PasteFromClipboard" mnemonicParsing="false" onAction="#handleButtonPasteFromClipboard" />
+                           </items>
+                        </ToolBar>
+                     </children>
+                  </AnchorPane>
+                  <TextArea fx:id="textArea_text" promptText="текст блока" />
+              </items>
+            </SplitPane>
+         </children>
+      </AnchorPane>
+      <Label layoutX="191.0" layoutY="65.0" text="Размер показа" />
+   </children>
+</AnchorPane>

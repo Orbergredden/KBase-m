@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Tab?>
+<?import javafx.scene.control.TabPane?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.ToolBar?>
+<?import javafx.scene.layout.AnchorPane?>
+
+<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="648.0" prefWidth="700.0" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="app.view.business.template.TemplateEdit_Controller">
+<children>
+	<TabPane layoutX="15.0" layoutY="40.0" prefHeight="648.0" prefWidth="690.0" tabClosingPolicy="UNAVAILABLE" AnchorPane.bottomAnchor="50.0" AnchorPane.leftAnchor="5.0" AnchorPane.rightAnchor="5.0" AnchorPane.topAnchor="0.0">
+        <tabs>
+        <Tab text="Основна">
+        	<content>
+            	<AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
+                	<children>
+                    	<Label layoutX="18.0" layoutY="15.0" text="ID :" AnchorPane.leftAnchor="5.0" AnchorPane.topAnchor="10.0" />
+                        <Label fx:id="label_TemplateId" layoutX="61.0" layoutY="10.0" text="null" AnchorPane.leftAnchor="65.0" AnchorPane.rightAnchor="5.0" />
+                        <Label layoutX="18.0" layoutY="30.0" text="parent ID :" AnchorPane.leftAnchor="5.0" AnchorPane.topAnchor="30.0" />
+                        <Label fx:id="label_TemplateParentId" layoutX="61.0" layoutY="30.0" text="null" AnchorPane.leftAnchor="65.0" AnchorPane.rightAnchor="5.0" />
+                    	<Label layoutX="5.0" layoutY="55.0" text="Назва" AnchorPane.leftAnchor="5.0" />
+                        <Label layoutX="5.0" layoutY="84.0" text="Опис" AnchorPane.leftAnchor="5.0" />
+                    	<TextField fx:id="textField_TemplateName" layoutX="65.0" layoutY="51.0" prefHeight="25.0" prefWidth="611.0" AnchorPane.leftAnchor="65.0" AnchorPane.rightAnchor="14.0" />
+                        <TextField fx:id="textField_TemplateDescr" layoutX="65.0" layoutY="82.0" prefHeight="25.0" prefWidth="611.0" AnchorPane.leftAnchor="65.0" AnchorPane.rightAnchor="14.0" />
+                    	<Label layoutX="11.0" layoutY="119.0" text="Дата создания :" AnchorPane.leftAnchor="11.0" />
+                        <Label layoutX="11.0" layoutY="145.0" text="Дата изменения :" AnchorPane.leftAnchor="11.0" />
+                        <Label layoutX="11.0" layoutY="170.0" text="Кто создал :" AnchorPane.leftAnchor="11.0" />
+                        <Label layoutX="11.0" layoutY="195.0" text="Кто изменял :" AnchorPane.leftAnchor="11.0" />
+                        <Label fx:id="label_TemplateDateModified" layoutX="112.0" layoutY="145.0" text="Label" />
+                        <Label fx:id="label_TemplateDateCreated" layoutX="112.0" layoutY="119.0" text="Label" />
+                        <Label fx:id="label_TemplateUserCreated" layoutX="112.0" layoutY="170.0" text="Label" />
+                        <Label fx:id="label_TemplateUserModified" layoutX="112.0" layoutY="195.0" text="Label" />
+                        <Label layoutX="9.0" layoutY="233.0" text="Кількість зв'язків зі стилями : " AnchorPane.leftAnchor="11.0" />
+                        <Label fx:id="label_LinkCount" layoutX="173.0" layoutY="233.0" prefHeight="17.0" prefWidth="68.0" text="Label" AnchorPane.leftAnchor="173.0" />
+                        <TextArea fx:id="textArea_LinkList" layoutX="12.0" layoutY="256.0" prefHeight="120.0" prefWidth="369.0" AnchorPane.bottomAnchor="10.0" AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="256.0" />
+                    </children>
+            	</AnchorPane>
+            </content>
+    	</Tab>
+    	<Tab text="Текст">
+                              <content>
+                                <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
+                                       <children>
+                                          <ToolBar layoutX="21.0" layoutY="14.0" prefHeight="40.0" prefWidth="200.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                                             <items>
+                                                <Button fx:id="button_TemplateFileOpen" mnemonicParsing="false" onAction="#handleButtonTemplateFileOpen" />
+                                                <Button fx:id="button_TemplateFileSaveToDisk" mnemonicParsing="false" onAction="#handleButtonTemplateFileSaveToDisk" />
+                                                <Button fx:id="button_TemplateFileSaveToDB" mnemonicParsing="false" onAction="#handleButtonTemplateFileSaveToDB" />
+                                             </items>
+                                          </ToolBar>
+                                          <TextArea fx:id="textArea_TemplateContent" layoutX="-90.0" layoutY="39.0" prefHeight="265.0" prefWidth="690.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="39.0" />
+                                       </children></AnchorPane>
+                              </content>
+                            </Tab>
+    	</tabs>
+    </TabPane>
+	<Button fx:id="button_Ok" defaultButton="true" layoutX="22.0" layoutY="208.0" mnemonicParsing="false" onAction="#handleButtonOk" prefHeight="25.0" prefWidth="140.0" text="Ok" AnchorPane.bottomAnchor="10.0" AnchorPane.leftAnchor="20.0" />
+    <Button fx:id="button_Cancel" cancelButton="true" layoutX="173.0" layoutY="208.0" mnemonicParsing="false" onAction="#handleButtonCancel" prefHeight="25.0" prefWidth="140.0" text="Відміна" AnchorPane.bottomAnchor="10.0" AnchorPane.leftAnchor="180.0" />
+</children>
+</AnchorPane>

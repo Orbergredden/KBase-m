@@ -1,0 +1,144 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<link rel="stylesheet" type="text/css" media="all" href='_files/kbase_main.css' />
+<script type="text/javascript" src='_files/JavaScript/scrollToElement.js'></script>
+<style>
+.divMain_0 {
+	border: 1px solid #ccc;
+	border-radius: 10px; 
+	background: #fff; 
+	color: #333;
+	margin: 0px 10px 0px 0px;
+}
+.divTitle_0 {
+	border-bottom: 1px solid #ccc;
+    border-radius: 10px;
+    background: #fff;
+    font-size: 0.9em;
+	position: relative;
+    padding: 7px 7px 7px 34px;
+    font-weight: bold;
+    background: #f0f0f0;
+}
+.spoiler-sign_0 {
+	position: absolute;
+	border: 1px solid #ccc;
+	border-radius: 10px;
+	left: 5px;
+    top: 5px;
+    display: block;
+    width: 20px;
+    height: 20px;
+    line-height: 21px;
+    text-align: center;
+    font-size: 14px;
+    font-family: FontAwesome;
+    font-weight: normal;
+    font-style: normal;
+    -webkit-font-smoothing: antialiased;
+    cursor: pointer;
+}
+.divDescr_0 {
+	font-size: 11pt;
+	font-weight: normal;
+    font-style: normal;
+    padding:0px;
+    margin:0px;
+    color:rgb(0, 0, 255);
+}
+.divPath_0 {
+	font-size: 11pt;
+	font-weight: normal;
+    font-style: normal;
+    padding:0px;
+    margin:0px;
+}
+.divSectionInfo_0 {
+	padding: 0px 0px 0px 7px;
+	background: #f9f9f0;
+}
+</style>
+{[Insert_Info_Headers]}
+</head>
+
+<body>
+<script type="text/javascript">
+document.addEventListener('DOMContentLoaded', function() {
+  var divTitle_0 = document.getElementById('divTitle_0');
+  var spoilerSign_0 = document.getElementById('spoiler-sign_0');
+  var divSectionInfo_0 = document.getElementById('divSectionInfo_0');
+
+  //var spoilerState = document.javaPreferences.get("Template_KbaseMain_HeaderExt_SpoilerState","opened");
+  //var spoilerState = document.javaPreferences.getTest();
+  //var spoilerState = 'closed';
+  var spoilerState = '{[javaPreferences_get(Template_KbaseMain_HeaderExt_SpoilerState,closed)]}';
+  //document.write("<p>spoilerState : " + spoilerState + "</p>");
+  
+  if (spoilerState == 'opened') {
+	  divSectionInfo_0.style.display = 'block';
+	  divTitle_0.classList.remove('closed');
+      divTitle_0.classList.add('opened');
+      spoilerSign_0.textContent = '-';
+  } else {
+	  divSectionInfo_0.style.display = 'none';
+	  divTitle_0.classList.remove('opened');
+      divTitle_0.classList.add('closed');
+      spoilerSign_0.textContent = '+';
+  }
+
+  spoilerSign_0.addEventListener('click', function() {
+    if (divSectionInfo_0.style.display === 'none' || divSectionInfo_0.style.display === '') {
+      divSectionInfo_0.style.display = 'block';
+      divTitle_0.classList.remove('closed');
+      divTitle_0.classList.add('opened');
+	  spoilerSign_0.textContent = '-';
+      document.javaPreferences.put('Template_KbaseMain_HeaderExt_SpoilerState','opened');
+    } else {
+      divSectionInfo_0.style.display = 'none';
+      divTitle_0.classList.remove('opened');
+      divTitle_0.classList.add('closed');
+      spoilerSign_0.textContent = '+';
+      document.javaPreferences.put('Template_KbaseMain_HeaderExt_SpoilerState','closed');
+    }
+  });
+});
+</script>
+
+<div class="divMain_0">
+<div id="divTitle_0" class="divTitle_0">
+<span id="spoiler-sign_0" class="spoiler-sign_0">-</span>
+<h1>{[Section_Name]}</h1>
+<script type="text/javascript">
+if ("{[Section_Descr]}" != "") {
+	document.write("<div class='divDescr_0'>{[Section_Descr]}</div>");
+}
+</script>
+<div class="divPath_0">{[Title_Path]}</div>
+</div>
+<div id="divSectionInfo_0" class="divSectionInfo_0">
+<table>
+<tr><td>id</td><td>{[Section_Id]}</td></tr>
+<tr><td>ParentId</td><td>{[Section_ParentId]}</td></tr>
+<tr><td>name</td><td>{[Section_Name]}</td></tr>
+<tr><td>descr</td><td>{[Section_Descr]}</td></tr>
+<tr><td>icon_id</td><td>{[Section_IconId]}</td></tr>
+<tr><td>date_created</td><td>{[Section_DateCreated]}</td></tr>
+<tr><td>date_modified</td><td>{[Section_DateModified]}</td></tr>
+<tr><td>date_modified_info</td><td>{[Section_DateModifiedInfo]}</td></tr>
+<tr><td>user_created</td><td>{[Section_UserCreated]}</td></tr>
+<tr><td>user_modified</td><td>{[Section_UserModified]}</td></tr>
+<tr><td>icon_id_root</td><td>{[Section_IconIdRoot]}</td></tr>
+<tr><td>icon_id_def</td><td>{[Section_IconIdDef]}</td></tr>
+<tr><td>style_main</td><td>{[Section_StyleMain]}</td></tr>
+<tr><td>style_tree</td><td>{[Section_StyleMainTree]}</td></tr>
+<tr><td>style_root</td><td>{[Section_StyleMainRoot]}</td></tr>
+<tr><td>theme_id</td><td>{[Section_ThemeId]}</td></tr>
+</table>
+</div>
+</div>
+
+{[Insert_Info_Blocks]}
+
+</body>
+</html>

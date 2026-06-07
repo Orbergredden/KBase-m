@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.RadioButton?>
+<?import javafx.scene.control.ToggleGroup?>
+<?import javafx.scene.control.TreeTableColumn?>
+<?import javafx.scene.control.TreeTableView?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.AnchorPane?>
+
+<AnchorPane prefHeight="600.0" prefWidth="500.0" xmlns="http://javafx.com/javafx/8.0.141" xmlns:fx="http://javafx.com/fxml/1" fx:controller="app.view.business.IconSelect_Controller">
+   <children>
+      <TreeTableView fx:id="treeTableView_icons" layoutX="14.0" layoutY="14.0" prefHeight="391.0" prefWidth="490.0" AnchorPane.bottomAnchor="60.0" AnchorPane.leftAnchor="5.0" AnchorPane.rightAnchor="5.0" AnchorPane.topAnchor="150.0">
+        <columns>
+          <TreeTableColumn id="name" fx:id="treeTableColumn_name" prefWidth="300.0" text="Название" />
+          <TreeTableColumn id="descr" fx:id="treeTableColumn_description" minWidth="0.0" prefWidth="130.0" text="Описание" />
+            <TreeTableColumn id="id" fx:id="treeTableColumn_id" prefWidth="75.0" text="Номер" />
+        </columns>
+      </TreeTableView>
+      <Button fx:id="button_Select" defaultButton="true" layoutX="72.0" layoutY="554.0" mnemonicParsing="false" onAction="#handleButtonSelect" prefHeight="25.0" prefWidth="130.0" text="Выбрать" AnchorPane.bottomAnchor="20.0" AnchorPane.leftAnchor="80.0" />
+      <Button fx:id="button_Cancel" cancelButton="true" layoutX="293.0" layoutY="555.0" mnemonicParsing="false" onAction="#handleButtonCancel" prefHeight="25.0" prefWidth="130.0" text="Отмена" AnchorPane.bottomAnchor="20.0" AnchorPane.leftAnchor="290.0" />
+      <RadioButton fx:id="radioButton_IconDef" layoutX="14.0" layoutY="14.0" mnemonicParsing="false" selected="true" text="По умолчанию" AnchorPane.leftAnchor="14.0">
+         <toggleGroup>
+            <ToggleGroup fx:id="grp_sel_type" />
+         </toggleGroup>
+      </RadioButton>
+      <RadioButton fx:id="radioButton_IconLast" layoutX="14.0" layoutY="71.0" mnemonicParsing="false" text="Последняя выбиралась" toggleGroup="$grp_sel_type" AnchorPane.leftAnchor="14.0" />
+      <RadioButton fx:id="radioButton_IconInList" layoutX="18.0" layoutY="128.0" mnemonicParsing="false" text="Выбрать из списка" toggleGroup="$grp_sel_type" AnchorPane.leftAnchor="14.0" />
+      <ImageView fx:id="imageView_IconDef" fitHeight="24.0" fitWidth="24.0" layoutX="33.0" layoutY="38.0" pickOnBounds="true" preserveRatio="true" AnchorPane.leftAnchor="30.0" />
+      <Label fx:id="label_IconDefName" layoutX="66.0" layoutY="42.0" text="Название пиктограмы" AnchorPane.leftAnchor="65.0" />
+      <ImageView fx:id="imageView_IconLast" fitHeight="24.0" fitWidth="24.0" layoutX="38.0" layoutY="96.0" pickOnBounds="true" preserveRatio="true" AnchorPane.leftAnchor="30.0" />
+      <Label fx:id="label_IconLastName" layoutX="66.0" layoutY="100.0" text="Название пиктограмы" AnchorPane.leftAnchor="65.0" />
+   </children>
+</AnchorPane>

@@ -1,0 +1,122 @@
+<!--HEAD_BEGIN css_{[templateId]}-->
+<style>
+.divMain_{[templateId]} {
+    margin: 7px; /* Значение отступов */
+    padding: 2px; /* Поля вокруг текста */
+    border: 0px solid black; /* Параметры границы */
+}
+.aTitle_{[templateId]} {
+	font-weight: bold;
+    color: rgb(93,83,167);
+    margin: 0px; /* Значение отступов */
+    padding: 0px; /* Поля вокруг текста */
+}
+.aDescr_{[templateId]} {
+    color: rgb(133,123,207);
+	margin: 0px; /* Значение отступов */
+	padding: 0px; /* Поля вокруг текста */
+}
+.divTitle_{[templateId]} {
+	border-radius: 10px;
+	position: relative;
+    cursor: pointer;
+    padding: 7px 7px 7px 34px;
+}
+.spoiler-sign_{[templateId]} {
+	position: absolute;
+	border: 1px solid #ccc;
+	border-radius: 2px;
+	left: 5px;
+   	top: 5px;
+    display: block;
+    width: 20px;
+    height: 20px;
+    line-height: 21px;
+    text-align: center;
+    font-size: 14px;
+    font-family: FontAwesome;
+    font-weight: normal;
+    font-style: normal;
+    -webkit-font-smoothing: antialiased;
+}
+.divBody_{[templateId]} {
+	padding: 0px 0px 0px 7px;
+}
+.pre_{[templateId]} {
+	color : #000000;
+    white-space: pre-wrap;       /* CSS 3 */
+    white-space: -moz-pre-wrap;  /* Mozilla, since 1999 */
+    white-space: -pre-wrap;      /* Opera 4-6 */
+    white-space: -o-pre-wrap;    /* Opera 7 */
+    word-wrap: break-word;       /* Internet Explorer 5.5+ */
+    padding: 0px; 
+    margin: 0px;
+}
+</style>
+<!--HEAD_END css_{[templateId]}-->
+
+<!--HEAD_BEGIN jquery-->
+<script type="text/javascript" src='_files/JavaScript_lib/jquery.js'></script>
+<!--HEAD_END jquery-->
+
+<!--BODY_BEGIN {[InfoBlockId]}-->
+<div class="divMain_{[templateId]}">
+
+<script type="text/javascript">
+$(document).ready(function(){
+$('#divBody_{[InfoBlockId]}').hide();
+$('#divTitle_{[InfoBlockId]}').click(function(){
+	$(this).toggleClass('opened').toggleClass('closed').next().toggle();
+    if($(this).hasClass('opened')) {
+        $('#spoiler-sign_{[InfoBlockId]}').html('-');
+    }
+    else {
+        $('#spoiler-sign_{[InfoBlockId]}').html('+');
+    }
+});
+});
+</script>
+
+<SCRIPT type="text/javascript">
+var v_InfoImageTitle = "{[InfoImageTitle]}";
+var v_InfoImagePath = "{[InfoImagePath]}";
+var v_InfoImageWidth = {[InfoImageWidth]};
+var v_InfoImageHeight = {[InfoImageHeight]};
+var v_InfoImageDescr = "{[InfoImageDescr]}";
+var v_isShowTitle = {[isShowTitle]};
+var v_isShowDescr = {[isShowDescr]};
+var v_isShowText = {[isShowText]};
+				 
+var s_InfoImageWidth  = (v_InfoImageWidth  > 0) ? " width='"+v_InfoImageWidth+"' " : "";
+var s_InfoImageHeight = (v_InfoImageHeight > 0) ? " height='"+v_InfoImageHeight+"' " : "";
+</SCRIPT>
+
+<div id="divTitle_{[InfoBlockId]}" class="divTitle_{[templateId]}">
+<span id="spoiler-sign_{[InfoBlockId]}" class="spoiler-sign_{[templateId]}">+</span>
+<script type="text/javascript">
+if (v_isShowTitle == 1) {
+	document.write("<a id='{[InfoBlockId]}' class='aTitle_{[templateId]}'>" + v_InfoImageTitle + "</a>");
+	document.write("<br>");
+} else {
+	document.write("<a id='{[InfoBlockId]}'></a>");
+}
+</script>
+</div>
+
+<div id='divBody_{[InfoBlockId]}' class="divBody_{[templateId]}">
+
+<SCRIPT type="text/javascript">
+document.write("<img "+ s_InfoImageWidth + s_InfoImageHeight +" src='" + v_InfoImagePath + "'>");
+document.write("<br>");
+
+if (v_isShowDescr == 1) {
+	document.write("<a class='aDescr_{[templateId]}'>" + v_InfoImageDescr + "</a>");
+	document.write("<br>");
+}
+</SCRIPT>
+
+<pre id="pre_{[InfoBlockId]}" class="pre_{[templateId]}">{[InfoImageText]}</pre>
+
+</div>
+</div>
+<!--BODY_END-->

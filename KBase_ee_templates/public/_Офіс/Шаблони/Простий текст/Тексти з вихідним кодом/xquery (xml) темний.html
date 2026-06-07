@@ -1,0 +1,56 @@
+<!--HEAD_BEGIN css_{[templateId]}-->
+<style>
+.divMain_{[templateId]} {
+    margin: 7px; /* Значение отступов */
+    padding: 2px; /* Поля вокруг текста */
+    border: 0px solid black; /* Параметры границы */
+}
+.aTitle_{[templateId]} {
+	font-weight: bold;
+    color: rgb(40,40,140);
+    margin: 0px; /* Значение отступов */
+    padding: 0px; /* Поля вокруг текста */
+}
+.aCopy_{[templateId]} {
+	font-weight: bold;
+    color: rgb(255,255,255);
+	background-color: rgb(200,200,200);
+    margin: 0px; /* Значение отступов */
+    padding: 0px; /* Поля вокруг текста */
+	cursor: pointer;
+}
+</style>
+<!--HEAD_END css_{[templateId]}-->
+
+<!--HEAD_BEGIN copyTextToClipboard-->
+<script type="text/javascript" src='_files/JavaScript/Простий_текст/copyTextToClipboard.js'></script>
+<!--HEAD_END copyTextToClipboard-->
+
+<!--HEAD_BEGIN highlight-->
+<script type="text/javascript" src='_files/JavaScript_lib/highlight/highlight.js'></script>
+<!--HEAD_END highlight-->
+
+<!--HEAD_BEGIN highlight_css_agate-->
+<link rel="stylesheet" href="_files/JavaScript_lib/highlight/styles/agate.css">
+<!--HEAD_END highlight_css_agate-->
+
+<!--BODY_BEGIN {[InfoBlockId]}-->
+<div class="divMain_{[templateId]}">
+
+<SCRIPT type="text/javascript">
+var v_isShowDescr = {[isShowDescr]};
+var v_InfoDescr = "{[InfoDescr]}";
+
+if (v_isShowDescr == 1) {
+	document.write("<a id='{[InfoBlockId]}' class='aTitle_{[templateId]}'>" + v_InfoDescr + "</a>");
+} else {
+	document.write("<a id='{[InfoBlockId]}'></a>");
+}
+document.write("&nbsp;&nbsp;&nbsp;");
+document.write("<a class='aCopy_{[templateId]}' onclick='copyTextToClipboard(document.getElementById(\"pre_{[InfoBlockId]}\").innerText); return false'>[copy]</a>");
+</SCRIPT>
+
+<pre id="pre_{[InfoBlockId]}" class="pre_highlight_agate"><code><xmp>{[kbase_Info_Text]}</xmp></code></pre>
+<script>hljs.highlightAll();</script>
+</div>
+<!--BODY_END-->

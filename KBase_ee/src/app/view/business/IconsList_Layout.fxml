@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ContextMenu?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.MenuItem?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.control.SeparatorMenuItem?>
+<?import javafx.scene.control.SplitPane?>
+<?import javafx.scene.control.Tab?>
+<?import javafx.scene.control.TabPane?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.TitledPane?>
+<?import javafx.scene.control.ToolBar?>
+<?import javafx.scene.control.TreeTableColumn?>
+<?import javafx.scene.control.TreeTableView?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.text.Font?>
+
+<AnchorPane prefHeight="484.0" prefWidth="1207.0" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="app.view.business.IconsList_Controller">
+   <children>
+      <Button fx:id="button_Exit" layoutX="-10.0" mnemonicParsing="false" onAction="#handleButtonExit" prefHeight="25.0" prefWidth="0.0" text="X" textAlignment="CENTER" AnchorPane.leftAnchor="0.0" AnchorPane.topAnchor="0.0">
+         <font>
+            <Font name="System Bold" size="12.0" />
+         </font>
+      </Button>
+      <TitledPane fx:id="titledPane_Title" animated="false" expanded="false" layoutX="24.0" prefHeight="56.0" prefWidth="202.0" text="Каталог пиктограмм" AnchorPane.leftAnchor="24.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+        <content>
+          <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0" />
+        </content>
+      </TitledPane>
+      <ToolBar prefHeight="40.0" prefWidth="200.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="25.0">
+         <items>
+            <Button fx:id="button_iconSaveToDisk" mnemonicParsing="false" onAction="#handleButtonIconSaveToDisk" />
+            <Separator orientation="VERTICAL" />
+            <Button fx:id="button_iconCopy" mnemonicParsing="false" onAction="#handleButtonIconCopy" />
+            <Button fx:id="button_iconCut" mnemonicParsing="false" onAction="#handleButtonIconCut" />
+            <Button fx:id="button_iconPaste" mnemonicParsing="false" onAction="#handleButtonIconPaste" />
+            <Button fx:id="button_iconDelete" mnemonicParsing="false" onAction="#handleButtonDeleteIcon" />
+         </items></ToolBar>
+      <SplitPane fx:id="splitPane_main" dividerPositions="0.6157676348547718" prefHeight="160.0" prefWidth="200.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="64.0">
+        <items>
+          <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="160.0" prefWidth="100.0">
+               <children>
+                  <TreeTableView fx:id="treeTableView_icons" prefHeight="420.0" prefWidth="819.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                    <columns>
+                      <TreeTableColumn id="name" fx:id="treeTableColumn_name" prefWidth="309.0" text="Название" />
+                        <TreeTableColumn id="descr" fx:id="treeTableColumn_description" prefWidth="426.0" text="Описание" />
+                        <TreeTableColumn fx:id="treeTableColumn_id" prefWidth="75.0" style="-fx-alignment: CENTER-RIGHT;" text="id" />
+                    </columns>
+                     <contextMenu>
+                        <ContextMenu>
+                          <items>
+                            <MenuItem fx:id="menuitem_iconSaveToDisk" mnemonicParsing="false" onAction="#handleButtonIconSaveToDisk" text="Сохранить пиктограмму на диск..." />
+                              <SeparatorMenuItem mnemonicParsing="false" />
+                              <MenuItem fx:id="menuitem_iconCopy" mnemonicParsing="false" onAction="#handleButtonIconCopy" text="Копировать" />
+                              <MenuItem fx:id="menuitem_iconCut" mnemonicParsing="false" onAction="#handleButtonIconCut" text="Вырезать" />
+                              <MenuItem fx:id="menuitem_iconPaste" mnemonicParsing="false" onAction="#handleButtonIconPaste" text="Вставить" />
+                              <MenuItem fx:id="menuitem_iconDelete" mnemonicParsing="false" onAction="#handleButtonDeleteIcon" text="Удалить пиктограмму" />
+                          </items>
+                        </ContextMenu>
+                     </contextMenu>
+                  </TreeTableView>
+               </children>
+            </AnchorPane>
+            <TabPane prefHeight="200.0" prefWidth="200.0" tabClosingPolicy="UNAVAILABLE">
+              <tabs>
+                <Tab text="Изменить">
+                     <content>
+                        <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="160.0" prefWidth="100.0">
+                           <children>
+                              <Label layoutX="14.0" layoutY="14.0" text="Изменение/Удаление пиктограммы">
+                                 <font>
+                                    <Font name="System Bold" size="12.0" />
+                                 </font>
+                              </Label>
+                              <Label layoutX="14.0" layoutY="44.0" text="id :" AnchorPane.leftAnchor="15.0" />
+                              <Label fx:id="label_u_id" layoutX="37.0" layoutY="44.0" prefHeight="17.0" prefWidth="206.0" />
+                              <Label layoutX="15.0" layoutY="68.0" text="id родителя : " />
+                              <Label fx:id="label_u_parentId" layoutX="89.0" layoutY="69.0" prefHeight="17.0" prefWidth="155.0" />
+                              <Label layoutX="15.0" layoutY="181.0" text="Название : " />
+                              <TextField fx:id="textField_u_name" layoutX="79.0" layoutY="177.0" promptText="Название пиктограммы в списке" AnchorPane.leftAnchor="79.0" AnchorPane.rightAnchor="15.0" />
+                              <Label layoutX="16.0" layoutY="213.0" text="Описание : " />
+                              <TextField fx:id="textField_u_description" layoutX="80.0" layoutY="209.0" promptText="Описание пиктограммы" AnchorPane.leftAnchor="80.0" AnchorPane.rightAnchor="15.0" />
+                              <Label layoutX="16.0" layoutY="121.0" text="Добавлен : " />
+                              <Label layoutX="16.0" layoutY="147.0" text="Изменен : " />
+                              <Label fx:id="label_u_dateCreated" layoutX="80.0" layoutY="121.0" prefHeight="17.0" prefWidth="120.0" AnchorPane.leftAnchor="80.0" AnchorPane.rightAnchor="14.0" />
+                              <Label fx:id="label_u_dateModified" layoutX="80.0" layoutY="147.0" prefHeight="17.0" prefWidth="120.0" AnchorPane.leftAnchor="80.0" AnchorPane.rightAnchor="14.0" />
+                              <ImageView fx:id="imageView_u_image" fitHeight="56.0" fitWidth="52.0" layoutX="16.0" layoutY="248.0" pickOnBounds="true" preserveRatio="true">
+                                 <image>
+                                    <Image url="@../../../../resources/images/icon_CatalogIcons_24.png" />
+                                 </image>
+                              </ImageView>
+                              <TextField fx:id="textField_u_fileName" layoutX="80.0" layoutY="251.0" promptText="Имя файла" AnchorPane.leftAnchor="80.0" AnchorPane.rightAnchor="15.0" />
+                              <Button fx:id="button_u_selectImage" layoutX="80.0" layoutY="282.0" mnemonicParsing="false" onAction="#handleButtonSelectImageForUpdate" text="Загрузить..." />
+                              <Button fx:id="button_update" layoutX="20.0" layoutY="350.0" mnemonicParsing="false" onAction="#handleButtonUpdateIcon" prefHeight="25.0" prefWidth="120.0" text="Изменить" />
+                              <Label fx:id="label_u_imageSize" layoutX="15.0" layoutY="317.0" prefHeight="17.0" prefWidth="142.0" AnchorPane.leftAnchor="15.0" />
+                              <Label layoutX="15.0" layoutY="94.0" text="Название родителя : " />
+                              <Label fx:id="label_u_parentName" layoutX="132.0" layoutY="94.0" prefHeight="17.0" prefWidth="314.0" AnchorPane.leftAnchor="131.0" AnchorPane.rightAnchor="15.0" />
+                              <Button fx:id="button_delete" layoutX="167.0" layoutY="350.0" mnemonicParsing="false" onAction="#handleButtonDeleteIcon" prefHeight="25.0" prefWidth="120.0" text="Удалить" />
+                           </children>
+                        </AnchorPane>
+                     </content>
+                </Tab>
+                <Tab text="Добавить">
+                     <content>
+                      <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="160.0" prefWidth="100.0">
+                           <children>
+                              <Label layoutX="14.0" layoutY="14.0" text="Добавление пиктограммы">
+                                 <font>
+                                    <Font name="System Bold" size="12.0" />
+                                 </font>
+                              </Label>
+                              <Label layoutX="14.0" layoutY="44.0" text="id :" AnchorPane.leftAnchor="15.0" />
+                              <Label layoutX="15.0" layoutY="68.0" text="id родителя : " />
+                              <Label layoutX="15.0" layoutY="181.0" text="Название : " />
+                              <TextField fx:id="textField_a_name" layoutX="79.0" layoutY="177.0" promptText="Название пиктограммы в списке" AnchorPane.leftAnchor="79.0" AnchorPane.rightAnchor="15.0" />
+                              <Label layoutX="16.0" layoutY="213.0" text="Описание : " />
+                              <TextField fx:id="textField_a_description" layoutX="80.0" layoutY="209.0" promptText="Описание пиктограммы" AnchorPane.leftAnchor="80.0" AnchorPane.rightAnchor="15.0" />
+                              <Label layoutX="16.0" layoutY="121.0" text="Добавлен : " />
+                              <Label layoutX="16.0" layoutY="147.0" text="Изменен : " />
+                              <Label fx:id="label_a_dateCreated" layoutX="80.0" layoutY="121.0" prefHeight="17.0" prefWidth="120.0" />
+                              <Label fx:id="label_a_dateModified" layoutX="80.0" layoutY="147.0" prefHeight="17.0" prefWidth="120.0" />
+                              <ImageView fx:id="imageView_a_image" fitHeight="56.0" fitWidth="52.0" layoutX="16.0" layoutY="248.0" pickOnBounds="true" preserveRatio="true">
+                                 <image>
+                                    <Image url="@../../../../resources/images/icon_CatalogIcons_24.png" />
+                                 </image>
+                              </ImageView>
+                              <TextField fx:id="textField_a_fileName" layoutX="80.0" layoutY="251.0" promptText="Имя файла" AnchorPane.leftAnchor="80.0" AnchorPane.rightAnchor="15.0" />
+                              <Button fx:id="button_a_selectImage" layoutX="80.0" layoutY="282.0" mnemonicParsing="false" onAction="#handleButtonSelectImageForAdd" text="Загрузить..." />
+                              <Button fx:id="button_add" layoutX="20.0" layoutY="350.0" mnemonicParsing="false" onAction="#handleButtonAddIcon" prefHeight="25.0" prefWidth="120.0" text="Добавить" />
+                              <Label fx:id="label_a_imageSize" layoutX="15.0" layoutY="317.0" prefHeight="17.0" prefWidth="142.0" AnchorPane.leftAnchor="15.0" />
+                              <Label layoutX="15.0" layoutY="94.0" text="Название родителя : " />
+                              <Label fx:id="label_a_parentName" layoutX="132.0" layoutY="94.0" prefHeight="17.0" prefWidth="313.0" AnchorPane.leftAnchor="132.0" AnchorPane.rightAnchor="15.0" />
+                              <Label fx:id="label_a_id" layoutX="38.0" layoutY="44.0" prefHeight="17.0" prefWidth="163.0" />
+                              <Label fx:id="label_a_parentId" layoutX="93.0" layoutY="68.0" prefHeight="17.0" prefWidth="313.0" />
+                           </children>
+                        </AnchorPane>
+                     </content>
+                </Tab>
+              </tabs>
+            </TabPane>
+        </items>
+      </SplitPane>
+   </children>
+</AnchorPane>

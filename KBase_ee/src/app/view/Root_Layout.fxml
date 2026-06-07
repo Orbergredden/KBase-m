@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Menu?>
+<?import javafx.scene.control.MenuBar?>
+<?import javafx.scene.control.MenuItem?>
+<?import javafx.scene.control.SeparatorMenuItem?>
+<?import javafx.scene.control.TabPane?>
+<?import javafx.scene.input.KeyCodeCombination?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+
+<BorderPane prefHeight="716.0" prefWidth="977.0" stylesheets="@custom.css" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="app.view.Root_Controller">
+   <top>
+      <MenuBar BorderPane.alignment="CENTER">
+        <menus>
+          <Menu mnemonicParsing="false" text="Файл">
+            <items>
+                  <MenuItem fx:id="menuitem_OpenTab" mnemonicParsing="false" onAction="#handleOpenTab" text="Відкрити збережений таб..." />
+                  <SeparatorMenuItem mnemonicParsing="false" />
+                  <MenuItem fx:id="menuitem_SaveAll" mnemonicParsing="false" onAction="#handleSaveAll" text="Зберегти усі редагування" />
+                  <MenuItem fx:id="menuitem_SaveProgramState" mnemonicParsing="false" onAction="#handleSaveProgramState" text="Зберегти стан програми..." />
+                  <SeparatorMenuItem mnemonicParsing="false" />
+                  <MenuItem fx:id="menuitem_ConfigSysMainList" mnemonicParsing="false" onAction="#handleConfigSysMainList" text="Системна інформація..." />
+                  <MenuItem fx:id="menuitem_ConfigSysVarsList" mnemonicParsing="false" onAction="#handleConfigSysVarsList" text="Системні налаштування..." />
+                  <MenuItem fx:id="menuitem_ConfigMainList" mnemonicParsing="false" onAction="#handleConfigMainList" text="Користувацькі налаштування..." />
+                  <SeparatorMenuItem mnemonicParsing="false" />
+              <MenuItem mnemonicParsing="false" onAction="#handleExit" text="Вихід" />
+            </items>
+          </Menu>
+            <Menu mnemonicParsing="false" text="База Знань">
+              <items>
+                  <MenuItem fx:id="menuitem_ConnectToDB" mnemonicParsing="false" onAction="#handleConnectToDB" text="Під'єднатися...">
+                     <accelerator>
+                        <KeyCodeCombination alt="DOWN" code="N" control="UP" meta="UP" shift="UP" shortcut="UP" />
+                     </accelerator></MenuItem>
+                  <SeparatorMenuItem mnemonicParsing="false" />
+                  <MenuItem fx:id="menuitem_SectionsOfDocuments" mnemonicParsing="false" onAction="#handleSectionsOfDocuments" text="Розділи документів та словників..." />
+                <MenuItem fx:id="menuitem_CatalogIcons" mnemonicParsing="false" onAction="#handleCatalogIcons" text="Піктограми...">
+                     <accelerator>
+                        <KeyCodeCombination alt="DOWN" code="I" control="UP" meta="UP" shift="UP" shortcut="UP" />
+                     </accelerator></MenuItem>
+                  <MenuItem fx:id="menuitem_CatalogTemplates" mnemonicParsing="false" onAction="#handleCatalogTemplates" text="Шаблони документів...">
+                     <accelerator>
+                        <KeyCodeCombination alt="DOWN" code="S" control="UP" meta="UP" shift="UP" shortcut="UP" />
+                     </accelerator>
+                  </MenuItem>
+              </items>
+            </Menu>
+            <Menu mnemonicParsing="false" text="Планувальник">
+              <items>
+                  <MenuItem fx:id="menuitem_Tasks" mnemonicParsing="false" onAction="#handleTasks" text="Перелік завдань..." />
+              </items>
+            </Menu>
+          <Menu mnemonicParsing="false" text="Довідка">
+            <items>
+              <MenuItem fx:id="menuitem_About" mnemonicParsing="false" onAction="#handleAbout" text="О програмі..." />
+            </items>
+          </Menu>
+        </menus>
+      </MenuBar>
+   </top>
+   <center>
+      <TabPane fx:id="tabPane_Main" prefHeight="200.0" prefWidth="200.0" tabClosingPolicy="UNAVAILABLE" BorderPane.alignment="CENTER" />
+   </center>
+   <bottom>
+      <BorderPane prefHeight="20.0" BorderPane.alignment="CENTER">
+         <left>
+            <Label fx:id="label_StatusBar_msg" text="Program started." BorderPane.alignment="CENTER" />
+         </left>
+         <right>
+            <HBox fx:id="containerConnectionIndicator" BorderPane.alignment="CENTER" />
+         </right>
+      </BorderPane>
+   </bottom>
+</BorderPane>

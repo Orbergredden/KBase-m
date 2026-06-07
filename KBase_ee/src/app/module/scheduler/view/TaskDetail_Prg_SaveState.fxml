@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.AnchorPane?>
+
+<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="344.0" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="app.module.scheduler.view.TaskDetail_Prg_SaveState_Controller">
+   <children>
+      <Label layoutX="14.0" layoutY="14.0" text="Ім'я файла (маска для Дати/Часу {DATETIME}) :" />
+      <TextField fx:id="details_TextField_filename" layoutX="14.0" layoutY="38.0" prefHeight="25.0" prefWidth="254.0" promptText="filename" AnchorPane.leftAnchor="14.0" AnchorPane.rightAnchor="14.0" AnchorPane.topAnchor="38.0" />
+   </children>
+</AnchorPane>

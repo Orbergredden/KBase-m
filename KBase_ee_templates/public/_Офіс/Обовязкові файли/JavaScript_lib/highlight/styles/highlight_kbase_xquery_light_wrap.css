@@ -1,0 +1,56 @@
+.pre_highlight_kbase_xquery_light_wrap code.hljs {
+    display: block;
+    overflow-x: auto;
+    padding: 1em;
+    white-space: pre-wrap;
+}
+
+.pre_highlight_kbase_xquery_light_wrap code.hljs{padding:3px 5px}
+.pre_highlight_kbase_xquery_light_wrap .hljs{background:#fefefe;color:#545454}
+.pre_highlight_kbase_xquery_light_wrap .hljs-comment,
+.pre_highlight_kbase_xquery_light_wrap .hljs-quote{color:#696969}
+.pre_highlight_kbase_xquery_light_wrap .hljs-deletion,
+.pre_highlight_kbase_xquery_light_wrap .hljs-name,
+.pre_highlight_kbase_xquery_light_wrap .hljs-regexp,
+.pre_highlight_kbase_xquery_light_wrap .hljs-selector-class,
+.pre_highlight_kbase_xquery_light_wrap .hljs-selector-id,
+.pre_highlight_kbase_xquery_light_wrap .hljs-tag,
+.pre_highlight_kbase_xquery_light_wrap .hljs-template-variable,
+.pre_highlight_kbase_xquery_light_wrap .hljs-variable{color:#d91e18}
+.pre_highlight_kbase_xquery_light_wrap .hljs-attribute,
+.pre_highlight_kbase_xquery_light_wrap .hljs-built_in,
+.pre_highlight_kbase_xquery_light_wrap .hljs-link,
+.pre_highlight_kbase_xquery_light_wrap .hljs-literal,
+.pre_highlight_kbase_xquery_light_wrap .hljs-meta,
+.pre_highlight_kbase_xquery_light_wrap .hljs-number,
+.pre_highlight_kbase_xquery_light_wrap .hljs-params,
+.pre_highlight_kbase_xquery_light_wrap .hljs-type{color:#aa5d00}
+.pre_highlight_kbase_xquery_light_wrap .hljs-addition,
+.pre_highlight_kbase_xquery_light_wrap .hljs-bullet,
+.pre_highlight_kbase_xquery_light_wrap .hljs-string,
+.pre_highlight_kbase_xquery_light_wrap .hljs-symbol{color:green}
+.pre_highlight_kbase_xquery_light_wrap .hljs-section,
+.pre_highlight_kbase_xquery_light_wrap .hljs-title{color:#007faa}
+.pre_highlight_kbase_xquery_light_wrap .hljs-keyword,
+.pre_highlight_kbase_xquery_light_wrap .hljs-selector-tag{color:#7928a1}
+.pre_highlight_kbase_xquery_light_wrap .hljs-emphasis{font-style:italic}
+.pre_highlight_kbase_xquery_light_wrap .hljs-strong{font-weight:700}
+@media screen and (-ms-high-contrast:active)
+{
+	.pre_highlight_kbase_xquery_light_wrap .hljs-addition,
+	.pre_highlight_kbase_xquery_light_wrap .hljs-attribute,
+	.pre_highlight_kbase_xquery_light_wrap .hljs-built_in,
+	.pre_highlight_kbase_xquery_light_wrap .hljs-bullet,
+	.pre_highlight_kbase_xquery_light_wrap .hljs-comment,
+	.pre_highlight_kbase_xquery_light_wrap .hljs-link,
+	.pre_highlight_kbase_xquery_light_wrap .hljs-literal,
+	.pre_highlight_kbase_xquery_light_wrap .hljs-meta,
+	.pre_highlight_kbase_xquery_light_wrap .hljs-number,
+	.pre_highlight_kbase_xquery_light_wrap .hljs-params,
+	.pre_highlight_kbase_xquery_light_wrap .hljs-quote,
+	.pre_highlight_kbase_xquery_light_wrap .hljs-string,
+	.pre_highlight_kbase_xquery_light_wrap .hljs-symbol,
+	.pre_highlight_kbase_xquery_light_wrap .hljs-type{color:highlight}
+	.pre_highlight_kbase_xquery_light_wrap .hljs-keyword,
+	.pre_highlight_kbase_xquery_light_wrap .hljs-selector-tag{font-weight:700}
+}

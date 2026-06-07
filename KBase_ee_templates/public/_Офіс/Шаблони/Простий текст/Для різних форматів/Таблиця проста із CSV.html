@@ -1,0 +1,85 @@
+<!--HEAD_BEGIN css_{[templateId]}-->
+<style>
+.divMain_{[templateId]} {
+    margin: 7px; /* Значение отступов */
+    padding: 2px; /* Поля вокруг текста */
+    /*padding-right: 100px;*/
+    border: 0px solid black; /* Параметры границы */
+}
+.aTitle_{[templateId]} {
+	font-weight: bold;
+    color: rgb(93,83,167);
+    margin: 0px; /* Значение отступов */
+    padding: 0px; /* Поля вокруг текста */
+}
+.table_{[templateId]} {
+	/*margin: 0px 25px 0px 0px; чомусь не працює */
+	border-collapse: collapse; 
+	border: 1px solid black;
+}
+.tr_header_{[templateId]} {
+	background-color: #4CAF50; 
+	color: white; 
+	border: 1px solid black; 
+	padding: 3px;
+}
+.tr_{[templateId]} {
+	background-color: #f5f5f5; 
+	border: 1px solid black; 
+	padding: 3px;
+}
+.td_{[templateId]} {
+	border: 1px solid black; 
+	padding: 3px;
+}
+</style>
+<!--HEAD_END css_{[templateId]}-->
+
+<!--BODY_BEGIN {[InfoBlockId]}-->
+<div id="div_css_{[InfoBlockId]}">{[kbase_Info_Text]}</div>
+<div class="divMain_{[templateId]}">
+
+<SCRIPT type="text/javascript">
+var v_isShowDescr = {[isShowDescr]};
+var v_InfoDescr = "{[InfoDescr]}";
+
+if (v_isShowDescr == 1) {
+	document.write("<a id='{[InfoBlockId]}' class='aTitle_{[templateId]}'>" + v_InfoDescr + "</a>");
+} else {
+	document.write("<a id='{[InfoBlockId]}'></a>");
+}
+</SCRIPT>
+<table class='table_{[templateId]}'>
+<script type="text/javascript">
+	var node = document.getElementById("div_css_{[InfoBlockId]}");
+	node.style.display = "none";
+	//node.style.display = "block";
+
+	var htmlContent = node.innerHTML;
+	var rows = htmlContent.split('\n');
+    var tds = null;
+
+    for ( var i = 0; i < rows.length; i++ ) {
+		if (i == 0) {
+			document.write("<tr class='tr_header_{[templateId]}'>");
+		} else {
+			document.write("<tr class='tr_{[templateId]}'>");
+		}
+        tds = rows[i].split(';');
+        for ( var j = 0; j < tds.length; j++ ) {
+			var tds2 = tds[j];
+
+			if (tds2.slice(0,1) == '"') {
+				tds2 = tds2.slice(1,-1);
+			}
+			
+			document.write("<td class='td_{[templateId]}'>");
+			document.write(tds2);
+			document.write("</td>");
+        }
+        document.write("</tr>");
+    }
+</script>
+</table>
+</div>
+<!--BODY_END-->

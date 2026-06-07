@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.SplitPane?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.ToggleButton?>
+<?import javafx.scene.control.ToolBar?>
+<?import javafx.scene.control.TreeTableColumn?>
+<?import javafx.scene.control.TreeTableView?>
+<?import javafx.scene.layout.AnchorPane?>
+
+<AnchorPane fx:id="anchorPane_Main" prefHeight="854.0" prefWidth="1178.0" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="app.view.business.DictionaryView_Controller">
+   <children>
+      <SplitPane fx:id="splitPane_details" dividerPositions="0.6598639455782312" prefHeight="160.0" prefWidth="200.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+        <items>
+          <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="160.0" prefWidth="100.0">
+               <children>
+                  <SplitPane fx:id="splitPane_info" dividerPositions="0.12117647058823529" orientation="VERTICAL" prefHeight="494.0" prefWidth="570.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                    <items>
+                      <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="100.0" prefWidth="160.0">
+                           <children>
+                              <ToolBar prefHeight="40.0" prefWidth="200.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                                 <items>
+                                    <Button fx:id="button_ChangeSpliterOrientation" mnemonicParsing="false" onAction="#handleButtonChangeSpliterOrientation" />
+                                    <Button fx:id="button_Refresh" mnemonicParsing="false" onAction="#handleButtonRefresh" />
+                                    <Button fx:id="button_Close" mnemonicParsing="false" onAction="#handleButtonClose" />
+                                 </items>
+                              </ToolBar>
+                           </children>
+                        </AnchorPane>
+                      <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="100.0" prefWidth="160.0">
+                           <children>
+                              <TreeTableView fx:id="treeTableView_Dict" prefHeight="200.0" prefWidth="200.0" AnchorPane.bottomAnchor="40.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                                <columns>
+                                  <TreeTableColumn fx:id="treeTableColumn_id" prefWidth="75.0" style="-fx-alignment: CENTER-RIGHT;" text="id" />
+                                  <TreeTableColumn fx:id="treeTableColumn_typeId" prefWidth="35.0" style="-fx-alignment: CENTER;" text="type" />
+                                    <TreeTableColumn fx:id="treeTableColumn_name" prefWidth="100.0" text="name" />
+                                    <TreeTableColumn fx:id="treeTableColumn_value" prefWidth="100.0" text="value" />
+                                    <TreeTableColumn fx:id="treeTableColumn_descr" prefWidth="100.0" text="description" />
+                                    <TreeTableColumn fx:id="treeTableColumn_rating" prefWidth="50.0" style="-fx-alignment: CENTER-RIGHT;" text="rating" />
+                                    <TreeTableColumn fx:id="treeTableColumn_reverse" prefWidth="50.0" style="-fx-alignment: CENTER;" text="reverse" />
+                                    <TreeTableColumn fx:id="treeTableColumn_status" prefWidth="40.0" style="-fx-alignment: CENTER;" text="status" />
+                                    <TreeTableColumn fx:id="treeTableColumn_date_viewed" prefWidth="75.0" text="date viewed" />
+                                    <TreeTableColumn fx:id="treeTableColumn_date_created" prefWidth="75.0" text="date created" />
+                                    <TreeTableColumn fx:id="treeTableColumn_date_modified" prefWidth="75.0" text="date modified" />
+                                    <TreeTableColumn fx:id="treeTableColumn_user_created" prefWidth="75.0" text="user created" />
+                                    <TreeTableColumn fx:id="treeTableColumn_user_modified" prefWidth="75.0" text="user modified" />
+                                </columns>
+                              </TreeTableView>
+                              <ToolBar prefHeight="40.0" prefWidth="200.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0">
+                                <items>
+                                  <Button mnemonicParsing="false" text="Button" />
+                                </items>
+                              </ToolBar>
+                           </children>
+                        </AnchorPane>
+                    </items>
+                  </SplitPane>
+               </children>
+            </AnchorPane>
+            <ScrollPane prefHeight="200.0" prefWidth="200.0">
+              <content>
+                <AnchorPane minHeight="-Infinity" minWidth="200.0" prefHeight="640.0" prefWidth="400.0">
+                     <children>
+                        <ToolBar prefHeight="40.0" prefWidth="200.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                           <items>
+                              <ToggleButton fx:id="details_Button_AddMode" mnemonicParsing="false" onAction="#handleButtonDetailsAddMode" text="add mode" />
+                              <Button fx:id="details_Button_Save" mnemonicParsing="false" onAction="#handleButtonDetailsSave" text="Save" />
+                              <Button fx:id="details_Button_Delete" mnemonicParsing="false" onAction="#handleButtonDetailsDelete" text="Delete" />
+                           </items>
+                        </ToolBar>
+                        <Label layoutX="14.0" layoutY="47.0" text="id :" />
+                        <Label fx:id="details_Label_id" layoutX="36.0" layoutY="47.0" text="Label" />
+                        <Label layoutX="16.0" layoutY="73.0" text="Type :" />
+                        <ComboBox fx:id="details_ComboBox_Type" layoutX="51.0" layoutY="69.0" prefWidth="150.0" />
+                        <Label layoutX="16.0" layoutY="102.0" text="Name :" />
+                        <TextArea fx:id="details_TextArea_Name" layoutX="16.0" layoutY="119.0" prefHeight="96.0" prefWidth="200.0" AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0" />
+                        <Label layoutX="16.0" layoutY="224.0" text="Value :" />
+                        <TextArea fx:id="details_TextArea_Value" layoutX="14.0" layoutY="241.0" prefHeight="96.0" prefWidth="200.0" AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0" />
+                        <Label layoutX="20.0" layoutY="340.0" text="Description :" />
+                        <TextArea fx:id="details_TextArea_Descr" layoutX="10.0" layoutY="357.0" prefHeight="60.0" prefWidth="200.0" AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0" />
+                        <Label layoutX="16.0" layoutY="425.0" text="Rating :" />
+                        <Label layoutX="18.0" layoutY="450.0" text="Reverse :" />
+                        <Label layoutX="18.0" layoutY="476.0" text="Status :" />
+                        <TextField fx:id="details_TextField_Rating" layoutX="73.0" layoutY="421.0" prefHeight="25.0" prefWidth="52.0" />
+                        <TextField fx:id="details_TextField_Reverse" layoutX="73.0" layoutY="446.0" prefHeight="25.0" prefWidth="52.0" />
+                        <TextField fx:id="details_TextField_Status" layoutX="73.0" layoutY="472.0" prefHeight="25.0" prefWidth="52.0" />
+                        <Label layoutX="18.0" layoutY="507.0" text="Viewed :" />
+                        <Label layoutX="20.0" layoutY="532.0" text="Created :" />
+                        <Label layoutX="21.0" layoutY="558.0" text="Modified :" />
+                        <Label layoutX="20.0" layoutY="583.0" text="Created :" />
+                        <Label layoutX="20.0" layoutY="607.0" text="Modified :" />
+                        <Label fx:id="details_Label_DateViewed" layoutX="85.0" layoutY="507.0" text="Label" />
+                        <Label fx:id="details_Label_DateCreated" layoutX="85.0" layoutY="532.0" text="Label" />
+                        <Label fx:id="details_Label_DateModified" layoutX="85.0" layoutY="558.0" text="Label" />
+                        <Label fx:id="details_Label_UserCreated" layoutX="85.0" layoutY="583.0" text="Label" />
+                        <Label fx:id="details_Label_UserModified" layoutX="85.0" layoutY="607.0" text="Label" />
+                     </children>
+                  </AnchorPane>
+              </content>
+            </ScrollPane>
+        </items>
+      </SplitPane>
+   </children>
+</AnchorPane>
