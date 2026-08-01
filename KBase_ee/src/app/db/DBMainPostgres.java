@@ -135,7 +135,7 @@ public class DBMainPostgres extends DBMain {
 	/**
 	 * 
 	 */
-	protected String getCurrentUser () {
+	public String getCurrentUser () {
 		String retVal = "";
 		
 		checkConnect();
@@ -539,6 +539,79 @@ public class DBMainPostgres extends DBMain {
     	}
 		
 		return retVal;
+	}
+	
+	/**
+	 * Перебудовуємо дерево, апдейтимо усі parent_id
+	 */
+	public void sectionFavoriteRebuildParentId ()
+			throws DataConnectionException,DataQueryException {
+		PreparedStatement pst = null;
+		String stm;
+
+		checkConnectEx();
+		
+		try {
+			stm = """
+					WITH RECURSIVE section_paths AS (
+						SELECT
+							s.id AS section_id,
+							s.parent_id,
+							s.id AS child_section_id,
+							0 AS depth
+						FROM sections s
+						UNION ALL
+						SELECT
+							p.id AS section_id,
+							p.parent_id,
+							sp.child_section_id,
+							sp.depth + 1
+						FROM sections p
+						JOIN section_paths sp
+							ON sp.parent_id = p.id
+					),
+					nearest_favorite_parent AS (
+						SELECT DISTINCT ON (child_fav.id)
+							child_fav.id AS favorite_id,
+							parent_fav.id AS new_parent_id
+						FROM sections_favorite child_fav
+						JOIN section_paths sp
+							ON sp.child_section_id = child_fav.section_id
+						JOIN sections_favorite parent_fav
+							ON parent_fav.section_id = sp.section_id
+							AND parent_fav."user" = child_fav."user"
+						WHERE parent_fav.id <> child_fav.id
+							AND child_fav."user" = ?
+						ORDER BY child_fav.id, sp.depth ASC
+					),
+					calculated AS (
+					SELECT 
+						f.id AS favorite_id,
+						nfp.new_parent_id
+					FROM sections_favorite f
+					LEFT JOIN nearest_favorite_parent nfp
+						ON nfp.favorite_id = f.id
+					WHERE f."user" = ?
+				)
+				UPDATE sections_favorite f
+					SET parent_id = COALESCE(calculated.new_parent_id, 0)
+				FROM calculated
+				WHERE f.id = calculated.favorite_id
+					AND f."user" = ?
+				""";
+			pst = con.prepareStatement(stm);
+			pst.setString(1, getCurrentUser());
+			pst.setString(2, getCurrentUser());
+			pst.setString(3, getCurrentUser());
+		
+			pst.executeUpdate();
+			pst.close();
+		} catch (SQLException e) {
+			throw new DataQueryException (
+				DataQueryException.ERRCODE_OTHERS, "sectionFavoriteRebuildParentId",
+				"Помилка при перебудуванні дерева Favorite, sectionFavoriteRebuildParentId (\""+user+"\") \n"+dbURL,
+				e, 1, null, "SQLException");
+		}
 	}
 	
 	/**

@@ -24,6 +24,7 @@ import app.model.business.template.TemplateStyleItem;
  * v.0.01.00.007 2025-02-06
  */
 public class DBMainSQLite extends DBMain {
+	private String user;
 	private DateConv dateConv;
 
 	/**
@@ -35,6 +36,7 @@ public class DBMainSQLite extends DBMain {
 			String user, KeyStorePrg.EncBlob password)  throws DataConnectionException {
 		super(params, host, port, name, user, password);
 		
+		this.user = user;
 		dateConv = new DateConv("yyyy-MM-dd","yyyy-MM-dd HH:mm:ss");
 		
 		dbURL = "jdbc:sqlite:"+ host;
@@ -99,8 +101,9 @@ public class DBMainSQLite extends DBMain {
 	/**
 	 * 
 	 */
-	protected String getCurrentUser () {
-		return "KBase_User";
+	public String getCurrentUser () {
+		return user;
+		//return "KBase_User";
 	}
 	
 	/**
@@ -928,6 +931,89 @@ public class DBMainSQLite extends DBMain {
 		}
 		
 		return retVal;
+	}
+	
+	/**
+	 * Перебудовуємо дерево, апдейтимо усі parent_id
+	 */
+	public void sectionFavoriteRebuildParentId ()
+		throws DataConnectionException,DataQueryException {
+		PreparedStatement pst = null;
+		String stm;
+
+		checkConnectEx();
+
+		try {
+			stm = """
+				WITH RECURSIVE section_paths AS (
+					SELECT
+						s.id AS section_id,
+						s.parent_id,
+						s.id AS child_section_id,
+						0 AS depth
+					FROM sections s
+					UNION ALL
+					SELECT
+						p.id AS section_id,
+						p.parent_id,
+						sp.child_section_id,
+						sp.depth + 1
+					FROM sections p
+					JOIN section_paths sp
+						ON sp.parent_id = p.id
+				),
+				candidate_parents AS (
+					SELECT
+						child_fav.id AS favorite_id,
+						parent_fav.id AS new_parent_id,
+						sp.depth
+					FROM sections_favorite child_fav
+					JOIN section_paths sp
+						ON sp.child_section_id = child_fav.section_id
+					JOIN sections_favorite parent_fav
+						ON parent_fav.section_id = sp.section_id
+						AND parent_fav."user" = child_fav."user"
+					WHERE parent_fav.id <> child_fav.id
+						AND child_fav."user" = ?
+				),
+				calculated AS (
+				SELECT
+					f.id AS favorite_id,
+					(
+						SELECT cp.new_parent_id
+						FROM candidate_parents cp
+						WHERE cp.favorite_id = f.id
+						ORDER BY cp.depth ASC
+						LIMIT 1
+					) AS new_parent_id
+				FROM sections_favorite f
+				WHERE f."user" = ?
+			)
+			UPDATE sections_favorite
+			SET parent_id = COALESCE((
+				SELECT c.new_parent_id
+				FROM calculated c
+				WHERE c.favorite_id = sections_favorite.id
+			), 0)
+			WHERE "user" = ?
+				AND id IN (
+					SELECT favorite_id
+					FROM calculated
+				)
+			""";
+			pst = con.prepareStatement(stm);
+			pst.setString(1, getCurrentUser());
+			pst.setString(2, getCurrentUser());
+			pst.setString(3, getCurrentUser());
+	
+			pst.executeUpdate();
+			pst.close();
+		} catch (SQLException e) {
+			throw new DataQueryException (
+				DataQueryException.ERRCODE_OTHERS, "sectionFavoriteRebuildParentId",
+				"Помилка при перебудуванні дерева Favorite, sectionFavoriteRebuildParentId (\""+user+"\") \n"+dbURL,
+				e, 1, null, "SQLException");
+		}
 	}
 	
 	/**
