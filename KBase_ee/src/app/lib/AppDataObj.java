@@ -700,8 +700,12 @@ public class AppDataObj {
         
         // set current dir and file
         String curDir = prefs.get("saveTabState_CurDirName", "");
-        if (! curDir.equals("")) 
-        	fileChooser.setInitialDirectory(new File(curDir));
+        if (! curDir.equals("")) {
+        	File dir = new File(curDir);
+        	if (dir.exists() && dir.isDirectory()) {
+        		fileChooser.setInitialDirectory(new File(curDir));
+        	}
+        }
         
        	fileChooser.setInitialFileName(tabTitle);
         

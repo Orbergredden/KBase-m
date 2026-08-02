@@ -3,6 +3,7 @@ package app.view.business;
 import app.model.StateItem;
 import app.model.StateList;
 import app.model.business.Info_TextItem;
+import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.fxml.FXML;
@@ -119,6 +120,10 @@ public class InfoEdit_Text_Controller extends InfoEdit_Simple_Controller {
 				"caretPosition",
 				Integer.toString(textArea_text.getCaretPosition()),
 				null);
+		stateList.add(
+				"scrollTop",
+				Double.toString(textArea_text.getScrollTop()),
+				null);
 	}
 	
 	/**
@@ -131,6 +136,12 @@ public class InfoEdit_Text_Controller extends InfoEdit_Simple_Controller {
 			switch (si.getName()) {
 				case "caretPosition" :
 					textArea_text.positionCaret(Integer.parseInt(si.getParams()));
+					break;
+				case "scrollTop" :
+					Platform.runLater(() -> {
+						textArea_text.requestFocus();
+						textArea_text.setScrollTop(Double.parseDouble(si.getParams()));
+					});
 					break;
 			}
 		}

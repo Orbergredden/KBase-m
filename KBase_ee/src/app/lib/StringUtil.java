@@ -36,4 +36,33 @@ public class StringUtil {
         }
         //System.out.println("Item with ID " + id + " not found in ComboBox.");
     }
+	
+	/**
+	 * Шукаємо та повертаємо перше входження тексту
+	 * @param multilineText
+	 * @param searchText
+	 * @param caseSensitive
+	 * @return
+	 */
+	public static String findLineWithText(String multilineText, String searchText, boolean caseSensitive) {
+		if (multilineText == null || searchText == null || searchText.isEmpty()) {
+			return null;
+		}
+
+		String[] lines = multilineText.split("\\r?\\n");
+
+		for (String line : lines) {
+			if (caseSensitive) {
+				if (line.contains(searchText)) {
+					return line;
+				}
+			} else {
+				if (line.toLowerCase().contains(searchText.toLowerCase())) {
+					return line;
+				}
+			}
+		}
+
+		return null; // нічого не знайдено
+	}
 }
