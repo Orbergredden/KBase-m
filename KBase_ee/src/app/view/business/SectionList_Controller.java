@@ -14,12 +14,15 @@ import app.model.DBConn_Parameters;
 import app.model.Params;
 import app.model.StateItem;
 import app.model.StateList;
+import app.model.business.DictionaryItem;
 import app.model.business.InfoHeaderItem;
 import app.model.business.Info_FileItem;
 import app.model.business.Info_ImageItem;
 import app.model.business.Info_TextItem;
 import app.model.business.SectionClipboardInfo;
+import app.model.business.SectionFavoriteItem;
 import app.model.business.SectionItem;
+import app.util.FormattedDate;
 import app.view.structure.TabNavigationHistory;
 
 import java.io.File;
@@ -28,6 +31,7 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.prefs.Preferences;
 
+import javafx.animation.PauseTransition;
 import javafx.application.Platform;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.beans.property.SimpleLongProperty;
@@ -57,6 +61,7 @@ import javafx.scene.web.WebView;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.util.Callback;
+import javafx.util.Duration;
 
 /**
  * Контроллер основного фрейма. Показывает дерево разделов (и др.) и инфо по разделам.
@@ -91,9 +96,15 @@ public class SectionList_Controller implements Container_Interface, AppItem_Inte
     @FXML
 	private AnchorPane anchorPane_PanelLeft;
     @FXML
-    private Tab tab_ContentTree;
+    TabPane tabPane_Sections;
     @FXML
-	private AnchorPane anchorPane_ContentTree;
+    Tab tab_ContentTree;
+    @FXML
+    private AnchorPane anchorPane_ContentTree;
+    @FXML
+    private Tab tab_Favorite;
+    @FXML
+    private AnchorPane anchorPane_Favorite;
     
     @FXML
 	public TreeTableView<SectionItem> treeTableView_sections;
@@ -125,7 +136,6 @@ public class SectionList_Controller implements Container_Interface, AppItem_Inte
     private TreeTableColumn<SectionItem, String> treeTableColumn_styleMain;
     @FXML
     private TreeTableColumn<SectionItem, String> treeTableColumn_styleTree;
-    
     @FXML
     private TreeTableColumn<SectionItem, String> treeTableColumn_styleRoot;
     @FXML
@@ -157,6 +167,8 @@ public class SectionList_Controller implements Container_Interface, AppItem_Inte
 	private MenuItem menuitem_treeOpenInWindow;
     @FXML
 	private MenuItem menuitem_find;
+	@FXML
+	private MenuItem menuitem_sectionAddToFavorite;
 	@FXML
 	private MenuItem menuitem_export;
     @FXML
@@ -194,6 +206,17 @@ public class SectionList_Controller implements Container_Interface, AppItem_Inte
 	private boolean isSplitterPositionedFirst;
 	// позиція сплітера в пікселях відносно лівої сторони
 	int spliterWidth;
+	
+	// прапорець динамічного завантаження гілки
+	private volatile boolean isTreeLoading = false;
+	// використовуємо при переході до вказаного Розділу, чекаємо динамічне завантаження гілки
+	private int retryCount = 0;
+	private static final int MAX_RETRIES = 5000;
+	// при переході на вказаний Розділ, не робимо вибір Розділу при динамічному завантаженні гілки
+	private volatile boolean isGotoSection = false;
+
+	//
+	private SectionFavoriteList_Controller controller_Favorite;
     
     /**
      * Конструктор.
@@ -341,6 +364,7 @@ public class SectionList_Controller implements Container_Interface, AppItem_Inte
     	menuitem_treeOpenInMainTab.setGraphic(new ImageView(new Image("file:resources/images/icon_open_tree_16.png")));
     	menuitem_treeOpenInWindow.setGraphic(new ImageView(new Image("file:resources/images/icon_open_tree_16.png")));
 		menuitem_find.setGraphic(new ImageView(new Image("file:resources/images/icon_find_16.png")));
+		menuitem_sectionAddToFavorite.setGraphic(new ImageView(new Image("file:resources/images/icon_favorite_16.png")));
     	menuitem_export.setGraphic(new ImageView(new Image("file:resources/images/icon_export_16.png")));
     	menuitem_import.setGraphic(new ImageView(new Image("file:resources/images/icon_import_16.png")));
 
@@ -370,7 +394,52 @@ public class SectionList_Controller implements Container_Interface, AppItem_Inte
     	hbox_DocCur.getChildren().add(label_TitleDocCur);
     	tab_DocCur.setText("");
     	tab_DocCur.setGraphic(hbox_DocCur);
+    	
+    	//======== Favorite Tab (left side)
+    	initTabFavorite();
     }
+    
+    /**
+	 * Створюємо на ініціалізуємо таб з Фаворитами у лівому ТабПейні Розділів
+	 */
+	private void initTabFavorite () {
+
+		//======== create
+		anchorPane_Favorite = new AnchorPane();
+		// (опціонально) налаштування розмірів або стилів
+		//anchorPane_Favorite.setPrefSize(100, 300);
+		tab_Favorite = new Tab("Favorite");
+		//tab_Favorite.setContent(anchorPane_Favorite);
+		tabPane_Sections.getTabs().add(tab_Favorite);
+
+		//======== показуємо картинку та напис
+		HBox hbox_Favorite = new HBox();
+		Label label_TitleFavorite = new Label("Favorite");
+		hbox_Favorite.getChildren().add(new ImageView(new Image("file:resources/images/icon_favorite_16.png")));
+		hbox_Favorite.getChildren().add(label_TitleFavorite);
+		tab_Favorite.setText("");
+		tab_Favorite.setGraphic(hbox_Favorite);
+
+		//======== load form
+		try {
+			// Загружаем fxml-файл и создаём новую сцену
+			FXMLLoader loader = new FXMLLoader();
+			loader.setLocation(Main.class.getResource("view/business/SectionFavoriteList.fxml"));
+			anchorPane_Favorite = loader.load();
+			tab_Favorite.setContent(anchorPane_Favorite);
+
+			// Даём контроллеру доступ к главному приложению (передаем параметры).
+			controller_Favorite = loader.getController();
+
+			Params params = new Params(this.params);
+			params.setObjContainer(this);
+			params.setParentObj(this);
+
+			controller_Favorite.setParams(params);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
     
     private void initTabPaneInfo () {
     	//изменение активного таба
@@ -744,7 +813,7 @@ public class SectionList_Controller implements Container_Interface, AppItem_Inte
 		TreeItem<SectionItem> selectedItem = treeTableView_sections.getSelectionModel().getSelectedItem();
 		
 		if (selectedItem == null) {
-			params.setMsgToStatusBar("Ничего не выбрано для удаления.");
+			params.setMsgToStatusBar("Нічого не обрано для видалення.");
 			return;
 		}
 		
@@ -871,7 +940,7 @@ public class SectionList_Controller implements Container_Interface, AppItem_Inte
             	}
             	
             	treeTableView_sections.sort();
-            	treeViewCtrl.expandTreeItemsById(treeViewCtrl.root, newSectionId);
+            	treeViewCtrl.expandTreeItemById(treeViewCtrl.root, newSectionId);
             	treeViewCtrl.selectTreeItemById(treeViewCtrl.root, newSectionId);
     		} else {      // бази даних різні
     			//---- десеріалізація та підготовка даних, додаємо в БД
@@ -1072,6 +1141,33 @@ public class SectionList_Controller implements Container_Interface, AppItem_Inte
 		(new AppDataObj()).openSectionTreeInWin(params, tsi.getValue().getId());
     }
 
+    /**
+	 * Додаємо Розділ в Фаворити
+	 */
+	@FXML
+	private void handleButtonAddToFavorite() {
+		TreeItem<SectionItem> tsi = treeTableView_sections.getSelectionModel().getSelectedItem();
+
+		if (tsi == null) {
+			return;
+		}
+
+		try {
+			if (params.getConCur().db.sectionFavoriteIsPresent(tsi.getValue().getId())) {
+				return;
+			}
+			params.getConCur().db.sectionFavoriteAdd(tsi.getValue().getId());
+			params.getConCur().db.sectionFavoriteRebuildParentId();
+
+			controller_Favorite.refreshFavoriteTree();
+		} catch (DataConnectionException | DataQueryException e) {
+			e.writeLog(params);
+			ShowAppMsg.showAlert(
+					"ERROR", "Помилка при додаванні Розділа в Favorite",
+					Integer.toString(e.getErrCode())+" "+e.getErrSign(), e.getMsg());
+		}
+	}
+    
     /**
 	 * Реализуем метод интерфейса Container_Interface.
      * Показывает состояние инфо блока во внешнем контейнере - были несохраненные изменения или нет.
@@ -1281,7 +1377,8 @@ public class SectionList_Controller implements Container_Interface, AppItem_Inte
 	 * Сохраняем состояние контролов в иерархической структуре
 	 */
 	public void saveControlsState (StateList stateList) {
-
+		StateItem stateItem;
+		
 		//-------- treeTableView_sections
 		String sortColumnId;
 		String sortType;
@@ -1311,6 +1408,13 @@ public class SectionList_Controller implements Container_Interface, AppItem_Inte
 				"",
 				null);
 		
+		//------- Favorite
+		stateItem = stateList.add(
+				"favoriteSubItems",
+				"",
+				new StateList());
+		controller_Favorite.saveControlsState(stateItem.subItems);
+		
 		//-------- save main split state
 		stateList.add(
 				"splitPane_main_Position",
@@ -1325,7 +1429,6 @@ public class SectionList_Controller implements Container_Interface, AppItem_Inte
 		AppItem_Interface appItem;
 		DBConCur_Parameters conCur;           // обьект текущего соединения
 		DBConn_Parameters conPar;             // параметры текущего соединения
-		StateItem stateItem;
 		
 		// "Текущий" таб
 		appItem = (AppItem_Interface)tabPane_info.getTabs().get(0).getUserData();
@@ -1465,6 +1568,11 @@ public class SectionList_Controller implements Container_Interface, AppItem_Inte
 			    	}
 					
 					break;
+				//======= Favorite
+				case "favoriteSubItems" :
+					controller_Favorite.restoreControlsState(si.subItems);
+					break;
+					
 				//======== restore main split state
 				case "splitPane_main_Position" :
 					Platform.runLater(() -> {

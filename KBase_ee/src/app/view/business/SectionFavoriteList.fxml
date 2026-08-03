@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.ContextMenu?>
+<?import javafx.scene.control.MenuItem?>
+<?import javafx.scene.control.TreeTableColumn?>
+<?import javafx.scene.control.TreeTableView?>
+<?import javafx.scene.layout.AnchorPane?>
+
+<AnchorPane prefHeight="355.0" prefWidth="583.0" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="app.view.business.SectionFavoriteList_Controller">
+	<children>
+		<TreeTableView fx:id="treeTableView_favorite" prefHeight="200.0" prefWidth="200.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+			<columns>
+				<TreeTableColumn fx:id="treeTableColumnFavorite_name" prefWidth="200.0" text="Name" />
+				<TreeTableColumn fx:id="treeTableColumnFavorite_id" prefWidth="50.0" style="-fx-alignment: CENTER-RIGHT;" text="id" />
+				<TreeTableColumn fx:id="treeTableColumnFavorite_sectionId" prefWidth="75.0" style="-fx-alignment: CENTER-RIGHT;" text="Section id" />
+				<TreeTableColumn fx:id="treeTableColumnFavorite_dateCreated" prefWidth="150.0" text="Date Created" />
+			</columns>
+			<contextMenu>
+				<ContextMenu>
+					<items>
+						<MenuItem fx:id="menuitemFavorite_gotoSection" mnemonicParsing="false" onAction="#handleButtonFavorite_gotoSection" text="Goto Section" />
+						<MenuItem fx:id="menuitemFavorite_removeFromFavorite" mnemonicParsing="false" onAction="#handleButtonFavorite_removeFromFavorite" text="Remove from Favorite" />
+					</items>
+				</ContextMenu>
+			</contextMenu>
+		</TreeTableView>
+	</children>
+</AnchorPane>

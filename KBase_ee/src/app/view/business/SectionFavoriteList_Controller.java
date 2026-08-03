@@ -290,7 +290,256 @@ public class SectionFavoriteList_Controller implements AppItem_Interface {
 	 * Перезавантажуємо дерево Фавортів
 	 */
 	@FXML
-		
-	
+	void refreshFavoriteTree() {
+		StateList stateListTree = new StateList();
+		TreeItem<SectionFavoriteItem> mainItem = treeTableView_favorite.getRoot();
 
+		//==== save state
+		try {
+			stateListTree.add(
+					"TreeItemSelected",
+					Long.toString(treeTableView_favorite.getSelectionModel().getSelectedItem().getValue().getId()),	// section id in DB,
+					null);
+		} catch (NullPointerException ex) {  }
+
+		addTreeItemStateRecursive(stateListTree, mainItem);
+
+		stateListTree.add(
+				"TreeItemsDoExpandAndSelected",
+				"",
+				null);
+
+		//==== удаляем ветку (без текущего итема, только дочерние)
+		mainItem.getChildren().clear();
+
+		//==== создаем ветку заново
+		initTreeItemsRecursive(mainItem);
+
+		//==== восстанавливаем состояние ветки
+		ObservableList<Long> listItemsForExpand = FXCollections.observableArrayList();
+		Long selectedItemId = new Long(0);
+
+		for (StateItem si : stateListTree.list) {
+			switch (si.getName()) {
+				case "TreeItemSelected" :
+					selectedItemId = new Long(si.getParams());
+					break;
+				case "TreeItemExpanded":
+					listItemsForExpand.add(new Long(si.getParams()));
+					break;
+				case "TreeItemsDoExpandAndSelected" :
+					restoreTreeItemStateRecursive(listItemsForExpand,mainItem);
+					treeTableView_favorite.sort();
+					restoreTreeItemSelectedRecursive(selectedItemId,mainItem);
+					treeTableView_favorite.sort();
+					break;
+			}
+		}
+	}
+	
+	/**
+	 * уникальный ИД объекта
+	 * Реализуем метод интерфейса AppItem_Interface.
+	 */
+	public int getOID() {
+		return hashCode();
+	}
+
+	/**
+	 * Название элемента приложения
+	 * Реализуем метод интерфейса AppItem_Interface.
+	 */
+	public String getName() {
+		return AppItem_Interface.ELEMENT_SECTION_FAVORITE;
+	}
+
+	/**
+	 * Повертає параметри объекта интерфейса
+	 * Реализуем метод интерфейса AppItem_Interface.
+	 */
+	public Params getParams() {
+		return params;
+	}
+
+	/**
+	 * id соединения с базой данных
+	 * Реализуем метод интерфейса AppItem_Interface.
+	 */
+	public int getDbConnId() {
+		return params.getConCur().Id;
+	}
+
+	/**
+	 * контроллер элемента приложения
+	 * Реализуем метод интерфейса AppItem_Interface.
+	 */
+	public Object getController() {
+		return this;
+	}
+	
+	/**
+	 * Реалізуємо метод інтерфейсу AppItem_Interface.
+	 * Зачиняємо таб чи вікно з цим елементом інтерфейсу
+	 */
+	public void close () {
+		ShowAppMsg.showAlert (
+			"INFORMATION",
+			"Повідомлення",
+			"",
+			"Цю вкладку неможна закрити.");
+		return;
+	}
+	
+	/**
+	 * Реализуем метод интерфейса AppItem_Interface.                <br>
+	 * Сохраняем состояние контролов в иерархической структуре
+	 */
+	public void saveControlsState (StateList stateList) {
+		
+		//-------- treeTableView_favorite
+		String sortColumnId;
+		String sortType;
+		
+		if (treeTableView_favorite.getSortOrder().size() > 0) {        // при сортировке по нескольким столбцам поменять if на for
+			TreeTableColumn currentSortColumn = (TreeTableColumn) treeTableView_favorite.getSortOrder().get(0);
+			
+			sortColumnId = currentSortColumn.getId();
+			sortType = currentSortColumn.getSortType().toString();
+		} else {
+			sortColumnId = "";
+			sortType = "";
+		}
+		stateList.add("TreeTable_sortColumnId", sortColumnId, null);
+		stateList.add("TreeTable_sortType", sortType, null);
+		stateList.add("TreeTable_doSort", "", null);
+		
+		try {
+			stateList.add(
+					"TreeItemSelected",
+					Long.toString(treeTableView_favorite.getSelectionModel().getSelectedItem().getValue().getId()),        // id in DB,
+					null);
+		} catch (NullPointerException ex) {    }
+		addTreeItemStateRecursive(stateList,treeTableView_favorite.getRoot());
+		stateList.add(
+				"TreeItemsDoExpandAndSelected",
+				"",
+				null);
+
+	}
+	
+	/**
+	 * рекурсивное сохранение развернутых разделов из дерева разделов
+	 */
+	private void addTreeItemStateRecursive(StateList stateList, TreeItem<SectionFavoriteItem> ti) {
+
+		//------- проверяем и записываем развернутость итема
+		if (ti.isExpanded()) {
+			stateList.add(
+					"TreeItemExpanded",
+					Long.toString(ti.getValue().getId()),		// id in DB
+					null);
+		}
+		//------- выбираем дочерние итемы и запускаем рекурсию
+		for (TreeItem<SectionFavoriteItem> i : ti.getChildren()) {
+			addTreeItemStateRecursive(stateList, i);
+		}
+	}
+	
+	/**
+	 * Реализуем метод интерфейса AppItem_Interface.
+	 * Востанавливаем состояние контролов из иерархической структуры
+	 */
+	public void restoreControlsState (StateList stateList) {
+		// for TreeColumn sort
+		String sortColumnId = "";
+		String sortType = "";
+		// for TreeItems
+		ObservableList<Long> listItemsForExpand = FXCollections.observableArrayList();
+		Long selectedItemId = 0L;
+
+		for (StateItem si : stateList.list) {
+			switch (si.getName()) {
+				//======== TreeTable sort column
+				case "TreeTable_sortColumnId" :
+					sortColumnId = si.getParams();
+					break;
+				case "TreeTable_sortType" :
+					sortType = si.getParams();
+					break;
+				case "TreeTable_doSort" :
+					treeTableView_favorite.getSortOrder().clear();
+
+					if (! sortColumnId.equals("")) {
+						for (TreeTableColumn column : treeTableView_favorite.getColumns()) {
+							if (column.getId().equals(sortColumnId)) {
+								treeTableView_favorite.setSortMode(TreeSortMode.ALL_DESCENDANTS);
+								column.setSortable(true); // This performs a sort
+								treeTableView_favorite.getSortOrder().add(column);
+								if (sortType.equals("DESCENDING")) column.setSortType(TreeTableColumn.SortType.DESCENDING);
+								else column.setSortType(TreeTableColumn.SortType.ASCENDING);
+								treeTableView_favorite.sort();
+							}
+						}
+					}
+					break;
+
+				//======== TreeItems state
+				case "TreeItemSelected" :
+					selectedItemId = new Long(si.getParams());
+					break;
+				case "TreeItemExpanded":
+					listItemsForExpand.add(new Long(si.getParams()));
+					break;
+				case "TreeItemsDoExpandAndSelected" :
+					restoreTreeItemStateRecursive(listItemsForExpand,treeTableView_favorite.getRoot());
+					treeTableView_favorite.sort();
+					restoreTreeItemSelectedRecursive(selectedItemId,treeTableView_favorite.getRoot());
+					treeTableView_favorite.sort();
+					break;
+			}
+		}
+	}
+
+	/**
+	 * рекурсивное восстановление состояния разделов дерева разделов
+	 */
+	private void restoreTreeItemStateRecursive(
+			ObservableList<Long> listItemsForExpand,
+			TreeItem<SectionFavoriteItem> ti) {
+		
+		//-------- проверяем и разворачиваем текущий итем
+		for (Long i : listItemsForExpand) {
+			if (i == ti.getValue().getId()) {
+				ti.setExpanded(true);
+				break;
+			}
+		}
+		//-------- выбираем дочерние итемы и запускаем рекурсию
+		for (TreeItem<SectionFavoriteItem> i : ti.getChildren()) {
+			restoreTreeItemStateRecursive(listItemsForExpand, i);
+		}
+	}
+
+	/**
+	 * рекурсивно ищем активный раздел в дереве разделов и выбираем его
+	 */
+	private void restoreTreeItemSelectedRecursive(
+			Long selectedItemId,
+			TreeItem<SectionFavoriteItem> ti) {
+		
+		//-------- проверяем и выбираем текущий итем
+		if (selectedItemId == ti.getValue().getId()) {
+			treeTableView_favorite.getSelectionModel().select(ti);
+			
+			int row = treeTableView_favorite.getRow(ti);
+			if (row >= 0) {
+				treeTableView_favorite.scrollTo(row);
+			}
+		}
+		
+		//-------- выбираем дочерние итемы и запускаем рекурсию
+		for (TreeItem<SectionFavoriteItem> i : ti.getChildren()) {
+			restoreTreeItemSelectedRecursive(selectedItemId, i);
+		}
+	}
 }
