@@ -1694,6 +1694,11 @@ public class SectionList_Controller implements Container_Interface, AppItem_Inte
 		//---------- проверяем и выбираем текущий итем
 		if (selectedItemId == ti.getValue().getId()) {
 			treeTableView_sections.getSelectionModel().select(ti);
+			
+			int row = treeTableView_sections.getRow(ti);
+			if (row >= 0) {
+				treeTableView_sections.scrollTo(row);
+			}
 		}
 
 		//-------- выбираем дочерние итемы и запускаем рекурсию
@@ -1847,6 +1852,7 @@ public class SectionList_Controller implements Container_Interface, AppItem_Inte
 	 */
 	public class TreeView_Controller {
 		public TreeItem<SectionItem> root;
+		public boolean dragStartedWithCtrl = false;
 
 		/**
 		 * инициализируем дерево, основной метод инициализации
@@ -1877,7 +1883,7 @@ public class SectionList_Controller implements Container_Interface, AppItem_Inte
 			if (rootSectionId == 0) {
 				try {
 					root = new TreeItem<>(new SectionItem(
-							0, 0, 0, "Все", "це корінь, він не редагується",
+							0, 0, 0, "Усі", "це корінь, він не редагується",
 							0, new Image("file:resources/images/icon_Sections_24.png"),
 							params.getConCur().db.settingsGetValue("SECTION_TEMPLATE_MAIN_DEFAULT"), 1, 0,
 							0,
@@ -2323,6 +2329,7 @@ public class SectionList_Controller implements Container_Interface, AppItem_Inte
 									(TreeItem<SectionItem>) treeTableView_sections.getSelectionModel().getSelectedItem();
 
 							if (selected != null) {
+								dragStartedWithCtrl = event.isControlDown();
 								Dragboard db = row.startDragAndDrop(TransferMode.ANY);
 
 								// create a miniature of the row you're dragging
@@ -2359,9 +2366,14 @@ public class SectionList_Controller implements Container_Interface, AppItem_Inte
 								int index = (Integer) db.getContent(params.getMain().SERIALIZED_MIME_TYPE);
 								TreeItem<SectionItem> item = treeTableView_sections.getTreeItem(index);
 
-								if (event.getAcceptedTransferMode() == TransferMode.MOVE) {
-									if (ShowAppMsg.showQuestion("CONFIRMATION", "Перемещение раздела",
-											"Перемещение раздела '"+ item.getValue().getName() +"'", "Переместить раздел ?")) {
+								TransferMode actionTransferMode = event.getAcceptedTransferMode();
+								if (System.getProperty("os.name").toLowerCase().contains("linux")) {
+									actionTransferMode = dragStartedWithCtrl ? TransferMode.COPY : TransferMode.MOVE;
+								}
+
+								if (actionTransferMode == TransferMode.MOVE) {
+									if (ShowAppMsg.showQuestion("CONFIRMATION", "Переміщення розділу",
+											"Переміщення розділу '" + item.getValue().getName() + "'", "Перемістити розділ ?")) {
 										// update in DB
 										params.getConCur().db.sectionMove (item.getValue().getId(), dragAndDropGetTarget(row).getValue().getId());
 										
@@ -2386,13 +2398,13 @@ public class SectionList_Controller implements Container_Interface, AppItem_Inte
 										// выводим сообщение в статус бар
 										params.setMsgToStatusBar("Раздел '" + item.getValue().getName() + "' перемещен.");
 									}
-								} else if (event.getAcceptedTransferMode() == TransferMode.COPY) {
+								} else if (actionTransferMode == TransferMode.COPY) {
 									Preferences prefs = Preferences.userNodeForPackage(SectionList_Controller.class);
 									boolean copyWithSubSections = prefs.get("copyWithSubSections", "No").equals("Yes");
 									int retVal = ShowAppMsg.showQuestionWithOption(
-											"CONFIRMATION", "Копирование раздела",
-											"Копировать раздел '"+ item.getValue().getName() +"' ?", null,
-											"Копировать ветку целиком", copyWithSubSections);
+											"CONFIRMATION", "Копіювання розділу",
+											"Копіювати розділ '"+ item.getValue().getName() +"' ?", null,
+											"Копіювати гілку повністю", copyWithSubSections);
 									long newSectionId = 0;
 
 									if (retVal == ShowAppMsg.QUESTION_OK) {          // сохраняем только текущий итем
@@ -2420,7 +2432,7 @@ public class SectionList_Controller implements Container_Interface, AppItem_Inte
 										params.setMsgToStatusBar("Раздел (ветка) '" + item.getValue().getName() + "' скопирован.");
 									}
 									treeTableView_sections.sort();
-									expandTreeItemsById(root, newSectionId);
+									expandTreeItemById(root, newSectionId);
 									selectTreeItemById(root, newSectionId);
 								} else {
 									ShowAppMsg.showAlert("WARNING", "Перетаскивание", "Не известный режим перетаскивания", "Не обрабатывается.");
@@ -2536,7 +2548,7 @@ public class SectionList_Controller implements Container_Interface, AppItem_Inte
 		/**
 		 * Раскрываем в дереве разделов раздел по его Id
 		 */
-		private int expandTreeItemsById(TreeItem<SectionItem> ti, long selId) {
+		private int expandTreeItemById(TreeItem<SectionItem> ti, long selId) {
 			SectionItem si = ti.getValue();
 
 			if (si.getId() == selId) {
@@ -2546,13 +2558,79 @@ public class SectionList_Controller implements Container_Interface, AppItem_Inte
 
 			//-------- выбираем дочерние итемы и запускаем рекурсию
 			for (TreeItem<SectionItem> i : ti.getChildren()) {
-				if (expandTreeItemsById(i, selId) == 1) {
+				if (expandTreeItemById(i, selId) == 1) {
 					ti.setExpanded(true);
 					return 1;
 				}
 			}
 
 			return 0;
+		}
+		
+		/**
+		 * Розкриваємо в дереві розділів ланцюжок розділів по списку їх id.
+		 * При необхідності вибираємо останній розділ в ланцюжку.
+		 * @param sectionPath
+		 */
+		private void expandTreeItemsByIds (List<Long> sectionPath, boolean doSelect) {
+			TreeItem<SectionItem> ti = root;
+			boolean isRoot = true;
+
+			// чекаємо якщо зараз йде динамічне завантаження гілки
+			if (isTreeLoading) {
+				if (retryCount++ < MAX_RETRIES) {
+					Platform.runLater(() -> expandTreeItemsByIds(sectionPath, doSelect));
+				} else {
+					System.out.println("Navigation timeout");
+					retryCount = 0;
+				}
+				return;
+			}
+			retryCount = 0;
+
+			//
+			isGotoSection = true;
+
+			// розкриваємо гілку
+			for (Long id : sectionPath) {
+				if (isRoot) {
+					ti.setExpanded(true);
+					isRoot = false;
+				} else {
+					for (TreeItem<SectionItem> child : ti.getChildren()) {
+						if (child.getValue().getId() == id) {
+							ti = child;
+							ti.setExpanded(true);
+							//System.out.println("- " + ti.getValue().getId());
+							break; // важливо!
+						}
+					}
+				}
+			}
+
+			// вибираємо вказаний елемент
+			TreeItem<SectionItem> finalTi = ti; //  копія
+			PauseTransition pause = new PauseTransition(Duration.millis(100));
+			pause.setOnFinished(e -> {
+				//System.out.println("finalTi(id) = "+ finalTi.getValue().getId());
+				if (doSelect && finalTi != null) {
+					Platform.runLater(() -> {
+						treeTableView_sections.getSelectionModel().select(finalTi);
+
+						Platform.runLater(() -> {
+							int row = treeTableView_sections.getRow(finalTi);
+							if (row >= 0) {
+								treeTableView_sections.scrollTo(row);
+							}
+
+							isGotoSection = false;
+						});
+					});
+					tabPane_info.getSelectionModel().select(tab_DocCur);
+				}
+			});
+
+			pause.play();
 		}
 		
 		/**
