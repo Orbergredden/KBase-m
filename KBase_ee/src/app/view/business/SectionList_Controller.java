@@ -2732,6 +2732,8 @@ public class SectionList_Controller implements Container_Interface, AppItem_Inte
 	     */
 	    void createChildItems(TreeItem<SectionItem> ti) {
 	        if (!ti.getValue().isChildLoaded()) {
+	        	isTreeLoading = true; // ✅ почали
+	        	
 	        	// зберігаємо активний елемент дерева
 	        	TreeItem<SectionItem> selectedItem = treeTableView_sections.getSelectionModel().getSelectedItem();
             	treeViewSelectedItemId = selectedItem != null ? selectedItem.getValue().getId() : -1;
@@ -2752,37 +2754,56 @@ public class SectionList_Controller implements Container_Interface, AppItem_Inte
 
 	            ti.getValue().setChildLoaded(true);
 
-	            // Безпечне сортування після оновлення дерева
 	            Platform.runLater(() -> {
 	                try {
+	                	// Безпечне сортування після оновлення дерева
 	                    // Перевірити, чи є хоча б один стовпець для сортування
 	                    if (!treeTableView_sections.getSortOrder().isEmpty()) {
 	                        treeTableView_sections.sort();
 	                    }
 	                } catch (Exception e) {
-	                    System.out.println("Помилка сортування гілки розділів: " + e.getMessage());
-	                }
-	            });
-	            
-	            // Відновлюємо активний елемент
-	            Platform.runLater(() -> {
-	                try {
-	                    TreeItem<SectionItem> curSelected = treeTableView_sections.getSelectionModel().getSelectedItem();
-	                    long curSelectedId = curSelected != null ? curSelected.getValue().getId() : -1;
-	                    
-	                    if ((treeViewSelectedItemId != -1) && 
-	        	           	(treeViewSelectedItemId != curSelectedId)) {		
-	                    		
-	                        TreeItem<SectionItem> restoredItem = getTreeItemById(treeTableView_sections.getRoot(), treeViewSelectedItemId);
-	                        if (restoredItem != null) {
-                                treeTableView_sections.getSelectionModel().select(restoredItem);
-	                        }
-	                    }
-	                } catch (Exception e) {
-	                	System.out.println("Помилка відновлення активного елемента");
+	                	System.out.println("Помилка сортування гілки розділів :" + e.getMessage());
+	        		}
+
+	        		// Відновлюємо активний елемент
+	        		if (! isGotoSection) {
+	        			PauseTransition pause = new PauseTransition(Duration.millis(50));
+	        			pause.setOnFinished(e -> {
+	        				doSafeSelection();
+	        			});
+
+	        			pause.play();
+	        		} else {
+	        			isTreeLoading = false;
 	                }
 	            });
 	        }
+		}
+
+		/**
+		 * Відновлюємо активний елемент після динамічного завантаження гілки Розділів
+		 */
+		private void doSafeSelection () {
+            Platform.runLater(() -> {
+                try {
+                    TreeItem<SectionItem> curSelected = treeTableView_sections.getSelectionModel().getSelectedItem();
+                    long curSelectedId = curSelected != null ? curSelected.getValue().getId() : -1;
+                    
+                    if ((treeViewSelectedItemId != -1) && 
+        	           	(treeViewSelectedItemId != curSelectedId)) {		
+                    		
+                        TreeItem<SectionItem> restoredItem = getTreeItemById(treeTableView_sections.getRoot(), treeViewSelectedItemId);
+                        if (restoredItem != null) {
+                        	//treeTableView_sections.getSelectionModel().clearSelection();
+                            treeTableView_sections.getSelectionModel().select(restoredItem);
+                        }
+                    }
+                } catch (Exception e) {
+                	System.out.println("Помилка відновлення активного елемента :" + e.getMessage());
+                } finally {
+                	isTreeLoading = false; //  закінчили
+                }
+            });
 	    }
 
 	    /**
@@ -2819,16 +2840,13 @@ public class SectionList_Controller implements Container_Interface, AppItem_Inte
 		public void gotoSection (long sectionId) {
 			boolean isPresent = false;
 
-			//---- перевіряємо чи присутній розділ в дереві
-			try {
-				isPresent = params.getConCur().db.sectionIsPresentInTree(rootSectionId, sectionId);
-			} catch (DataConnectionException | DataQueryException e) {
-				e.writeLog(params);
-				ShowAppMsg.showAlert(
-						"ERROR", "Помилка при переході на вказаний розділ, "+
-						"при пошуку Розділа в дереві.",
-						Integer.toString(e.getErrCode())+" "+e.getErrSign(), e.getMsg());
-			}
+			//---- знаходимо шлях до ітема
+			List<Long> sectionPath = params.getConCur().db.sectionGetPathIds(rootSectionId, sectionId);
+			//System.out.println(sectionPath);
+			
+			//---- перевіряємо чи присутній розділ в поточному дереві
+			isPresent = (sectionPath.get(0) == rootSectionId) ? true : false;
+			
 			if (! isPresent) {
 				ShowAppMsg.showAlert("INFORMATION", "Повідомлення",
 						"Вказаний розділ не знайдений в дереві.",
@@ -2836,67 +2854,8 @@ public class SectionList_Controller implements Container_Interface, AppItem_Inte
 				return;
 			}
 
-			//---- знаходимо шлях до ітема, розгортаємо та вибираємо
-
-
-
-
-			try {
-				// 1. Будуємо список ID для шляху від цільового розділу до кореня
-				List<Long> pathIds = new java.util.ArrayList<>();
-				long currentId = sectionId;
-
-				while (true) {
-					pathIds.add(0, currentId);
-					if (currentId == rootSectionId) break;
-
-					SectionItem si = params.getConCur().db.sectionGetById(currentId);
-					if (si == null) break;
-					currentId = si.getParentId();
-				}
-
-				// 2. Покроково проходимо по дереву від root
-				TreeItem<SectionItem> currentTI = root;
-				for (Long id : pathIds) {
-					// Якщо поточний TreeItem не має потрібного ID, шукаємо його серед дочірніх елементів
-					if (currentTI.getValue().getId() != id) {
-						TreeItem<SectionItem> foundChild = null;
-						for (TreeItem<SectionItem> child : currentTI.getChildren()) {
-							if (child.getValue().getId() == id) {
-								foundChild = child;
-								break;
-							}
-						}
-
-						if (foundChild != null) {
-							currentTI = foundChild;
-						} else {
-							return; // Елемент не знайдено в ієрархії
-						}
-					}
-
-					// Розгортаємо вузол та підвантажуємо дані для динамічного дерева
-					if (id != sectionId) {
-						currentTI.setExpanded(true);
-						if (isTreeDynamicLoad) {
-							createChildItems(currentTI);
-						}
-					}
-				}
-
-				// 3. Виділяємо знайдений розділ та фокусуємося на ньому
-				final TreeItem<SectionItem> targetTI = currentTI;
-				Platform.runLater(() -> {
-					treeTableView_sections.getSelectionModel().select(targetTI);
-					int index = treeTableView_sections.getSelectionModel().getSelectedIndex();
-					if (index >= 0) {
-						treeTableView_sections.scrollTo(index);
-					}
-				});
-
-			} catch (Exception e) {
-				params.setMsgToStatusBar("Помилка навігації до розділу: " + e.getMessage());
-			}
+			//---- розгортаємо та вибираємо
+			expandTreeItemsByIds(sectionPath, true);
 		}
 	}
 }
