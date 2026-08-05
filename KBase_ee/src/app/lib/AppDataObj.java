@@ -66,7 +66,7 @@ public class AppDataObj {
 			retVal = si.getThemeId();
 		} else {
 			try {
-				retVal = Long.parseLong(conn.db.settingsGetValue("SECTION_MAIN_THEME_DEFAULT"));
+				retVal = Long.parseLong(conn.db.settingsGetValue("SECTION_THEME_DEFAULT"));
 			} catch (DataConnectionException | DataQueryException e) {
 				e.writeLog(params);
 				ShowAppMsg.showAlert(
