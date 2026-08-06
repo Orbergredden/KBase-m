@@ -14,12 +14,15 @@ import app.model.DBConn_Parameters;
 import app.model.Params;
 import app.model.StateItem;
 import app.model.StateList;
+import app.model.business.DictionaryItem;
 import app.model.business.InfoHeaderItem;
 import app.model.business.Info_FileItem;
 import app.model.business.Info_ImageItem;
 import app.model.business.Info_TextItem;
 import app.model.business.SectionClipboardInfo;
+import app.model.business.SectionFavoriteItem;
 import app.model.business.SectionItem;
+import app.util.FormattedDate;
 import app.view.structure.TabNavigationHistory;
 
 import java.io.File;
@@ -28,6 +31,7 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.prefs.Preferences;
 
+import javafx.animation.PauseTransition;
 import javafx.application.Platform;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.beans.property.SimpleLongProperty;
@@ -57,6 +61,7 @@ import javafx.scene.web.WebView;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.util.Callback;
+import javafx.util.Duration;
 
 /**
  * Контроллер основного фрейма. Показывает дерево разделов (и др.) и инфо по разделам.
@@ -91,9 +96,15 @@ public class SectionList_Controller implements Container_Interface, AppItem_Inte
     @FXML
 	private AnchorPane anchorPane_PanelLeft;
     @FXML
-    private Tab tab_ContentTree;
+    TabPane tabPane_Sections;
     @FXML
-	private AnchorPane anchorPane_ContentTree;
+    Tab tab_ContentTree;
+    @FXML
+    private AnchorPane anchorPane_ContentTree;
+    @FXML
+    private Tab tab_Favorite;
+    @FXML
+    private AnchorPane anchorPane_Favorite;
     
     @FXML
 	public TreeTableView<SectionItem> treeTableView_sections;
@@ -125,7 +136,6 @@ public class SectionList_Controller implements Container_Interface, AppItem_Inte
     private TreeTableColumn<SectionItem, String> treeTableColumn_styleMain;
     @FXML
     private TreeTableColumn<SectionItem, String> treeTableColumn_styleTree;
-    
     @FXML
     private TreeTableColumn<SectionItem, String> treeTableColumn_styleRoot;
     @FXML
@@ -157,6 +167,8 @@ public class SectionList_Controller implements Container_Interface, AppItem_Inte
 	private MenuItem menuitem_treeOpenInWindow;
     @FXML
 	private MenuItem menuitem_find;
+	@FXML
+	private MenuItem menuitem_sectionAddToFavorite;
 	@FXML
 	private MenuItem menuitem_export;
     @FXML
@@ -194,6 +206,17 @@ public class SectionList_Controller implements Container_Interface, AppItem_Inte
 	private boolean isSplitterPositionedFirst;
 	// позиція сплітера в пікселях відносно лівої сторони
 	int spliterWidth;
+	
+	// прапорець динамічного завантаження гілки
+	private volatile boolean isTreeLoading = false;
+	// використовуємо при переході до вказаного Розділу, чекаємо динамічне завантаження гілки
+	private int retryCount = 0;
+	private static final int MAX_RETRIES = 5000;
+	// при переході на вказаний Розділ, не робимо вибір Розділу при динамічному завантаженні гілки
+	private volatile boolean isGotoSection = false;
+
+	//
+	private SectionFavoriteList_Controller controller_Favorite;
     
     /**
      * Конструктор.
@@ -341,6 +364,7 @@ public class SectionList_Controller implements Container_Interface, AppItem_Inte
     	menuitem_treeOpenInMainTab.setGraphic(new ImageView(new Image("file:resources/images/icon_open_tree_16.png")));
     	menuitem_treeOpenInWindow.setGraphic(new ImageView(new Image("file:resources/images/icon_open_tree_16.png")));
 		menuitem_find.setGraphic(new ImageView(new Image("file:resources/images/icon_find_16.png")));
+		menuitem_sectionAddToFavorite.setGraphic(new ImageView(new Image("file:resources/images/icon_favorite_16.png")));
     	menuitem_export.setGraphic(new ImageView(new Image("file:resources/images/icon_export_16.png")));
     	menuitem_import.setGraphic(new ImageView(new Image("file:resources/images/icon_import_16.png")));
 
@@ -370,7 +394,52 @@ public class SectionList_Controller implements Container_Interface, AppItem_Inte
     	hbox_DocCur.getChildren().add(label_TitleDocCur);
     	tab_DocCur.setText("");
     	tab_DocCur.setGraphic(hbox_DocCur);
+    	
+    	//======== Favorite Tab (left side)
+    	initTabFavorite();
     }
+    
+    /**
+	 * Створюємо на ініціалізуємо таб з Фаворитами у лівому ТабПейні Розділів
+	 */
+	private void initTabFavorite () {
+
+		//======== create
+		anchorPane_Favorite = new AnchorPane();
+		// (опціонально) налаштування розмірів або стилів
+		//anchorPane_Favorite.setPrefSize(100, 300);
+		tab_Favorite = new Tab("Favorite");
+		//tab_Favorite.setContent(anchorPane_Favorite);
+		tabPane_Sections.getTabs().add(tab_Favorite);
+
+		//======== показуємо картинку та напис
+		HBox hbox_Favorite = new HBox();
+		Label label_TitleFavorite = new Label("Favorite");
+		hbox_Favorite.getChildren().add(new ImageView(new Image("file:resources/images/icon_favorite_16.png")));
+		hbox_Favorite.getChildren().add(label_TitleFavorite);
+		tab_Favorite.setText("");
+		tab_Favorite.setGraphic(hbox_Favorite);
+
+		//======== load form
+		try {
+			// Загружаем fxml-файл и создаём новую сцену
+			FXMLLoader loader = new FXMLLoader();
+			loader.setLocation(Main.class.getResource("view/business/SectionFavoriteList.fxml"));
+			anchorPane_Favorite = loader.load();
+			tab_Favorite.setContent(anchorPane_Favorite);
+
+			// Даём контроллеру доступ к главному приложению (передаем параметры).
+			controller_Favorite = loader.getController();
+
+			Params params = new Params(this.params);
+			params.setObjContainer(this);
+			params.setParentObj(this);
+
+			controller_Favorite.setParams(params);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
     
     private void initTabPaneInfo () {
     	//изменение активного таба
@@ -744,7 +813,7 @@ public class SectionList_Controller implements Container_Interface, AppItem_Inte
 		TreeItem<SectionItem> selectedItem = treeTableView_sections.getSelectionModel().getSelectedItem();
 		
 		if (selectedItem == null) {
-			params.setMsgToStatusBar("Ничего не выбрано для удаления.");
+			params.setMsgToStatusBar("Нічого не обрано для видалення.");
 			return;
 		}
 		
@@ -871,7 +940,7 @@ public class SectionList_Controller implements Container_Interface, AppItem_Inte
             	}
             	
             	treeTableView_sections.sort();
-            	treeViewCtrl.expandTreeItemsById(treeViewCtrl.root, newSectionId);
+            	treeViewCtrl.expandTreeItemById(treeViewCtrl.root, newSectionId);
             	treeViewCtrl.selectTreeItemById(treeViewCtrl.root, newSectionId);
     		} else {      // бази даних різні
     			//---- десеріалізація та підготовка даних, додаємо в БД
@@ -1072,6 +1141,33 @@ public class SectionList_Controller implements Container_Interface, AppItem_Inte
 		(new AppDataObj()).openSectionTreeInWin(params, tsi.getValue().getId());
     }
 
+    /**
+	 * Додаємо Розділ в Фаворити
+	 */
+	@FXML
+	private void handleButtonAddToFavorite() {
+		TreeItem<SectionItem> tsi = treeTableView_sections.getSelectionModel().getSelectedItem();
+
+		if (tsi == null) {
+			return;
+		}
+
+		try {
+			if (params.getConCur().db.sectionFavoriteIsPresent(tsi.getValue().getId())) {
+				return;
+			}
+			params.getConCur().db.sectionFavoriteAdd(tsi.getValue().getId());
+			params.getConCur().db.sectionFavoriteRebuildParentId();
+
+			controller_Favorite.refreshFavoriteTree();
+		} catch (DataConnectionException | DataQueryException e) {
+			e.writeLog(params);
+			ShowAppMsg.showAlert(
+					"ERROR", "Помилка при додаванні Розділа в Favorite",
+					Integer.toString(e.getErrCode())+" "+e.getErrSign(), e.getMsg());
+		}
+	}
+    
     /**
 	 * Реализуем метод интерфейса Container_Interface.
      * Показывает состояние инфо блока во внешнем контейнере - были несохраненные изменения или нет.
@@ -1281,7 +1377,8 @@ public class SectionList_Controller implements Container_Interface, AppItem_Inte
 	 * Сохраняем состояние контролов в иерархической структуре
 	 */
 	public void saveControlsState (StateList stateList) {
-
+		StateItem stateItem;
+		
 		//-------- treeTableView_sections
 		String sortColumnId;
 		String sortType;
@@ -1311,6 +1408,13 @@ public class SectionList_Controller implements Container_Interface, AppItem_Inte
 				"",
 				null);
 		
+		//------- Favorite
+		stateItem = stateList.add(
+				"favoriteSubItems",
+				"",
+				new StateList());
+		controller_Favorite.saveControlsState(stateItem.subItems);
+		
 		//-------- save main split state
 		stateList.add(
 				"splitPane_main_Position",
@@ -1325,7 +1429,6 @@ public class SectionList_Controller implements Container_Interface, AppItem_Inte
 		AppItem_Interface appItem;
 		DBConCur_Parameters conCur;           // обьект текущего соединения
 		DBConn_Parameters conPar;             // параметры текущего соединения
-		StateItem stateItem;
 		
 		// "Текущий" таб
 		appItem = (AppItem_Interface)tabPane_info.getTabs().get(0).getUserData();
@@ -1465,6 +1568,11 @@ public class SectionList_Controller implements Container_Interface, AppItem_Inte
 			    	}
 					
 					break;
+				//======= Favorite
+				case "favoriteSubItems" :
+					controller_Favorite.restoreControlsState(si.subItems);
+					break;
+					
 				//======== restore main split state
 				case "splitPane_main_Position" :
 					Platform.runLater(() -> {
@@ -1586,6 +1694,11 @@ public class SectionList_Controller implements Container_Interface, AppItem_Inte
 		//---------- проверяем и выбираем текущий итем
 		if (selectedItemId == ti.getValue().getId()) {
 			treeTableView_sections.getSelectionModel().select(ti);
+			
+			int row = treeTableView_sections.getRow(ti);
+			if (row >= 0) {
+				treeTableView_sections.scrollTo(row);
+			}
 		}
 
 		//-------- выбираем дочерние итемы и запускаем рекурсию
@@ -1739,6 +1852,7 @@ public class SectionList_Controller implements Container_Interface, AppItem_Inte
 	 */
 	public class TreeView_Controller {
 		public TreeItem<SectionItem> root;
+		public boolean dragStartedWithCtrl = false;
 
 		/**
 		 * инициализируем дерево, основной метод инициализации
@@ -1769,7 +1883,7 @@ public class SectionList_Controller implements Container_Interface, AppItem_Inte
 			if (rootSectionId == 0) {
 				try {
 					root = new TreeItem<>(new SectionItem(
-							0, 0, 0, "Все", "це корінь, він не редагується",
+							0, 0, 0, "Усі", "це корінь, він не редагується",
 							0, new Image("file:resources/images/icon_Sections_24.png"),
 							params.getConCur().db.settingsGetValue("SECTION_TEMPLATE_MAIN_DEFAULT"), 1, 0,
 							0,
@@ -2215,6 +2329,7 @@ public class SectionList_Controller implements Container_Interface, AppItem_Inte
 									(TreeItem<SectionItem>) treeTableView_sections.getSelectionModel().getSelectedItem();
 
 							if (selected != null) {
+								dragStartedWithCtrl = event.isControlDown();
 								Dragboard db = row.startDragAndDrop(TransferMode.ANY);
 
 								// create a miniature of the row you're dragging
@@ -2251,9 +2366,14 @@ public class SectionList_Controller implements Container_Interface, AppItem_Inte
 								int index = (Integer) db.getContent(params.getMain().SERIALIZED_MIME_TYPE);
 								TreeItem<SectionItem> item = treeTableView_sections.getTreeItem(index);
 
-								if (event.getAcceptedTransferMode() == TransferMode.MOVE) {
-									if (ShowAppMsg.showQuestion("CONFIRMATION", "Перемещение раздела",
-											"Перемещение раздела '"+ item.getValue().getName() +"'", "Переместить раздел ?")) {
+								TransferMode actionTransferMode = event.getAcceptedTransferMode();
+								if (System.getProperty("os.name").toLowerCase().contains("linux")) {
+									actionTransferMode = dragStartedWithCtrl ? TransferMode.COPY : TransferMode.MOVE;
+								}
+
+								if (actionTransferMode == TransferMode.MOVE) {
+									if (ShowAppMsg.showQuestion("CONFIRMATION", "Переміщення розділу",
+											"Переміщення розділу '" + item.getValue().getName() + "'", "Перемістити розділ ?")) {
 										// update in DB
 										params.getConCur().db.sectionMove (item.getValue().getId(), dragAndDropGetTarget(row).getValue().getId());
 										
@@ -2278,13 +2398,13 @@ public class SectionList_Controller implements Container_Interface, AppItem_Inte
 										// выводим сообщение в статус бар
 										params.setMsgToStatusBar("Раздел '" + item.getValue().getName() + "' перемещен.");
 									}
-								} else if (event.getAcceptedTransferMode() == TransferMode.COPY) {
+								} else if (actionTransferMode == TransferMode.COPY) {
 									Preferences prefs = Preferences.userNodeForPackage(SectionList_Controller.class);
 									boolean copyWithSubSections = prefs.get("copyWithSubSections", "No").equals("Yes");
 									int retVal = ShowAppMsg.showQuestionWithOption(
-											"CONFIRMATION", "Копирование раздела",
-											"Копировать раздел '"+ item.getValue().getName() +"' ?", null,
-											"Копировать ветку целиком", copyWithSubSections);
+											"CONFIRMATION", "Копіювання розділу",
+											"Копіювати розділ '"+ item.getValue().getName() +"' ?", null,
+											"Копіювати гілку повністю", copyWithSubSections);
 									long newSectionId = 0;
 
 									if (retVal == ShowAppMsg.QUESTION_OK) {          // сохраняем только текущий итем
@@ -2312,7 +2432,7 @@ public class SectionList_Controller implements Container_Interface, AppItem_Inte
 										params.setMsgToStatusBar("Раздел (ветка) '" + item.getValue().getName() + "' скопирован.");
 									}
 									treeTableView_sections.sort();
-									expandTreeItemsById(root, newSectionId);
+									expandTreeItemById(root, newSectionId);
 									selectTreeItemById(root, newSectionId);
 								} else {
 									ShowAppMsg.showAlert("WARNING", "Перетаскивание", "Не известный режим перетаскивания", "Не обрабатывается.");
@@ -2428,7 +2548,7 @@ public class SectionList_Controller implements Container_Interface, AppItem_Inte
 		/**
 		 * Раскрываем в дереве разделов раздел по его Id
 		 */
-		private int expandTreeItemsById(TreeItem<SectionItem> ti, long selId) {
+		private int expandTreeItemById(TreeItem<SectionItem> ti, long selId) {
 			SectionItem si = ti.getValue();
 
 			if (si.getId() == selId) {
@@ -2438,13 +2558,79 @@ public class SectionList_Controller implements Container_Interface, AppItem_Inte
 
 			//-------- выбираем дочерние итемы и запускаем рекурсию
 			for (TreeItem<SectionItem> i : ti.getChildren()) {
-				if (expandTreeItemsById(i, selId) == 1) {
+				if (expandTreeItemById(i, selId) == 1) {
 					ti.setExpanded(true);
 					return 1;
 				}
 			}
 
 			return 0;
+		}
+		
+		/**
+		 * Розкриваємо в дереві розділів ланцюжок розділів по списку їх id.
+		 * При необхідності вибираємо останній розділ в ланцюжку.
+		 * @param sectionPath
+		 */
+		private void expandTreeItemsByIds (List<Long> sectionPath, boolean doSelect) {
+			TreeItem<SectionItem> ti = root;
+			boolean isRoot = true;
+
+			// чекаємо якщо зараз йде динамічне завантаження гілки
+			if (isTreeLoading) {
+				if (retryCount++ < MAX_RETRIES) {
+					Platform.runLater(() -> expandTreeItemsByIds(sectionPath, doSelect));
+				} else {
+					System.out.println("Navigation timeout");
+					retryCount = 0;
+				}
+				return;
+			}
+			retryCount = 0;
+
+			//
+			isGotoSection = true;
+
+			// розкриваємо гілку
+			for (Long id : sectionPath) {
+				if (isRoot) {
+					ti.setExpanded(true);
+					isRoot = false;
+				} else {
+					for (TreeItem<SectionItem> child : ti.getChildren()) {
+						if (child.getValue().getId() == id) {
+							ti = child;
+							ti.setExpanded(true);
+							//System.out.println("- " + ti.getValue().getId());
+							break; // важливо!
+						}
+					}
+				}
+			}
+
+			// вибираємо вказаний елемент
+			TreeItem<SectionItem> finalTi = ti; //  копія
+			PauseTransition pause = new PauseTransition(Duration.millis(100));
+			pause.setOnFinished(e -> {
+				//System.out.println("finalTi(id) = "+ finalTi.getValue().getId());
+				if (doSelect && finalTi != null) {
+					Platform.runLater(() -> {
+						treeTableView_sections.getSelectionModel().select(finalTi);
+
+						Platform.runLater(() -> {
+							int row = treeTableView_sections.getRow(finalTi);
+							if (row >= 0) {
+								treeTableView_sections.scrollTo(row);
+							}
+
+							isGotoSection = false;
+						});
+					});
+					tabPane_info.getSelectionModel().select(tab_DocCur);
+				}
+			});
+
+			pause.play();
 		}
 		
 		/**
@@ -2546,6 +2732,8 @@ public class SectionList_Controller implements Container_Interface, AppItem_Inte
 	     */
 	    void createChildItems(TreeItem<SectionItem> ti) {
 	        if (!ti.getValue().isChildLoaded()) {
+	        	isTreeLoading = true; // ✅ почали
+	        	
 	        	// зберігаємо активний елемент дерева
 	        	TreeItem<SectionItem> selectedItem = treeTableView_sections.getSelectionModel().getSelectedItem();
             	treeViewSelectedItemId = selectedItem != null ? selectedItem.getValue().getId() : -1;
@@ -2566,37 +2754,56 @@ public class SectionList_Controller implements Container_Interface, AppItem_Inte
 
 	            ti.getValue().setChildLoaded(true);
 
-	            // Безпечне сортування після оновлення дерева
 	            Platform.runLater(() -> {
 	                try {
+	                	// Безпечне сортування після оновлення дерева
 	                    // Перевірити, чи є хоча б один стовпець для сортування
 	                    if (!treeTableView_sections.getSortOrder().isEmpty()) {
 	                        treeTableView_sections.sort();
 	                    }
 	                } catch (Exception e) {
-	                    System.out.println("Помилка сортування гілки розділів: " + e.getMessage());
-	                }
-	            });
-	            
-	            // Відновлюємо активний елемент
-	            Platform.runLater(() -> {
-	                try {
-	                    TreeItem<SectionItem> curSelected = treeTableView_sections.getSelectionModel().getSelectedItem();
-	                    long curSelectedId = curSelected != null ? curSelected.getValue().getId() : -1;
-	                    
-	                    if ((treeViewSelectedItemId != -1) && 
-	        	           	(treeViewSelectedItemId != curSelectedId)) {		
-	                    		
-	                        TreeItem<SectionItem> restoredItem = getTreeItemById(treeTableView_sections.getRoot(), treeViewSelectedItemId);
-	                        if (restoredItem != null) {
-                                treeTableView_sections.getSelectionModel().select(restoredItem);
-	                        }
-	                    }
-	                } catch (Exception e) {
-	                	System.out.println("Помилка відновлення активного елемента");
+	                	System.out.println("Помилка сортування гілки розділів :" + e.getMessage());
+	        		}
+
+	        		// Відновлюємо активний елемент
+	        		if (! isGotoSection) {
+	        			PauseTransition pause = new PauseTransition(Duration.millis(50));
+	        			pause.setOnFinished(e -> {
+	        				doSafeSelection();
+	        			});
+
+	        			pause.play();
+	        		} else {
+	        			isTreeLoading = false;
 	                }
 	            });
 	        }
+		}
+
+		/**
+		 * Відновлюємо активний елемент після динамічного завантаження гілки Розділів
+		 */
+		private void doSafeSelection () {
+            Platform.runLater(() -> {
+                try {
+                    TreeItem<SectionItem> curSelected = treeTableView_sections.getSelectionModel().getSelectedItem();
+                    long curSelectedId = curSelected != null ? curSelected.getValue().getId() : -1;
+                    
+                    if ((treeViewSelectedItemId != -1) && 
+        	           	(treeViewSelectedItemId != curSelectedId)) {		
+                    		
+                        TreeItem<SectionItem> restoredItem = getTreeItemById(treeTableView_sections.getRoot(), treeViewSelectedItemId);
+                        if (restoredItem != null) {
+                        	//treeTableView_sections.getSelectionModel().clearSelection();
+                            treeTableView_sections.getSelectionModel().select(restoredItem);
+                        }
+                    }
+                } catch (Exception e) {
+                	System.out.println("Помилка відновлення активного елемента :" + e.getMessage());
+                } finally {
+                	isTreeLoading = false; //  закінчили
+                }
+            });
 	    }
 
 	    /**
@@ -2633,16 +2840,13 @@ public class SectionList_Controller implements Container_Interface, AppItem_Inte
 		public void gotoSection (long sectionId) {
 			boolean isPresent = false;
 
-			//---- перевіряємо чи присутній розділ в дереві
-			try {
-				isPresent = params.getConCur().db.sectionIsPresentInTree(rootSectionId, sectionId);
-			} catch (DataConnectionException | DataQueryException e) {
-				e.writeLog(params);
-				ShowAppMsg.showAlert(
-						"ERROR", "Помилка при переході на вказаний розділ, "+
-						"при пошуку Розділа в дереві.",
-						Integer.toString(e.getErrCode())+" "+e.getErrSign(), e.getMsg());
-			}
+			//---- знаходимо шлях до ітема
+			List<Long> sectionPath = params.getConCur().db.sectionGetPathIds(rootSectionId, sectionId);
+			//System.out.println(sectionPath);
+			
+			//---- перевіряємо чи присутній розділ в поточному дереві
+			isPresent = (sectionPath.get(0) == rootSectionId) ? true : false;
+			
 			if (! isPresent) {
 				ShowAppMsg.showAlert("INFORMATION", "Повідомлення",
 						"Вказаний розділ не знайдений в дереві.",
@@ -2650,67 +2854,8 @@ public class SectionList_Controller implements Container_Interface, AppItem_Inte
 				return;
 			}
 
-			//---- знаходимо шлях до ітема, розгортаємо та вибираємо
-
-
-
-
-			try {
-				// 1. Будуємо список ID для шляху від цільового розділу до кореня
-				List<Long> pathIds = new java.util.ArrayList<>();
-				long currentId = sectionId;
-
-				while (true) {
-					pathIds.add(0, currentId);
-					if (currentId == rootSectionId) break;
-
-					SectionItem si = params.getConCur().db.sectionGetById(currentId);
-					if (si == null) break;
-					currentId = si.getParentId();
-				}
-
-				// 2. Покроково проходимо по дереву від root
-				TreeItem<SectionItem> currentTI = root;
-				for (Long id : pathIds) {
-					// Якщо поточний TreeItem не має потрібного ID, шукаємо його серед дочірніх елементів
-					if (currentTI.getValue().getId() != id) {
-						TreeItem<SectionItem> foundChild = null;
-						for (TreeItem<SectionItem> child : currentTI.getChildren()) {
-							if (child.getValue().getId() == id) {
-								foundChild = child;
-								break;
-							}
-						}
-
-						if (foundChild != null) {
-							currentTI = foundChild;
-						} else {
-							return; // Елемент не знайдено в ієрархії
-						}
-					}
-
-					// Розгортаємо вузол та підвантажуємо дані для динамічного дерева
-					if (id != sectionId) {
-						currentTI.setExpanded(true);
-						if (isTreeDynamicLoad) {
-							createChildItems(currentTI);
-						}
-					}
-				}
-
-				// 3. Виділяємо знайдений розділ та фокусуємося на ньому
-				final TreeItem<SectionItem> targetTI = currentTI;
-				Platform.runLater(() -> {
-					treeTableView_sections.getSelectionModel().select(targetTI);
-					int index = treeTableView_sections.getSelectionModel().getSelectedIndex();
-					if (index >= 0) {
-						treeTableView_sections.scrollTo(index);
-					}
-				});
-
-			} catch (Exception e) {
-				params.setMsgToStatusBar("Помилка навігації до розділу: " + e.getMessage());
-			}
+			//---- розгортаємо та вибираємо
+			expandTreeItemsByIds(sectionPath, true);
 		}
 	}
 }

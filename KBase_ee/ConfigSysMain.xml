@@ -16,7 +16,7 @@
         <lastModified>2025-11-21</lastModified>
         <name>version</name>
         <sectionName>AboutProgram</sectionName>
-        <value>3.12.00.765</value>
+        <value>3.13.00.772</value>
     </ConfigMainItem>
     <ConfigMainItem>
         <id>-1284171032</id>
@@ -34,7 +34,7 @@
         <lastModified>2025-11-21</lastModified>
         <name>EndDate</name>
         <sectionName>AboutProgram</sectionName>
-        <value>20.05.2026</value>
+        <value>01.07.2026</value>
     </ConfigMainItem>
     <ConfigMainItem>
         <id>-1284171034</id>
@@ -43,7 +43,7 @@
         <lastModified>2025-11-21</lastModified>
         <name>CodeName</name>
         <sectionName>AboutProgram</sectionName>
-        <value>find information (DEV)</value>
+        <value>find info, favorite</value>
     </ConfigMainItem>
     <ConfigMainItem>
         <id>-1284171035</id>
@@ -61,7 +61,7 @@
         <lastModified>2018-02-05</lastModified>
         <name>site</name>
         <sectionName>AboutProgram</sectionName>
-        <value>https://github.com/Orbergredden/KBase-ee</value>
+        <value>https://github.com/Orbergredden/KBase-m</value>
     </ConfigMainItem>
     <ConfigMainItem>
         <descr>Необхідна версія БД для роботи з програмою</descr>
@@ -71,7 +71,7 @@
         <lastModified>2025-03-11</lastModified>
         <name>Required version.KBase Pg</name>
         <sectionName>DB</sectionName>
-        <value>2.02.01.*</value>
+        <value>2.03.00.*</value>
     </ConfigMainItem>
     <ConfigMainItem>
         <descr>Необхідна версія БД для роботи з програмою</descr>
@@ -81,7 +81,7 @@
         <lastModified>2025-03-11</lastModified>
         <name>Required version.KBase Lite</name>
         <sectionName>DB</sectionName>
-        <value>2.02.01.*</value>
+        <value>2.03.00.*</value>
     </ConfigMainItem>
     <ConfigMainItem>
         <descr>Необхідна версія БД для роботи з програмою</descr>

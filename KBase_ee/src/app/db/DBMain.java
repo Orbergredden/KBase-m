@@ -17,6 +17,7 @@ import app.model.business.InfoTypeItem;
 import app.model.business.Info_FileItem;
 import app.model.business.Info_ImageItem;
 import app.model.business.Info_TextItem;
+import app.model.business.SectionFavoriteItem;
 import app.model.business.SectionItem;
 import app.model.business.template.TemplateFileItem;
 import app.model.business.template.TemplateSimpleItem;
@@ -209,7 +210,7 @@ public abstract class DBMain {
 	/**
 	 * 
 	 */
-	abstract String getCurrentUser ();
+	abstract public String getCurrentUser ();
 	
 	/**
 	 * 
@@ -2138,6 +2139,27 @@ public abstract class DBMain {
 	}
 	
 	/**
+	 * Повертає ланцюжок id розділів від вказаного до предка.
+	 * Якщо розділ не входить в гілку цього предка, то робимо до самого рута id=0
+	 */
+	public List<Long> sectionGetPathIds (long rootId, long sectionId) {
+	    List<Long> retVal = new java.util.ArrayList<>();
+	    long currId = sectionId;
+	    SectionItem si = null;
+
+	    while ((currId != rootId) && (currId != 0)) {
+	        retVal.add(0, currId);
+	        si = sectionGetById(currId);
+	        if (si == null) break;
+	        currId = si.getParentId();
+	    }
+
+	    retVal.add(0, currId);
+
+	    return retVal;
+	}
+	
+	/**
 	 * Возвращает цепочку имен разделов от указанного до самого верхнего родителя. 
 	 */
 	public abstract String sectionGetPathName (long sectionId, String delimiter);
@@ -2156,6 +2178,7 @@ public abstract class DBMain {
 
 	/**
 	 * шукаємо чи є вказаний Розділ в Дереві розділів
+	 * Проблема : не шукає від самісінького кореню з id = 0
 	 * @param rootId
 	 * @param currentId
 	 * @return
@@ -2378,6 +2401,170 @@ public abstract class DBMain {
 					             "Ошибка при изменении раздела (sectionUpdateDateModifiedInfo).");
 		}
 	}
+	
+	/**
+	 * Заголовок-Фаворит. Додавання нового елемента.
+	 */
+	public void sectionFavoriteAdd (long sectionId)
+			throws DataConnectionException,DataQueryException {
+		String stm;
+		PreparedStatement pst = null;
+
+		checkConnectEx();
+
+		try {
+			stm = """
+					INSERT INTO sections_favorite (id, parent_id, section_id, "user", date_created)
+						VALUES(?, 0, ?, ?, ?)
+					""";
+			pst = con.prepareStatement(stm);
+			pst.setLong (1, getNextId("seq_sections_favorite"));
+			pst.setLong (2, sectionId);
+			pst.setString(3, getCurrentUser());
+			pstSetDate (pst, 4, null);
+
+			pst.executeUpdate();
+			pst.close();
+		} catch (SQLException e) {
+			throw new DataQueryException (
+				DataQueryException.ERRCODE_OTHERS, "sectionFavoriteAdd",
+				"Помилка в sectionFavoriteAdd ("+sectionId+") \n"+dbURL,
+				e, 1, null, "SQLException");
+		}
+	}
+	
+	/**
+	 * Заголовок-Фаворит. Вилучення елемента.
+	 */
+	public void sectionFavoriteDelete (long id, boolean withSubTree)
+			throws DataConnectionException,DataQueryException {
+		String stm;
+		PreparedStatement pst = null;
+
+		checkConnectEx();
+
+		try {
+			if (withSubTree) {
+				stm = """
+						WITH RECURSIVE x(id) AS (
+							SELECT id
+							FROM sections_favorite
+							WHERE id = ?
+							UNION ALL
+							SELECT a.id
+							FROM x
+							JOIN sections_favorite a ON a.parent_id = x.id)
+						delete from sections_favorite
+						where id in (select id from x)
+						""";
+			} else {
+				stm = """
+						delete from sections_favorite
+						where id = ?
+						""";
+			}
+			pst = con.prepareStatement(stm);
+			pst.setLong (1, id);
+
+			pst.executeUpdate();
+			pst.close();
+		} catch (SQLException e) {
+			throw new DataQueryException (
+				DataQueryException.ERRCODE_OTHERS, "sectionFavoriteAdd",
+				"Помилка в sectionFavoriteAdd ("+id+", "+withSubTree+") \n"+dbURL,
+				e, 1, null, "SQLException");
+		}
+	}
+	//TODO
+	
+	/**
+	 * шукаємо чи є вказаний Розділ в Дереві Favorite
+	 * @return
+	 * @throws DataConnectionException
+	 */
+	public boolean sectionFavoriteIsPresent (long sectionId)
+			throws DataConnectionException,DataQueryException {
+		boolean retVal = false;
+
+		checkConnectEx();
+
+		try {
+			String stm = """
+					select count(*) as cnt
+					  from sections_favorite
+					 where "user" = ?
+					   and section_id = ?
+					""";
+			PreparedStatement pst = con.prepareStatement(stm);
+			pst.setString(1, getCurrentUser());
+			pst.setLong (2, sectionId);
+			ResultSet rs = pst.executeQuery();
+			rs.next();
+
+			retVal = (rs.getInt("cnt") > 0) ? true : false;
+
+			rs.close();
+			pst.close();
+		} catch (SQLException e) {
+			throw new DataQueryException (
+				DataQueryException.ERRCODE_OTHERS, "sectionFavoriteIsPresent",
+				"Помилка в sectionFavoriteIsPresent ("+sectionId+") \n"+dbURL,
+				e, 1, null, "SQLException");
+		}
+
+		return retVal;
+	}
+	
+	/**
+	 * Повертає список розділів для вказаного предка
+	 */
+	public List<SectionFavoriteItem> sectionFavoriteListByParentId (long parentId) {
+		List<SectionFavoriteItem> retVal = new ArrayList<SectionFavoriteItem>();
+		
+		checkConnect();
+		
+		try {
+			String stm = """
+					SELECT id, COALESCE(parent_id, 0) as parent_id, section_id, date_created
+					FROM sections_favorite
+					WHERE "user" = ?
+					  and COALESCE(parent_id, 0) = ?
+					""";
+			PreparedStatement pst = con.prepareStatement(stm);
+			pst.setString(1, getCurrentUser());
+			pst.setLong (2, parentId);
+			ResultSet rs = pst.executeQuery();
+			
+			while (rs.next()) {
+				java.util.Date dateTmpCre;
+				Timestamp timestampCr = rs.getTimestamp("date_created");
+				if (timestampCr != null) dateTmpCre = new java.util.Date(timestampCr.getTime());
+				else                     dateTmpCre = null;
+				
+				retVal.add(new SectionFavoriteItem(
+						rs.getLong("id"),
+						rs.getLong("parent_id"),
+						rs.getInt("section_id"),
+						sectionGetById(rs.getInt("section_id")),
+						dateTmpCre));
+			}
+			
+			rs.close();
+			pst.close();
+		} catch (SQLException e) {
+			e.printStackTrace();
+			ShowAppMsg.showAlert("WARNING", "db error", "Помилка при роботі з базою даних",
+					"Помилка при отриманні списка підрозділів, sectionFavoriteListByParentId().");
+		}
+		
+		return retVal;
+	}
+	
+	/**
+	 * Перебудовуємо дерево, апдейтимо усі parent_id
+	 */
+	abstract public void sectionFavoriteRebuildParentId ()
+		throws DataConnectionException,DataQueryException;
 
 	/**
 	 * Установки. Получаем значение по алиасу

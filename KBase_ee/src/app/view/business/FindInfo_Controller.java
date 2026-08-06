@@ -1,15 +1,15 @@
 package app.view.business;
 
 import app.lib.AppDataObj;
+import app.lib.ShowAppMsg;
+import app.lib.StringUtil;
 import app.model.AppItem_Interface;
 import app.model.FindParams;
 import app.model.FindResultItem;
 import app.model.business.SectionItem;
 import app.model.StateList;
 import app.model.Params;
-import app.lib.ShowAppMsg;
 import app.util.FormattedDate;
-import app.view.business.SectionList_Controller;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -279,10 +279,14 @@ public class FindInfo_Controller implements AppItem_Interface {
 			(TreeTableColumn.CellDataFeatures<FindResultItem, String> param) ->
 				new ReadOnlyStringWrapper(param.getValue().getValue().getInfoName())
 		);
-		/*treeTableColumn_Text.setCellValueFactory(
-			(TreeTableColumn.CellDataFeatures<FindResultItem, String> param) ->
-				new ReadOnlyStringWrapper(param.getValue().getValue().getText())
-		);*/
+		treeTableColumn_Text.setCellValueFactory(
+				(TreeTableColumn.CellDataFeatures<FindResultItem, String> param) ->
+				new ReadOnlyStringWrapper(StringUtil.findLineWithText(
+					param.getValue().getValue().getText(),
+					textArea_Text.getText(),
+					!checkBox_Text_IgnoreRegistr.isSelected()
+				))
+			);
 		treeTableColumn_DateCreated.setCellValueFactory(param -> {
 			LocalDateTime ldt = param.getValue().getValue().getDateCreated();
 			Date date = Date.from(ldt.atZone(ZoneId.systemDefault()).toInstant());

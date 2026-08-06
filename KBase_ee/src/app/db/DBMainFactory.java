@@ -18,7 +18,7 @@ public class DBMainFactory {
 			retVal = new DBMainPostgres (params, host, port, name, user, password);
 			break;
 		case DBConn_Parameters.TYPE_CONN_SQLITE :
-			retVal = new DBMainSQLite (params, host, port, name, null, null);
+			retVal = new DBMainSQLite (params, host, port, name, user, null);
 			break;
 		}
 		

@@ -66,7 +66,7 @@ public class AppDataObj {
 			retVal = si.getThemeId();
 		} else {
 			try {
-				retVal = Long.parseLong(conn.db.settingsGetValue("SECTION_MAIN_THEME_DEFAULT"));
+				retVal = Long.parseLong(conn.db.settingsGetValue("SECTION_THEME_DEFAULT"));
 			} catch (DataConnectionException | DataQueryException e) {
 				e.writeLog(params);
 				ShowAppMsg.showAlert(
@@ -700,8 +700,12 @@ public class AppDataObj {
         
         // set current dir and file
         String curDir = prefs.get("saveTabState_CurDirName", "");
-        if (! curDir.equals("")) 
-        	fileChooser.setInitialDirectory(new File(curDir));
+        if (! curDir.equals("")) {
+        	File dir = new File(curDir);
+        	if (dir.exists() && dir.isDirectory()) {
+        		fileChooser.setInitialDirectory(new File(curDir));
+        	}
+        }
         
        	fileChooser.setInitialFileName(tabTitle);
         

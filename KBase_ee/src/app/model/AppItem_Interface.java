@@ -17,6 +17,7 @@ public interface AppItem_Interface {
 	public static final String ELEMENT_TEMPLATE_LIST   = "TemplateList_Controller";
 	public static final String ELEMENT_TASK_LIST       = "TaskList_Controller";
 	public static final String ELEMENT_FIND_INFO	   = "FindInfo_Controller";
+	public static final String ELEMENT_SECTION_FAVORITE= "SectionFavoriteList_Controller";
 
 	/**
 	 * Получаем уникальный идентификатор обьекта
