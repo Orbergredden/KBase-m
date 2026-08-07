@@ -234,12 +234,9 @@ public class DocumentView_Controller implements AppItem_Interface {
 		// беремо значення позиції сплітера з конфіга
     	spliterWidth = getSpliterWidthFromConfig();
 		
-    	// Встановлення початкового розміру після побудови
-    	Platform.runLater(() -> {
-    		double position = getSpliterPos(spliterWidth); // Відносна позиція сплітера
-    	    splitPane_info.setDividerPositions(position); // Встановлення позиції
-    	    isSplitterPositionedFirst = true;
-    	});
+    	// Встановлення початкового розміру після побудови.
+    	// Використовуємо applySpliterPos з retry-логікою (на Linux getWidth() може бути 0).
+    	applySpliterPos(spliterWidth);
 
     	// Слухач для збереження позиції
     	splitPane_info.getDividers().get(0).positionProperty().addListener((observable, oldValue, newValue) -> {
@@ -1042,13 +1039,10 @@ public class DocumentView_Controller implements AppItem_Interface {
 				}
 				break;
 			case "splitPane_info_Position" :
-				Platform.runLater(() -> {
-					spliterWidth = Integer.parseInt(si.getParams());
-		    		double position = getSpliterPos(spliterWidth); // Відносна позиція сплітера
-		    	    splitPane_info.setDividerPositions(position); // Встановлення позиції
-		    	    isSplitterPositionedFirst = true;
-		    	    //System.out.println("Рестор сплітера: " + position + " (spliterWidth: " + spliterWidth + ")");
-		    	});
+				// Використовуємо applySpliterPos з retry-логікою:
+				// на Linux getWidth() може бути 0 в момент runLater (контрол ще не відрендерений),
+				// тому повторюємо спроби до SPLITTER_RETRY_MAX разів
+				applySpliterPos(Integer.parseInt(si.getParams()));
 				break;
 			case "splitPane_info_fixMode" :
 				toggleButton_fixSplitPane.setSelected(
@@ -1105,6 +1099,42 @@ public class DocumentView_Controller implements AppItem_Interface {
     	double position = 1 - width / windowWidth; // Відносна позиція сплітера
     	
     	return position;
+    }
+    
+    /** Максимальна кількість повторних спроб встановлення позиції сплітера */
+    private static final int SPLITTER_RETRY_MAX = 5;
+    
+    /**
+     * Встановлює позицію сплітера відновлення зі збереженого стану.
+     * На Linux контрол може ще не мати реального розміру в перших тактах runLater
+     * (getWidth()==0), що призводить до ділення на нуль і зсуву сплітера вліво.
+     * Якщо розмір ще 0 — повторюємо спробу через наступний Platform.runLater
+     * (не більше SPLITTER_RETRY_MAX разів).
+     */
+    private void applySpliterPos (int targetWidth) {
+    	applySpliterPos(targetWidth, 0);
+    }
+    
+    private void applySpliterPos (int targetWidth, int attempt) {
+    	Platform.runLater(() -> {
+    		double paneSize = (splitPane_info.getOrientation() == Orientation.HORIZONTAL)
+    				? splitPane_info.getWidth()
+    				: splitPane_info.getHeight();
+    		
+    		if (paneSize <= 0) {
+    			// Контрол ще не відрендерений — повторюємо спробу
+    			if (attempt < SPLITTER_RETRY_MAX) {
+    				applySpliterPos(targetWidth, attempt + 1);
+    			}
+    			return;
+    		}
+    		
+    		spliterWidth = targetWidth;
+    		double position = 1.0 - targetWidth / paneSize; // Відносна позиція сплітера
+    		splitPane_info.setDividerPositions(position); // Встановлення позиції
+    		isSplitterPositionedFirst = true;
+    		//System.out.println("Рестор сплітера: " + position + " (spliterWidth: " + targetWidth + ", attempt: " + attempt + ")");
+    	});
     }
     
     /**
