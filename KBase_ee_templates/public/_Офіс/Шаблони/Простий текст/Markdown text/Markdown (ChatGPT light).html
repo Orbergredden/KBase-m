@@ -1,5 +1,5 @@
 <!--HEAD_BEGIN css_{[templateId]}-->
-<!-- v.1.00.00.001 2026-08-19 - 2026-08-19 -->
+<!-- v.1.01.00.003 2026-08-19 - 2026-08-20 -->
 <style>
 .divMain_{[templateId]} {
     margin: 7px;
@@ -12,6 +12,55 @@
     margin: 0px;
     padding: 0px;
 }
+
+/* Header container with flex alignment for Title and Copy button */
+.header-row_{[templateId]} {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 6px;
+    padding: 2px 0;
+}
+.header-title-container_{[templateId]} {
+    flex-grow: 1;
+}
+
+/* ChatGPT style copy button */
+.btn-copy_{[templateId]} {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: transparent;
+    border: 1px solid #e5e5e5;
+    border-radius: 6px;
+    padding: 4px 8px;
+    font-size: 12px;
+    font-family: inherit;
+    color: #6e6e80;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    user-select: none;
+    margin-left: auto;
+}
+.btn-copy_{[templateId]}:hover {
+    background: #f4f4f5;
+    color: #0d0d0d;
+    border-color: #d1d1d6;
+}
+.btn-copy_{[templateId]}:active {
+    background: #e4e4e7;
+}
+.btn-copy_{[templateId]} svg {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+}
+.btn-copy_{[templateId]}.copied {
+    color: #10a37f;
+    border-color: #10a37f;
+    background: #f0fdf4;
+}
+
 /* === Markdown ChatGPT light theme === */
 .md-body_{[templateId]} {
     font-family: 'Söhne', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif;
@@ -95,9 +144,73 @@
     background: none;
     border: none;
     padding: 0;
-    color: #1a1a2e;
     font-size: inherit;
     border-radius: 0;
+    color: inherit;
+}
+
+/* === Highlight.js Syntax Highlighting (ChatGPT Light / GitHub theme) === */
+.md-body_{[templateId]} .hljs {
+    color: #24292e;
+    background: transparent;
+}
+.md-body_{[templateId]} .hljs-comment,
+.md-body_{[templateId]} .hljs-quote {
+    color: #6a737d;
+    font-style: italic;
+}
+.md-body_{[templateId]} .hljs-keyword,
+.md-body_{[templateId]} .hljs-selector-tag,
+.md-body_{[templateId]} .hljs-subst {
+    color: #d73a49;
+    font-weight: 600;
+}
+.md-body_{[templateId]} .hljs-number,
+.md-body_{[templateId]} .hljs-literal,
+.md-body_{[templateId]} .hljs-variable,
+.md-body_{[templateId]} .hljs-template-variable,
+.md-body_{[templateId]} .hljs-tag .hljs-attr {
+    color: #005cc5;
+}
+.md-body_{[templateId]} .hljs-string,
+.md-body_{[templateId]} .hljs-doctag,
+.md-body_{[templateId]} .hljs-regexp {
+    color: #032f62;
+}
+.md-body_{[templateId]} .hljs-title,
+.md-body_{[templateId]} .hljs-section,
+.md-body_{[templateId]} .hljs-selector-id {
+    color: #6f42c1;
+    font-weight: 600;
+}
+.md-body_{[templateId]} .hljs-title.class_,
+.md-body_{[templateId]} .hljs-title.function_,
+.md-body_{[templateId]} .hljs-type,
+.md-body_{[templateId]} .hljs-class .hljs-title {
+    color: #6f42c1;
+}
+.md-body_{[templateId]} .hljs-symbol,
+.md-body_{[templateId]} .hljs-bullet,
+.md-body_{[templateId]} .hljs-attribute,
+.md-body_{[templateId]} .hljs-link {
+    color: #005cc5;
+}
+.md-body_{[templateId]} .hljs-name,
+.md-body_{[templateId]} .hljs-tag {
+    color: #22863a;
+}
+.md-body_{[templateId]} .hljs-meta,
+.md-body_{[templateId]} .hljs-meta .hljs-keyword {
+    color: #e36209;
+}
+.md-body_{[templateId]} .hljs-built_in {
+    color: #e36209;
+}
+.md-body_{[templateId]} .hljs-emphasis {
+    font-style: italic;
+}
+.md-body_{[templateId]} .hljs-strong {
+    font-weight: bold;
 }
 
 /* Blockquotes */
@@ -200,38 +313,106 @@
 <script type="text/javascript" src='_files/JavaScript_lib/marked/marked.min.js'></script>
 <!--HEAD_END marked_js-->
 
+<!--HEAD_BEGIN highlight-->
+<script type="text/javascript" src='_files/JavaScript_lib/highlight/highlight.js'></script>
+<!--HEAD_END highlight-->
+
+<!--HEAD_BEGIN highlight_css_qtcreator-light-->
+<link rel="stylesheet" href="_files/JavaScript_lib/highlight/styles/qtcreator-light.css">
+<!--HEAD_END highlight_css_qtcreator-light-->
+
 <!--BODY_BEGIN {[InfoBlockId]}-->
 <div class="divMain_{[templateId]}">
 
-<SCRIPT type="text/javascript">
-var v_isShowDescr = {[isShowDescr]};
-var v_InfoDescr = "{[InfoDescr]}";
+<div class="header-row_{[templateId]}">
+    <div class="header-title-container_{[templateId]}">
+        <SCRIPT type="text/javascript">
+        var v_isShowDescr = {[isShowDescr]};
+        var v_InfoDescr = "{[InfoDescr]}";
 
-if (v_isShowDescr == 1) {
-    document.write("<a id='{[InfoBlockId]}' class='aTitle_{[templateId]}'>" + v_InfoDescr + "</a>");
-} else {
-    document.write("<a id='{[InfoBlockId]}'></a>");
-}
-</SCRIPT>
+        if (v_isShowDescr == 1) {
+            document.write("<a id='{[InfoBlockId]}' class='aTitle_{[templateId]}'>" + v_InfoDescr + "</a>");
+        } else {
+            document.write("<a id='{[InfoBlockId]}'></a>");
+        }
+        </SCRIPT>
+    </div>
+
+    <!-- ChatGPT Style Copy Button -->
+    <button type="button" class="btn-copy_{[templateId]}" onclick="copyMdContent_{[templateId]}('{[InfoBlockId]}', this)" title="Копіювати текст">
+        <span class="btn-icon_{[templateId]}">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+            </svg>
+        </span>
+        <span class="btn-text_{[templateId]}">Копіювати</span>
+    </button>
+</div>
 
 <!-- Raw MD source (hidden) - must be before the script that reads it -->
 <script id="md-raw-{[InfoBlockId]}" type="text/plain" style="display:none">{[kbase_Info_Text]}</script>
 
 <div id="md-body-{[InfoBlockId]}" class="md-body_{[templateId]}"></div>
 <script type="text/javascript">
+function copyMdContent_{[templateId]}(infoBlockId, btn) {
+    var rawText = document.getElementById('md-raw-' + infoBlockId).textContent;
+
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(rawText);
+    } else {
+        var textArea = document.createElement("textarea");
+        textArea.value = rawText;
+        textArea.style.position = "fixed";
+        textArea.style.top = "0";
+        textArea.style.left = "0";
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        try { document.execCommand('copy'); } catch (err) {}
+        document.body.removeChild(textArea);
+    }
+
+    btn.classList.add('copied');
+    var iconSpan = btn.querySelector('.btn-icon_{[templateId]}');
+    var textSpan = btn.querySelector('.btn-text_{[templateId]}');
+
+    if (textSpan) textSpan.textContent = 'Скопійовано!';
+    if (iconSpan) {
+        iconSpan.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>';
+    }
+
+    setTimeout(function() {
+        btn.classList.remove('copied');
+        if (textSpan) textSpan.textContent = 'Копіювати';
+        if (iconSpan) {
+            iconSpan.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>';
+        }
+    }, 2000);
+}
+
 (function() {
     var rawMd = document.getElementById('md-raw-{[InfoBlockId]}').textContent;
     var html = marked.parse(rawMd, {
         gfm: true,
         breaks: true
     });
-    document.getElementById('md-body-{[InfoBlockId]}').innerHTML = html;
+    var targetDiv = document.getElementById('md-body-{[InfoBlockId]}');
+    targetDiv.innerHTML = html;
 
     /* Task list fix: marked renders <ul> with class="contains-task-list", items with class="task-list-item" */
-    var taskLists = document.querySelectorAll('#md-body-{[InfoBlockId]} ul.contains-task-list');
+    var taskLists = targetDiv.querySelectorAll('ul.contains-task-list');
     taskLists.forEach(function(ul) {
         ul.classList.add('task-list');
     });
+
+    /* Highlight code blocks inside the rendered markdown */
+    if (typeof hljs !== 'undefined') {
+        var codeBlocks = targetDiv.querySelectorAll('pre code');
+        codeBlocks.forEach(function(block) {
+            hljs.highlightElement(block);
+        });
+    }
 })();
 </script>
 
