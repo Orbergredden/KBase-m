@@ -423,11 +423,16 @@ public class Root_Controller implements Container_Interface {
     	
     	// Задаём фильтр расширений
         fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("XML файли (*.xml)", "*.xml"));
+        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("All files (*.*)", "*.*"));
     	
         // set directory
         curDir = prefs.get("openTab_Dir", "");
-        if (! curDir.equals("")) 
-        	fileChooser.setInitialDirectory(new File(curDir));
+        if (! curDir.equals("")) {
+            File dir = new File(curDir);
+            if (dir.exists() && dir.isDirectory()) {
+                fileChooser.setInitialDirectory(dir);
+            }
+        }
         
         // Показываем диалог загрузки файла
         File file = fileChooser.showOpenDialog(params.getStageCur());
@@ -477,8 +482,12 @@ public class Root_Controller implements Container_Interface {
         
         // set current dir and file
         String curDir = prefs.get("saveProgramState_CurDirName", "");
-        if (! curDir.equals("")) 
-        	fileChooser.setInitialDirectory(new File(curDir));
+        if (! curDir.equals("")) {
+            File dir = new File(curDir);
+            if (dir.exists() && dir.isDirectory()) {
+                fileChooser.setInitialDirectory(dir);
+            }
+        }
         
         String fileName = prefs.get("saveProgramState_FileName", "");
         if (! fileName.equals(""))

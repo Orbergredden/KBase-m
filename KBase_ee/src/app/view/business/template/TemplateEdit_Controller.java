@@ -281,8 +281,12 @@ public class TemplateEdit_Controller {
     	
         // set directory
         curDir = prefs.get("stageTemplateEdit_SelectTemplateDir", "");
-        if (! curDir.equals("")) 
-        	fileChooser.setInitialDirectory(new File(curDir));
+        if (! curDir.equals("")) {
+            File dir = new File(curDir);
+            if (dir.exists() && dir.isDirectory()) {
+                fileChooser.setInitialDirectory(dir);
+            }
+        }
         
         // Показываем диалог загрузки файла
         File file = fileChooser.showOpenDialog(params.getStageCur());
@@ -339,8 +343,12 @@ public class TemplateEdit_Controller {
         
         // set current dir
         String curDir = prefs.get("stageTemplateEdit_CurDirNameForSave", "");
-        if (! curDir.equals("")) 
-        	fileChooser.setInitialDirectory(new File(curDir));
+        if (! curDir.equals("")) {
+            File dir = new File(curDir);
+            if (dir.exists() && dir.isDirectory()) {
+                fileChooser.setInitialDirectory(dir);
+            }
+        }
         
         //Show save file dialog
         File file = fileChooser.showSaveDialog(params.getStageCur());

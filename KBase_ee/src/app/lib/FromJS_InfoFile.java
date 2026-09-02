@@ -39,14 +39,18 @@ public class FromJS_InfoFile {
     	fileChooser.setTitle("Save file to disk");
     	fileChooser.setInitialFileName(fileName);
     	
-    	// Задаём фильтр расширений
+    	// Задаём фільтр розширень
         FileChooser.ExtensionFilter extFilter = new FileChooser.ExtensionFilter("All files (*.*)", "*.*");
         fileChooser.getExtensionFilters().add(extFilter);
         
         // set directory
         curDir = prefs.get("FromJSInfoFile_CurDirNameForSaveFile", "");
-        if (! curDir.equals("")) 
-        	fileChooser.setInitialDirectory(new File(curDir));
+        if (! curDir.equals("")) {
+            File dir = new File(curDir);
+            if (dir.exists() && dir.isDirectory()) {
+                fileChooser.setInitialDirectory(dir);
+            }
+        }
         
         // Показываем диалог загрузки файла
         File file = fileChooser.showSaveDialog(params.getStageCur());
