@@ -423,7 +423,7 @@ public class Root_Controller implements Container_Interface {
     	
     	// Задаём фильтр расширений
         fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("XML файли (*.xml)", "*.xml"));
-        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("All files (*.*)", "*.*"));
+        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("All files (*)", "*"));
     	
         // set directory
         curDir = prefs.get("openTab_Dir", "");
