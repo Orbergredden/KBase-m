@@ -210,6 +210,8 @@ public class SectionList_Controller implements Container_Interface, AppItem_Inte
 	private static final int MAX_RETRIES = 5000;
 	// при переході на вказаний Розділ, не робимо вибір Розділу при динамічному завантаженні гілки
 	private volatile boolean isGotoSection = false;
+	// прапорець відновлення збереженого стану — блокує doSafeSelection під час restoreControlsState
+	private volatile boolean isRestoringState = false;
 
 	//
 	private SectionFavoriteList_Controller controller_Favorite;
@@ -1551,6 +1553,9 @@ public class SectionList_Controller implements Container_Interface, AppItem_Inte
 					listItemsForExpand.add(new Long(si.getParams()));
 					break;
 				case "TreeItemsDoExpandAndSelected" :
+					// блокуємо doSafeSelection поки відновлюємо стан дерева
+					isRestoringState = true;
+					
 					restoreTreeItemStateRecursive(listItemsForExpand,treeTableView_sections.getRoot());
 					treeTableView_sections.sort();
 					restoreTreeItemSelectedRecursive(selectedItemId,treeTableView_sections.getRoot());
@@ -1562,6 +1567,11 @@ public class SectionList_Controller implements Container_Interface, AppItem_Inte
 			    			mi.getChildren().add(treeViewCtrl.createItem_Loading());
 			    		}
 			    	}
+					
+					// знімаємо прапорець після того як всі PauseTransition(50ms) у createChildItems відпрацюють
+					PauseTransition resetRestoreFlag = new PauseTransition(Duration.millis(300));
+					resetRestoreFlag.setOnFinished(e -> isRestoringState = false);
+					resetRestoreFlag.play();
 					
 					break;
 				//======= Favorite
@@ -2786,12 +2796,17 @@ public class SectionList_Controller implements Container_Interface, AppItem_Inte
 
 	        		// Відновлюємо активний елемент
 	        		if (! isGotoSection) {
-	        			PauseTransition pause = new PauseTransition(Duration.millis(50));
-	        			pause.setOnFinished(e -> {
-	        				doSafeSelection();
-	        			});
-
-	        			pause.play();
+	        			if (! isRestoringState) {
+	        				// звичайний режим — відновлюємо вибір після динамічного завантаження гілки
+	        				PauseTransition pause = new PauseTransition(Duration.millis(50));
+	        				pause.setOnFinished(e -> {
+	        					doSafeSelection();
+	        				});
+	        				pause.play();
+	        			} else {
+	        				// режим відновлення стану при старті — не перескакуємо, просто знімаємо прапорець завантаження
+	        				isTreeLoading = false;
+	        			}
 	        		} else {
 	        			isTreeLoading = false;
 	                }
