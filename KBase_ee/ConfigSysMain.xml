@@ -81,7 +81,7 @@
         <lastModified>2025-03-11</lastModified>
         <name>Required version.KBase Lite</name>
         <sectionName>DB</sectionName>
-        <value>2.04.00.*</value>
+        <value>2.03.00.*</value>
     </ConfigMainItem>
     <ConfigMainItem>
         <descr>Необхідна версія БД для роботи з програмою</descr>
