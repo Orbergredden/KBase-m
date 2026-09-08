@@ -55,6 +55,7 @@ CREATE TABLE kbase.access_type
 	id bigint NOT NULL,
 	name character varying(100),
 	descr character varying(200),
+	CONSTRAINT pk_access_type_id PRIMARY KEY (id)
 );
 
 ALTER TABLE IF EXISTS kbase.access_type OWNER to kbase;
@@ -63,6 +64,27 @@ REVOKE ALL ON TABLE kbase.access_type FROM kbase_user;
 GRANT SELECT ON TABLE kbase.access_type TO kbase_user;
 
 insert into kbase.access_type (id, name, descr)
-	values (1, 'clear db, menu', '')
+	values (1, 'clear db', '')
+;
+
+--######## create table access_user ##################################
+CREATE TABLE kbase.access_user
+(
+	access_type_id bigint NOT NULL,
+	user_name character varying(30) COLLATE pg_catalog."default" NOT NULL,
+	CONSTRAINT fk_access_user_access_type_id FOREIGN KEY (access_type_id)
+		REFERENCES kbase.access_type (id) MATCH SIMPLE
+		ON UPDATE CASCADE
+		ON DELETE CASCADE
+)
+TABLESPACE pg_default;
+
+ALTER TABLE IF EXISTS kbase.access_user OWNER to kbase;
+GRANT ALL ON TABLE kbase.access_user TO kbase;
+REVOKE ALL ON TABLE kbase.access_user FROM kbase_user;
+GRANT SELECT ON TABLE kbase.access_user TO kbase_user;
+
+insert into kbase.access_user (access_type_id, user_name)
+	values (1, 'kbase_admin')
 ;
 --<<
