@@ -101,6 +101,16 @@ public class Root_Controller implements Container_Interface {
     @FXML
     private MenuItem menuitem_CatalogTemplates;
     /**
+     * підменю для роботи з БД
+     */
+    @FXML
+    private Menu menu_DBTools;
+    /**
+     * Пункт меню с "Clear DataBase..."
+     */
+    @FXML
+    private MenuItem menuitem_ClearDB;
+    /**
      * Пункт меню Планувальник, Перелік завдань
      */
     @FXML
@@ -168,6 +178,8 @@ public class Root_Controller implements Container_Interface {
 		menuitem_SectionsOfDocuments.setGraphic(new ImageView(new Image("file:resources/images/icon_Sections_16.png",16,16,false,false)));
 		menuitem_CatalogIcons.setGraphic(new ImageView(new Image("file:resources/images/icon_CatalogIcons_16.png")));
     	menuitem_CatalogTemplates.setGraphic(new ImageView(new Image("file:resources/images/icon_templates/icon_CatalogTemplates_16.png")));
+    	menu_DBTools.setGraphic(new ImageView(new Image("file:resources/images/icon_DBTools_16.png")));
+    	menuitem_ClearDB.setGraphic(new ImageView(new Image("file:resources/images/icon_DBClear_16.png")));
     	menuitem_Tasks.setGraphic(new ImageView(new Image("file:resources/images/scheduler/icon_scheduler_16.png")));
     	menuitem_About.setGraphic(new ImageView(new Image("file:resources/images/icon_About_16.png")));
     	
@@ -734,6 +746,19 @@ public class Root_Controller implements Container_Interface {
     	tabPane_Main.getTabs().add(tab);
     	tabPane_Main.getSelectionModel().select(tab);
     }
+    
+    /**
+     * Видаляє інформацію з БД
+     */
+    @FXML
+    public void handleClearDB() {
+    	
+    	
+    	
+    	
+    	
+    }
+    //TODO
     
     /**
      * Відкриває таб Планувальник, Перелік завдань

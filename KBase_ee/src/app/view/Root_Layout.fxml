@@ -10,7 +10,7 @@
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.HBox?>
 
-<BorderPane prefHeight="716.0" prefWidth="977.0" stylesheets="@custom.css" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="app.view.Root_Controller">
+<BorderPane prefHeight="716.0" prefWidth="977.0" stylesheets="@custom.css" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="app.view.Root_Controller">
    <top>
       <MenuBar BorderPane.alignment="CENTER">
         <menus>
@@ -45,6 +45,12 @@
                         <KeyCodeCombination alt="DOWN" code="S" control="UP" meta="UP" shift="UP" shortcut="UP" />
                      </accelerator>
                   </MenuItem>
+                  <SeparatorMenuItem mnemonicParsing="false" />
+                  <Menu fx:id="menu_DBTools" mnemonicParsing="false" text="DataBase Tools">
+                    <items>
+                      <MenuItem fx:id="menuitem_ClearDB" mnemonicParsing="false" onAction="#handleClearDB" text="Clear database..." />
+                    </items>
+                  </Menu>
               </items>
             </Menu>
             <Menu mnemonicParsing="false" text="Планувальник">
@@ -54,7 +60,7 @@
             </Menu>
           <Menu mnemonicParsing="false" text="Довідка">
             <items>
-              <MenuItem fx:id="menuitem_About" mnemonicParsing="false" onAction="#handleAbout" text="О програмі..." />
+              <MenuItem fx:id="menuitem_About" mnemonicParsing="false" onAction="#handleAbout" text="Про програму..." />
             </items>
           </Menu>
         </menus>
