@@ -1573,4 +1573,153 @@ public class DBMainSQLite extends DBMain {
 			}
 		}
 	}
+
+	/**
+	 * SQLite: перевірки доступу немає — завжди повертає true.
+	 */
+	@Override
+	public boolean accessGet (int accessTypeId) {
+		return true;
+	}
+
+	/**
+	 * SQLite: очищення таблиць. Імена без схем (kbase./public.), бо SQLite не підтримує схеми.
+	 * Порядок видалення відповідає залежностям FK.
+	 */
+	@Override
+	public void dbClear (boolean clearDocuments, boolean clearInfo,
+	                     boolean clearSections, boolean clearTemplates, boolean clearIcons) {
+		checkConnect();
+		PreparedStatement pst = null;
+		try {
+			con.setAutoCommit(false);
+
+			// 1. Documents
+			if (clearDocuments) {
+				pst = con.prepareStatement("DELETE FROM documents");
+				pst.executeUpdate(); pst.close();
+			}
+
+			// 2. Info blocks
+			if (clearInfo) {
+				pst = con.prepareStatement("DELETE FROM info_file");
+				pst.executeUpdate(); pst.close();
+
+				pst = con.prepareStatement("DELETE FROM info_image");
+				pst.executeUpdate(); pst.close();
+
+				pst = con.prepareStatement("DELETE FROM info_text");
+				pst.executeUpdate(); pst.close();
+
+				pst = con.prepareStatement("DELETE FROM dict");
+				pst.executeUpdate(); pst.close();
+
+				pst = con.prepareStatement("DELETE FROM info");
+				pst.executeUpdate(); pst.close();
+			}
+
+			// 3. Sections
+			if (clearSections) {
+				pst = con.prepareStatement("DELETE FROM sections_favorite");
+				pst.executeUpdate(); pst.close();
+
+				pst = con.prepareStatement("DELETE FROM sections");
+				pst.executeUpdate(); pst.close();
+			}
+
+			// 4. Templates
+			if (clearTemplates) {
+				pst = con.prepareStatement("DELETE FROM template_style_link");
+				pst.executeUpdate(); pst.close();
+
+				pst = con.prepareStatement("DELETE FROM current_style");
+				pst.executeUpdate(); pst.close();
+
+				pst = con.prepareStatement("DELETE FROM template_style");
+				pst.executeUpdate(); pst.close();
+
+				pst = con.prepareStatement("DELETE FROM template");
+				pst.executeUpdate(); pst.close();
+
+				pst = con.prepareStatement("DELETE FROM template_files");
+				pst.executeUpdate(); pst.close();
+
+				pst = con.prepareStatement("DELETE FROM template_themes");
+				pst.executeUpdate(); pst.close();
+			}
+
+			// 5. Icons
+			if (clearIcons) {
+				pst = con.prepareStatement("DELETE FROM current_icon");
+				pst.executeUpdate(); pst.close();
+
+				pst = con.prepareStatement("DELETE FROM icons");
+				pst.executeUpdate(); pst.close();
+			}
+
+			con.commit();
+
+			// Скидання sequences
+			dbClearResetSequences(clearDocuments, clearInfo, clearSections, clearTemplates, clearIcons);
+
+		} catch (SQLException e) {
+			try { con.rollback(); } catch (SQLException ex) { ex.printStackTrace(); }
+			e.printStackTrace();
+			ShowAppMsg.showAlert("ERROR", "Помилка", "Помилка очищення бази даних", e.getMessage());
+		} finally {
+			try { con.setAutoCommit(true); } catch (SQLException e) { e.printStackTrace(); }
+		}
+	}
+
+	/**
+	 * SQLite: скидає sequences — оновлює next_value = 1 у таблиці sequences.
+	 */
+	@Override
+	protected void dbClearResetSequences (boolean clearDocuments, boolean clearInfo,
+	                                       boolean clearSections, boolean clearTemplates,
+	                                       boolean clearIcons) {
+		try {
+			PreparedStatement pst;
+			final String stm = "UPDATE sequences SET next_value = 1, date_modified = ? WHERE sequence_name = ?";
+
+			if (clearDocuments) {
+				pst = con.prepareStatement(stm);
+				pstSetDate(pst, 1, new java.util.Date()); pst.setString(2, "seq_documents");
+				pst.executeUpdate(); pst.close();
+			}
+			if (clearInfo) {
+				for (String seq : new String[]{"seq_info", "seq_info_text", "seq_info_image", "seq_info_file", "seq_dict"}) {
+					pst = con.prepareStatement(stm);
+					pstSetDate(pst, 1, new java.util.Date()); pst.setString(2, seq);
+					pst.executeUpdate(); pst.close();
+				}
+			}
+			if (clearSections) {
+				for (String seq : new String[]{"seq_sections", "seq_sections_favorite"}) {
+					pst = con.prepareStatement(stm);
+					pstSetDate(pst, 1, new java.util.Date()); pst.setString(2, seq);
+					pst.executeUpdate(); pst.close();
+				}
+			}
+			if (clearTemplates) {
+				for (String seq : new String[]{"seq_template", "seq_template_files", "seq_template_themes",
+				                               "seq_template_style", "seq_template_style_link", "seq_current_style"}) {
+					pst = con.prepareStatement(stm);
+					pstSetDate(pst, 1, new java.util.Date()); pst.setString(2, seq);
+					pst.executeUpdate(); pst.close();
+				}
+			}
+			if (clearIcons) {
+				for (String seq : new String[]{"seq_icons", "seq_current_icon"}) {
+					pst = con.prepareStatement(stm);
+					pstSetDate(pst, 1, new java.util.Date()); pst.setString(2, seq);
+					pst.executeUpdate(); pst.close();
+				}
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+			ShowAppMsg.showAlert("WARNING", "db error", "Помилка скидання sequences", e.getMessage());
+		}
+	}
 }
+

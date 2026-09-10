@@ -840,4 +840,63 @@ public class DBMainPostgres extends DBMain {
 		             "templateDelete ("+ id +")");
         }
 	}
+
+	/**
+	 * Скидає PostgreSQL sequences до 1 після очищення таблиць.
+	 */
+	@Override
+	protected void dbClearResetSequences (boolean clearDocuments, boolean clearInfo,
+	                                       boolean clearSections, boolean clearTemplates,
+	                                       boolean clearIcons) {
+		try {
+			PreparedStatement pst;
+
+			if (clearDocuments) {
+				pst = con.prepareStatement("ALTER SEQUENCE IF EXISTS seq_documents         RESTART WITH 1");
+				pst.executeUpdate(); pst.close();
+			}
+			if (clearInfo) {
+				pst = con.prepareStatement("ALTER SEQUENCE IF EXISTS kbase.seq_info        RESTART WITH 1");
+				pst.executeUpdate(); pst.close();
+				pst = con.prepareStatement("ALTER SEQUENCE IF EXISTS seq_info_text         RESTART WITH 1");
+				pst.executeUpdate(); pst.close();
+				pst = con.prepareStatement("ALTER SEQUENCE IF EXISTS seq_info_image        RESTART WITH 1");
+				pst.executeUpdate(); pst.close();
+				pst = con.prepareStatement("ALTER SEQUENCE IF EXISTS seq_info_file         RESTART WITH 1");
+				pst.executeUpdate(); pst.close();
+				pst = con.prepareStatement("ALTER SEQUENCE IF EXISTS seq_dict              RESTART WITH 1");
+				pst.executeUpdate(); pst.close();
+			}
+			if (clearSections) {
+				pst = con.prepareStatement("ALTER SEQUENCE IF EXISTS kbase.seq_sections           RESTART WITH 1");
+				pst.executeUpdate(); pst.close();
+				pst = con.prepareStatement("ALTER SEQUENCE IF EXISTS kbase.seq_sections_favorite  RESTART WITH 1");
+				pst.executeUpdate(); pst.close();
+			}
+			if (clearTemplates) {
+				pst = con.prepareStatement("ALTER SEQUENCE IF EXISTS kbase.seq_template            RESTART WITH 1");
+				pst.executeUpdate(); pst.close();
+				pst = con.prepareStatement("ALTER SEQUENCE IF EXISTS kbase.seq_template_files      RESTART WITH 1");
+				pst.executeUpdate(); pst.close();
+				pst = con.prepareStatement("ALTER SEQUENCE IF EXISTS kbase.seq_template_themes     RESTART WITH 1");
+				pst.executeUpdate(); pst.close();
+				pst = con.prepareStatement("ALTER SEQUENCE IF EXISTS kbase.seq_template_style      RESTART WITH 1");
+				pst.executeUpdate(); pst.close();
+				pst = con.prepareStatement("ALTER SEQUENCE IF EXISTS kbase.seq_template_style_link RESTART WITH 1");
+				pst.executeUpdate(); pst.close();
+				pst = con.prepareStatement("ALTER SEQUENCE IF EXISTS kbase.seq_current_style       RESTART WITH 1");
+				pst.executeUpdate(); pst.close();
+			}
+			if (clearIcons) {
+				pst = con.prepareStatement("ALTER SEQUENCE IF EXISTS seq_icons       RESTART WITH 1");
+				pst.executeUpdate(); pst.close();
+				pst = con.prepareStatement("ALTER SEQUENCE IF EXISTS seq_current_icon RESTART WITH 1");
+				pst.executeUpdate(); pst.close();
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+			ShowAppMsg.showAlert("WARNING", "db error", "Помилка скидання sequences", e.getMessage());
+		}
+	}
 }
+

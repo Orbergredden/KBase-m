@@ -14,6 +14,7 @@ import app.model.WinItem;
 import app.module.scheduler.view.TaskList_Controller;
 import app.view.business.IconsList_Controller;
 import app.view.business.template.TemplateList_Controller;
+import app.view.DBClear_Controller;
 import app.view.business.Container_Interface;
 import app.view.structure.TabNavigationHistory;
 
@@ -748,17 +749,44 @@ public class Root_Controller implements Container_Interface {
     }
     
     /**
-     * Видаляє інформацію з БД
+     * Відкриває діалог очищення бази даних.
+     * Перевіряє наявність активного з'єднання перед відкриттям вікна.
      */
     @FXML
     public void handleClearDB() {
-    	
-    	
-    	
-    	
-    	
+    	DBConCur_Parameters conCur = getActiveConnection();
+
+    	if (conCur == null) {
+    		ShowAppMsg.showAlert("INFORMATION", "Повідомлення",
+    			"Немає активного з'єднання з БД",
+    			"Підключіться до бази даних перед очищенням.");
+    		return;
+    	}
+
+    	try {
+    		FXMLLoader loader = new FXMLLoader();
+    		loader.setLocation(Main.class.getResource("view/DBClear_Layout.fxml"));
+    		AnchorPane page = loader.load();
+
+    		Stage dialogStage = new Stage();
+    		dialogStage.setTitle("Очищення бази даних — " + conCur.param.getName());
+    		dialogStage.initModality(Modality.WINDOW_MODAL);
+    		dialogStage.initOwner(params.getMainStage());
+    		dialogStage.setScene(new Scene(page));
+    		dialogStage.setResizable(false);
+    		dialogStage.getIcons().add(new Image("file:resources/images/icon_DBClear_16.png"));
+
+    		DBClear_Controller controller = loader.getController();
+    		Params p = new Params(this.params);
+    		p.setConCur(conCur);
+    		p.setStageCur(dialogStage);
+    		controller.setParams(p);
+
+    		dialogStage.showAndWait();
+    	} catch (IOException e) {
+    		e.printStackTrace();
+    	}
     }
-    //TODO
     
     /**
      * Відкриває таб Планувальник, Перелік завдань
