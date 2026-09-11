@@ -234,6 +234,25 @@ public abstract class DBMain {
 	}
 	
 	/**
+	 * Встановлюємо значення сіквенсу
+	 * @param name ім'я сіквенсу
+	 * @param value нове значення
+	 * @throws DataConnectionException
+	 * @throws DataQueryException
+	 */
+	abstract public void dbSequenceSetValue (String name, long value) 
+			throws DataConnectionException,DataQueryException;
+	
+	/**
+	 * Перевіряє наявність поточного користувача в таблиці kbase.access_user
+	 * для вказаного типу доступу.
+	 * @param accessTypeId  id типу доступу (1 = 'clear db')
+	 * @return true — доступ дозволено, false — заборонено або помилка
+	 */
+	abstract public boolean accessGet (int accessTypeId)
+			throws DataConnectionException,DataQueryException;
+	
+	/**
 	 * Словник. Додавання нового елемента.
 	 */
 	public void dictAdd (DictionaryItem i) {
@@ -2475,7 +2494,6 @@ public abstract class DBMain {
 				e, 1, null, "SQLException");
 		}
 	}
-	//TODO
 	
 	/**
 	 * шукаємо чи є вказаний Розділ в Дереві Favorite
@@ -4608,36 +4626,6 @@ public abstract class DBMain {
 	// ======================================================================
 	// Clear DataBase
 	// ======================================================================
-
-	/**
-	 * Перевіряє наявність поточного користувача в таблиці kbase.access_user
-	 * для вказаного типу доступу.
-	 * @param accessTypeId  id типу доступу (1 = 'clear db')
-	 * @return true — доступ дозволено, false — заборонено або помилка
-	 */
-	public boolean accessGet (int accessTypeId) {
-		checkConnect();
-		try {
-			String stm = """
-					SELECT COUNT(*)
-					  FROM kbase.access_user
-					 WHERE access_type_id = ?
-					   AND user_name = ?
-					""";
-			PreparedStatement pst = con.prepareStatement(stm);
-			pst.setInt   (1, accessTypeId);
-			pst.setString(2, getCurrentUser());
-			ResultSet rs = pst.executeQuery();
-			rs.next();
-			boolean result = rs.getLong(1) > 0;
-			rs.close();
-			pst.close();
-			return result;
-		} catch (SQLException e) {
-			e.printStackTrace();
-			return false;
-		}
-	}
 
 	/**
 	 * Очищення таблиць БД в одній транзакції.

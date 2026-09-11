@@ -177,6 +177,44 @@ public class DBMainSQLite extends DBMain {
 	}
 	
 	/**
+	 * Встановлюємо значення сіквенсу
+	 * @param name ім'я сіквенсу
+	 * @param value нове значення
+	 * @throws DataConnectionException
+	 * @throws DataQueryException
+	 */
+	public void dbSequenceSetValue (String name, long value) 
+			throws DataConnectionException,DataQueryException {
+		
+		checkConnectEx();
+		
+		try {
+			String stm = """
+					UPDATE sequences SET next_value = ?, date_modified = ? WHERE sequence_name = ?
+					""";
+			PreparedStatement pst = con.prepareStatement(stm);
+			pst.setLong  (1, value);
+			pstSetDate(pst, 2, new java.util.Date()); 
+			pst.setString(3, name);
+			pst.executeUpdate(); 
+			pst.close();
+		} catch (SQLException e) {
+			throw new DataQueryException (
+					DataQueryException.ERRCODE_OTHERS, "dbSequenceSetValue",
+					"Помилка при встановлені значення сіквенсу, dbSequenceSetValue (\""+name+"\","+value+") \n"+dbURL,
+					e, 1, null, "SQLException");
+		}
+	}
+	
+	/**
+	 * SQLite: перевірки доступу немає — завжди повертає true.
+	 */
+	@Override
+	public boolean accessGet (int accessTypeId) {
+		return true;
+	}
+	
+	/**
 	 * Пошук інформації в базі знань
 	 * @param findParams
 	 * @return
@@ -190,7 +228,6 @@ public class DBMainSQLite extends DBMain {
 		return null;
 
 	}
-	//TODO
 
 	/**
 	 * Пиктограмма. Удаление пиктограммы со всеми подчиненными пиктограммами.
@@ -1572,14 +1609,6 @@ public class DBMainSQLite extends DBMain {
 				ex.printStackTrace();
 			}
 		}
-	}
-
-	/**
-	 * SQLite: перевірки доступу немає — завжди повертає true.
-	 */
-	@Override
-	public boolean accessGet (int accessTypeId) {
-		return true;
 	}
 
 	/**

@@ -186,6 +186,72 @@ public class DBMainPostgres extends DBMain {
 		
 		return retVal;
 	}
+	
+	/**
+	 * Встановлюємо значення сіквенсу
+	 * @param name ім'я сіквенсу
+	 * @param value нове значення
+	 * @throws DataConnectionException
+	 * @throws DataQueryException
+	 */
+	public void dbSequenceSetValue (String name, long value) 
+			throws DataConnectionException,DataQueryException {
+		
+		checkConnectEx();
+		
+		try {
+			String stm = """
+					ALTER SEQUENCE IF EXISTS ? RESTART WITH ?
+					""";
+			PreparedStatement pst = con.prepareStatement(stm);
+			pst.setString(1, name);
+			pst.setLong  (2, value);
+			pst.executeUpdate(); 
+			pst.close();
+		} catch (SQLException e) {
+			throw new DataQueryException (
+					DataQueryException.ERRCODE_OTHERS, "dbSequenceSetValue",
+					"Помилка при встановлені значення сіквенсу, dbSequenceSetValue (\""+name+"\","+value+") \n"+dbURL,
+					e, 1, null, "SQLException");
+		}
+	}
+	
+	/**
+	 * Перевіряє наявність поточного користувача в таблиці kbase.access_user
+	 * для вказаного типу доступу.
+	 * @param accessTypeId  id типу доступу (1 = 'clear db')
+	 * @return true — доступ дозволено, false — заборонено або помилка
+	 */
+	public boolean accessGet (int accessTypeId)
+			throws DataConnectionException,DataQueryException {
+		boolean result = false;
+		
+		checkConnectEx();
+		
+		try {
+			String stm = """
+					SELECT COUNT(*)
+					  FROM kbase.access_user
+					 WHERE access_type_id = ?
+					   AND user_name = ?
+					""";
+			PreparedStatement pst = con.prepareStatement(stm);
+			pst.setInt   (1, accessTypeId);
+			pst.setString(2, getCurrentUser());
+			ResultSet rs = pst.executeQuery();
+			rs.next();
+			result = rs.getLong(1) > 0;
+			rs.close();
+			pst.close();
+		} catch (SQLException e) {
+			throw new DataQueryException (
+					DataQueryException.ERRCODE_OTHERS, "accessGet",
+					"Помилка при читанні прав доступу, accessGet (\""+accessTypeId+"\") \n"+dbURL,
+					e, 1, null, "SQLException");
+		}
+		
+		return result;
+	}
 
 	/**
 	 * Пошук інформації в базі знань
@@ -248,7 +314,6 @@ public class DBMainPostgres extends DBMain {
 
 		return retVal;
 	}
-	//TODO
 
 	/**
 	 * Пиктограмма. Удаление пиктограммы со всеми подчиненными пиктограммами.

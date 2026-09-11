@@ -1,11 +1,14 @@
 package app.view;
 
+import app.exceptions.DataConnectionException;
+import app.exceptions.DataQueryException;
 import app.lib.ConvertType;
 import app.lib.ShowAppMsg;
 import app.model.DBConCur_Parameters;
 import app.model.DBConn_Parameters;
 import app.model.Params;
 
+import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
@@ -171,19 +174,28 @@ public class DBClear_Controller {
      * Якщо прав немає — показує повідомлення і закриває вікно.
      */
     private void checkAccessAndInit() {
+    	boolean hasAccess = false;
+    	
         if (conCur == null) {
-            closeStage();
+            Platform.runLater(this::closeStage);
             return;
         }
 
-        boolean hasAccess = conCur.db.accessGet(ACCESS_TYPE_CLEAR_DB);
+        try {
+        	hasAccess = conCur.db.accessGet(ACCESS_TYPE_CLEAR_DB);
+		} catch (DataConnectionException | DataQueryException e) {
+			e.writeLog(params);
+			ShowAppMsg.showAlert(
+					"ERROR", "Помилка при перевірці прав доступу до процедури очищення БД.",
+					Integer.toString(e.getErrCode())+" "+e.getErrSign(), e.getMsg());
+		}
 
         if (!hasAccess) {
             ShowAppMsg.showAlert("WARNING", "Доступ заборонено",
                 "У вас немає прав для очищення бази даних",
                 "Зверніться до адміністратора.\n" +
                 "Поточний користувач: " + conCur.db.getCurrentUser());
-            closeStage();
+            Platform.runLater(this::closeStage);
         }
     }
 
@@ -260,7 +272,13 @@ public class DBClear_Controller {
      * Закриває поточне вікно діалогу.
      */
     private void closeStage() {
-        Stage stage = (Stage) button_Cancel.getScene().getWindow();
-        stage.close();
+        if (params != null && params.getStageCur() != null) {
+            params.getStageCur().close();
+        } else if (button_Cancel != null && button_Cancel.getScene() != null) {
+            Stage stage = (Stage) button_Cancel.getScene().getWindow();
+            if (stage != null) {
+                stage.close();
+            }
+        }
     }
 }
