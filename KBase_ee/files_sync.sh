@@ -8,9 +8,9 @@ else
   C_RESET=''; C_BOLD=''; C_DIM=''; C_RED=''; C_GREEN=''; C_YELLOW=''; C_CYAN=''
 fi
 
-echo "------------------------------------------------------------"
-echo "${C_BOLD}files_sync v2.00.00.005  2026-05-08 - 2026-08-13${C_RESET}"
-echo "------------------------------------------------------------"
+echo "-------------------------------------------------"
+echo "files_sync v2.01.00.006  2026-05-08 - 2026-09-17 "
+echo "-------------------------------------------------"
 
 src_files=(
   "db/scheduler.db"
@@ -20,7 +20,7 @@ dst_files=(
 )
 
 total=${#src_files[@]}
-copied=0; skipped=0; equal=0
+copied=0; skipped=0; equal=0; failed=0
 
 ####### procedures
 show_time() {
@@ -40,8 +40,25 @@ ask_and_copy() {
   read -r -p "Перезаписати старіший файл? [y/N]: " answer
   case "$answer" in
     y|Y|yes|YES|так|Так|ТАК|tak)
-      cp -p -- "$newer" "$older"
-      printf "${C_GREEN}✓ Перезаписано: %s${C_RESET}\n" "$older"
+      # БЕЗ 'cp -p'.
+      # На rclone/FUSE 'cp -p' падає з 'preserving permissions: Input/output error',
+      # бо chmod/chown на Google Drive не підтримуються.
+      # Крок 1: копіюємо тільки контент (без збереження прав/власника).
+      if ! cp -- "$newer" "$older"; then
+        printf "${C_RED}✗ Помилка копіювання: %s -> %s${C_RESET}\n" "$newer" "$older"
+        failed=$((failed+1)); return 1
+      fi
+      # Крок 2: best-effort синхронізація mtime (щоб наступний запуск не питав знову).
+      # На FUSE може дати EIO - це некритично, тому ігноруємо з попередженням.
+      if ! touch -r "$newer" -- "$older" 2>/dev/null; then
+        printf "${C_YELLOW}⚠ контент скопійовано, але mtime не збережено (FUSE/rclone EIO)${C_RESET}\n"
+      fi
+      # Крок 3: верифікація контенту. Без неї скрипт раніше завжди друкував '✓'.
+      if ! cmp -s -- "$newer" "$older"; then
+        printf "${C_RED}✗ Файли відрізняються після копіювання: %s${C_RESET}\n" "$older"
+        failed=$((failed+1)); return 1
+      fi
+      printf "${C_GREEN}✓ Перезаписано (перевірено cmp): %s${C_RESET}\n" "$older"
       copied=$((copied+1));;
     *)
       printf "${C_DIM}пропущено${C_RESET}\n"
@@ -58,20 +75,31 @@ for i in "${!src_files[@]}"; do
   show_time "DST" "$dst"
   printf '\033[2K\r'
 
-  src_time=$(stat -c '%Y' "$src")
-  dst_time=$(stat -c '%Y' "$dst")
+  src_time=$(stat -c '%Y' -- "$src" 2>/dev/null || echo "")
+  dst_time=$(stat -c '%Y' -- "$dst" 2>/dev/null || echo "")
+
+  if [[ -z "$src_time" || -z "$dst_time" ]]; then
+    printf "${C_RED}✗ один з файлів відсутній, пропускаю пару${C_RESET}\n"
+    failed=$((failed+1)); continue
+  fi
 
   if (( src_time > dst_time )); then
-    ask_and_copy "$src" "$dst"
+    ask_and_copy "$src" "$dst" || true
   elif (( dst_time > src_time )); then
-    ask_and_copy "$dst" "$src"
+    ask_and_copy "$dst" "$src" || true
   else
     printf "${C_DIM}файли однакові, пропускаю${C_RESET}\n"
     equal=$((equal+1))
   fi
 done
 
-printf "\n${C_BOLD}Підсумок:${C_RESET} ${C_GREEN}перезаписано %d${C_RESET}, ${C_DIM}пропущено %d${C_RESET}, однакові %d\n" "$copied" "$skipped" "$equal"
+printf "\n${C_BOLD}Підсумок:${C_RESET} ${C_GREEN}перезаписано %d${C_RESET}, ${C_DIM}пропущено %d${C_RESET}, однакові %d" "$copied" "$skipped" "$equal"
+if (( failed > 0 )); then
+  printf ", ${C_RED}помилок %d${C_RESET}" "$failed"
+fi
+printf "\n"
+(( failed > 0 )) && exit 1
+exit 0
 
 # --- Зупинка після завершення ---
 #read -p "Press Enter for exit..."
