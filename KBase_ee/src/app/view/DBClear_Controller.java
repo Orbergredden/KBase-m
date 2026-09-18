@@ -258,7 +258,14 @@ public class DBClear_Controller {
         if (!confirmed) return;
 
         // Виконуємо очищення
-        conCur.db.dbClear(doDocs, doInfo, doSections, doTemplates, doIcons);
+        try {
+        	conCur.db.dbClear(doDocs, doInfo, doSections, doTemplates, doIcons);
+		} catch (DataConnectionException | DataQueryException e) {
+			e.writeLog(params);
+			ShowAppMsg.showAlert(
+					"ERROR", "Помилка при очищенні БД.",
+					Integer.toString(e.getErrCode())+" "+e.getErrSign(), e.getMsg());
+		}
 
         // Повідомлення про завершення
         ShowAppMsg.showAlert("INFORMATION", "Очищення БД",

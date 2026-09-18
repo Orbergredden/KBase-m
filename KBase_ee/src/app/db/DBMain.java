@@ -234,6 +234,105 @@ public abstract class DBMain {
 	}
 	
 	/**
+	 * Очищення таблиць БД в одній транзакції.
+	 * Порядок видалення відповідає залежностям FK.
+	 * Після успішного очищення скидає відповідні sequences.
+	 * @param clearDocuments  видаляти documents
+	 * @param clearInfo       видаляти info та пов'язані info_text/image/file/dict
+	 * @param clearSections   видаляти sections
+	 * @param clearTemplates  видаляти template_style_link, template_style, current_style, template, template_files, template_themes
+	 * @param clearIcons      видаляти icons
+	 */
+	public void dbClear (boolean clearDocuments, boolean clearInfo,
+	                     boolean clearSections, boolean clearTemplates, boolean clearIcons) 
+	                    		 throws DataConnectionException,DataQueryException {
+		PreparedStatement pst = null;
+		
+		checkConnectEx();
+		
+		try {
+			con.setAutoCommit(false);
+
+			// 1. Documents — залежать від sections (FK)
+			if (clearDocuments) {
+				pst = con.prepareStatement("DELETE FROM documents");
+				pst.executeUpdate(); pst.close();
+			}
+
+			// 2. Info blocks — залежать від sections (FK) та template_style (FK)
+			if (clearInfo) {
+				pst = con.prepareStatement("DELETE FROM info_file");
+				pst.executeUpdate(); pst.close();
+
+				pst = con.prepareStatement("DELETE FROM info_image");
+				pst.executeUpdate(); pst.close();
+
+				pst = con.prepareStatement("DELETE FROM info_text");
+				pst.executeUpdate(); pst.close();
+
+				pst = con.prepareStatement("DELETE FROM dict");
+				pst.executeUpdate(); pst.close();
+
+				pst = con.prepareStatement("DELETE FROM info");
+				pst.executeUpdate(); pst.close();
+			}
+
+			// 3. Sections — дерево розділів
+			if (clearSections) {
+				pst = con.prepareStatement("DELETE FROM sections_favorite");
+				pst.executeUpdate(); pst.close();
+
+				pst = con.prepareStatement("DELETE FROM sections");
+				pst.executeUpdate(); pst.close();
+			}
+
+			// 4. Templates — шаблони (template_style_link → template_style/current_style/template → template_files → template_themes)
+			if (clearTemplates) {
+				pst = con.prepareStatement("DELETE FROM template_style_link");
+				pst.executeUpdate(); pst.close();
+
+				pst = con.prepareStatement("DELETE FROM current_style");
+				pst.executeUpdate(); pst.close();
+
+				pst = con.prepareStatement("DELETE FROM template_style");
+				pst.executeUpdate(); pst.close();
+
+				pst = con.prepareStatement("DELETE FROM \"template\"");
+				pst.executeUpdate(); pst.close();
+
+				pst = con.prepareStatement("DELETE FROM template_files");
+				pst.executeUpdate(); pst.close();
+
+				pst = con.prepareStatement("DELETE FROM template_themes");
+				pst.executeUpdate(); pst.close();
+			}
+
+			// 5. Icons — піктограми (current_icon → icons)
+			if (clearIcons) {
+				pst = con.prepareStatement("DELETE FROM current_icon");
+				pst.executeUpdate(); pst.close();
+
+				pst = con.prepareStatement("DELETE FROM icons");
+				pst.executeUpdate(); pst.close();
+			}
+
+			con.commit();
+
+			// --- Скидання sequences після успішного очищення
+			dbSequencesReset(clearDocuments, clearInfo, clearSections, clearTemplates, clearIcons);
+
+		} catch (SQLException e) {
+			try { con.rollback(); } catch (SQLException ex) { ex.printStackTrace(); }
+			throw new DataQueryException (
+					DataQueryException.ERRCODE_OTHERS, "dbClear",
+					"Помилка очищення бази даних, dbClear (...) \n"+dbURL,
+					e, 1, null, "SQLException");
+		} finally {
+			try { con.setAutoCommit(true); } catch (SQLException e) { e.printStackTrace(); }
+		}
+	}
+	
+	/**
 	 * Встановлюємо значення сіквенсу
 	 * @param name ім'я сіквенсу
 	 * @param value нове значення
@@ -242,6 +341,42 @@ public abstract class DBMain {
 	 */
 	abstract public void dbSequenceSetValue (String name, long value) 
 			throws DataConnectionException,DataQueryException;
+	
+
+	/**
+	 * Скидає всі інформаційні sequences до 1
+	 */
+	public void dbSequencesReset (boolean clearDocuments, boolean clearInfo,
+	                              boolean clearSections, boolean clearTemplates,
+	                              boolean clearIcons) 
+	          throws DataConnectionException,DataQueryException {
+		if (clearDocuments) {
+			dbSequenceSetValue ("seq_documents", 1);
+		}
+		if (clearInfo) {
+			dbSequenceSetValue ("seq_info", 1);
+			dbSequenceSetValue ("seq_info_text", 1);
+			dbSequenceSetValue ("seq_info_image", 1);
+			dbSequenceSetValue ("seq_info_file", 1);
+			dbSequenceSetValue ("seq_dict", 1);
+		}
+		if (clearSections) {
+			dbSequenceSetValue ("seq_sections_favorite", 1);
+			dbSequenceSetValue ("seq_sections", 1);
+		}
+		if (clearTemplates) {
+			dbSequenceSetValue ("seq_current_style", 1);
+			dbSequenceSetValue ("seq_template_style_link", 1);
+			dbSequenceSetValue ("seq_template", 1);
+			dbSequenceSetValue ("seq_template_files", 1);
+			dbSequenceSetValue ("seq_template_style", 1);
+			dbSequenceSetValue ("seq_template_themes", 1);
+		}
+		if (clearIcons) {
+			dbSequenceSetValue ("seq_current_icon", 1);
+			dbSequenceSetValue ("seq_icons", 1);
+		}
+	}
 	
 	/**
 	 * Перевіряє наявність поточного користувача в таблиці kbase.access_user
@@ -4622,110 +4757,4 @@ public abstract class DBMain {
 					             "Ошибка при обновлении шаблона, templateUpdate().");
 		}
 	}
-
-	// ======================================================================
-	// Clear DataBase
-	// ======================================================================
-
-	/**
-	 * Очищення таблиць БД в одній транзакції.
-	 * Порядок видалення відповідає залежностям FK.
-	 * Після успішного очищення скидає відповідні sequences.
-	 * @param clearDocuments  видаляти public.documents
-	 * @param clearInfo       видаляти kbase.info та пов'язані info_text/image/file/dict
-	 * @param clearSections   видаляти kbase.sections
-	 * @param clearTemplates  видаляти template_style_link, template_style, current_style, kbase.template, template_files, template_themes
-	 * @param clearIcons      видаляти public.icons
-	 */
-	public void dbClear (boolean clearDocuments, boolean clearInfo,
-	                     boolean clearSections, boolean clearTemplates, boolean clearIcons) {
-		checkConnect();
-		PreparedStatement pst = null;
-		try {
-			con.setAutoCommit(false);
-
-			// 1. Documents — залежать від sections (FK)
-			if (clearDocuments) {
-				pst = con.prepareStatement("DELETE FROM public.documents");
-				pst.executeUpdate(); pst.close();
-			}
-
-			// 2. Info blocks — залежать від sections (FK) та template_style (FK)
-			if (clearInfo) {
-				pst = con.prepareStatement("DELETE FROM info_file");
-				pst.executeUpdate(); pst.close();
-
-				pst = con.prepareStatement("DELETE FROM info_image");
-				pst.executeUpdate(); pst.close();
-
-				pst = con.prepareStatement("DELETE FROM info_text");
-				pst.executeUpdate(); pst.close();
-
-				pst = con.prepareStatement("DELETE FROM dict");
-				pst.executeUpdate(); pst.close();
-
-				pst = con.prepareStatement("DELETE FROM kbase.info");
-				pst.executeUpdate(); pst.close();
-			}
-
-			// 3. Sections — дерево розділів
-			if (clearSections) {
-				pst = con.prepareStatement("DELETE FROM kbase.sections_favorite");
-				pst.executeUpdate(); pst.close();
-
-				pst = con.prepareStatement("DELETE FROM kbase.sections");
-				pst.executeUpdate(); pst.close();
-			}
-
-			// 4. Templates — шаблони (template_style_link → template_style/current_style/template → template_files → template_themes)
-			if (clearTemplates) {
-				pst = con.prepareStatement("DELETE FROM kbase.template_style_link");
-				pst.executeUpdate(); pst.close();
-
-				pst = con.prepareStatement("DELETE FROM kbase.current_style");
-				pst.executeUpdate(); pst.close();
-
-				pst = con.prepareStatement("DELETE FROM kbase.template_style");
-				pst.executeUpdate(); pst.close();
-
-				pst = con.prepareStatement("DELETE FROM kbase.\"template\"");
-				pst.executeUpdate(); pst.close();
-
-				pst = con.prepareStatement("DELETE FROM kbase.template_files");
-				pst.executeUpdate(); pst.close();
-
-				pst = con.prepareStatement("DELETE FROM kbase.template_themes");
-				pst.executeUpdate(); pst.close();
-			}
-
-			// 5. Icons — піктограми (current_icon → icons)
-			if (clearIcons) {
-				pst = con.prepareStatement("DELETE FROM public.current_icon");
-				pst.executeUpdate(); pst.close();
-
-				pst = con.prepareStatement("DELETE FROM public.icons");
-				pst.executeUpdate(); pst.close();
-			}
-
-			con.commit();
-
-			// --- Скидання sequences після успішного очищення
-			dbClearResetSequences(clearDocuments, clearInfo, clearSections, clearTemplates, clearIcons);
-
-		} catch (SQLException e) {
-			try { con.rollback(); } catch (SQLException ex) { ex.printStackTrace(); }
-			e.printStackTrace();
-			ShowAppMsg.showAlert("ERROR", "Помилка", "Помилка очищення бази даних",
-					e.getMessage());
-		} finally {
-			try { con.setAutoCommit(true); } catch (SQLException e) { e.printStackTrace(); }
-		}
-	}
-
-	/**
-	 * Скидає sequences після очищення (абстрактний — реалізується окремо для Postgres і SQLite).
-	 */
-	protected abstract void dbClearResetSequences (boolean clearDocuments, boolean clearInfo,
-	                                                boolean clearSections, boolean clearTemplates,
-	                                                boolean clearIcons);
 }
