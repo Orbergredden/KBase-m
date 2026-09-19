@@ -200,13 +200,13 @@ public class DBMainPostgres extends DBMain {
 		checkConnectEx();
 		
 		try {
-			String stm = """
-					ALTER SEQUENCE IF EXISTS ? RESTART WITH ?
-					""";
+			String stm = "SELECT pg_catalog.setval(?, ?, false) WHERE to_regclass(?) IS NOT NULL";
 			PreparedStatement pst = con.prepareStatement(stm);
 			pst.setString(1, name);
 			pst.setLong  (2, value);
-			pst.executeUpdate(); 
+			pst.setString(3, name);
+			ResultSet rs = pst.executeQuery();
+			rs.close();
 			pst.close();
 		} catch (SQLException e) {
 			throw new DataQueryException (
