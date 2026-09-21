@@ -259,7 +259,7 @@ public abstract class DBMain {
 			}
 
 			// 1. Documents — залежать від sections (FK)
-			if (clearDocuments) {
+			if (clearDocuments || clearSections) {
 				pst = con.prepareStatement("DELETE FROM documents");
 				pst.executeUpdate(); pst.close();
 			}
@@ -521,7 +521,7 @@ public abstract class DBMain {
 	                              boolean clearSections, boolean clearTemplates,
 	                              boolean clearIcons) 
 	          throws DataConnectionException,DataQueryException {
-		if (clearDocuments) {
+		if (clearDocuments || clearSections) {
 			dbSequenceSetValue ("seq_documents", 1);
 		}
 		if (clearInfo) {
