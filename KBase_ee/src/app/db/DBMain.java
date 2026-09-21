@@ -36,6 +36,7 @@ import java.io.InputStream;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
@@ -250,8 +251,12 @@ public abstract class DBMain {
 		
 		checkConnectEx();
 		
+		boolean oldAutoCommit = true;
 		try {
-			con.setAutoCommit(false);
+			oldAutoCommit = con.getAutoCommit();
+			if (oldAutoCommit) {
+				con.setAutoCommit(false);
+			}
 
 			// 1. Documents — залежать від sections (FK)
 			if (clearDocuments) {
@@ -316,19 +321,185 @@ public abstract class DBMain {
 				pst.executeUpdate(); pst.close();
 			}
 
-			con.commit();
+			if (oldAutoCommit) {
+				con.commit();
+			}
 
 			// --- Скидання sequences після успішного очищення
 			dbSequencesReset(clearDocuments, clearInfo, clearSections, clearTemplates, clearIcons);
 
 		} catch (SQLException e) {
-			try { con.rollback(); } catch (SQLException ex) { ex.printStackTrace(); }
+			try { if (oldAutoCommit && !con.getAutoCommit()) con.rollback(); } catch (SQLException ex) { ex.printStackTrace(); }
 			throw new DataQueryException (
 					DataQueryException.ERRCODE_OTHERS, "dbClear",
 					"Помилка очищення бази даних, dbClear (...) \n"+dbURL,
 					e, 1, null, "SQLException");
 		} finally {
-			try { con.setAutoCommit(true); } catch (SQLException e) { e.printStackTrace(); }
+			try { con.setAutoCommit(oldAutoCommit); } catch (SQLException e) { e.printStackTrace(); }
+		}
+	}
+	
+	/**
+	 * Клонування обраних блоків даних з іншої БД (srcDB) у поточну БД (this).
+	 * Перед копіюванням цільова БД очищується від відповідних даних за допомогою dbClear.
+	 * Згідно вимог: current_icon, current_style, infotype, settings, sections_favorite, documents НЕ переносяться.
+	 * 
+	 * @param srcDB джерело даних
+	 * @param cloneIcons чи переносити піктограми (icons)
+	 * @param cloneTemplates чи переносити шаблони зі стилями (template_themes, template_files, template, template_style, template_style_link)
+	 * @param cloneSections чи переносити розділи з інформацією (sections, info, info_text, info_image, info_file, dict)
+	 * @throws DataConnectionException
+	 * @throws DataQueryException
+	 */
+	public void dbCloneFrom (DBMain srcDB, boolean cloneIcons, boolean cloneTemplates, boolean cloneSections) 
+			throws DataConnectionException, DataQueryException {
+		if (srcDB == null || srcDB.con == null) {
+			throw new DataQueryException (
+					DataQueryException.ERRCODE_OTHERS, "dbCloneFrom",
+					"Некоректне джерело даних для клонування БД",
+					null, 1, null, "IllegalArgumentException");
+		}
+		
+		checkConnectEx();
+		srcDB.checkConnectEx();
+		
+		boolean oldAutoCommit = true;
+		try {
+			oldAutoCommit = con.getAutoCommit();
+			if (oldAutoCommit) {
+				con.setAutoCommit(false);
+			}
+
+			// 1. Очищення цільової БД від обраних блоків
+			dbClear(false, cloneSections, cloneSections, cloneTemplates, cloneIcons);
+			
+			// 2. Перенос іконок (icons)
+			if (cloneIcons) {
+				copyTableData(srcDB.con, this.con, "icons", "id ASC");
+				dbUpdateSequenceForTable("icons", "seq_icons");
+			}
+			
+			// 3. Перенос шаблонів зі стилями
+			if (cloneTemplates) {
+				copyTableData(srcDB.con, this.con, "template_themes", "id ASC");
+				copyTableData(srcDB.con, this.con, "template_files", "id ASC");
+				copyTableData(srcDB.con, this.con, "\"template\"", "id ASC");
+				copyTableData(srcDB.con, this.con, "template_style", "id ASC");
+				copyTableData(srcDB.con, this.con, "template_style_link", "id ASC");
+				
+				dbUpdateSequenceForTable("template_themes", "seq_template_themes");
+				dbUpdateSequenceForTable("template_files", "seq_template_files");
+				dbUpdateSequenceForTable("\"template\"", "seq_template");
+				dbUpdateSequenceForTable("template_style", "seq_template_style");
+				dbUpdateSequenceForTable("template_style_link", "seq_template_style_link");
+			}
+			
+			// 4. Перенос розділів та інформаційних блоків
+			if (cloneSections) {
+				copyTableData(srcDB.con, this.con, "sections", "id ASC");
+				copyTableData(srcDB.con, this.con, "info", "id ASC");
+				copyTableData(srcDB.con, this.con, "info_text", "id ASC");
+				copyTableData(srcDB.con, this.con, "info_image", "id ASC");
+				copyTableData(srcDB.con, this.con, "info_file", "id ASC");
+				copyTableData(srcDB.con, this.con, "dict", "id ASC");
+				
+				dbUpdateSequenceForTable("sections", "seq_sections");
+				dbUpdateSequenceForTable("info", "seq_info");
+				dbUpdateSequenceForTable("info_text", "seq_info_text");
+				dbUpdateSequenceForTable("info_image", "seq_info_image");
+				dbUpdateSequenceForTable("info_file", "seq_info_file");
+				dbUpdateSequenceForTable("dict", "seq_dict");
+			}
+			
+			if (oldAutoCommit) {
+				con.commit();
+			}
+		} catch (SQLException e) {
+			try { if (oldAutoCommit && !con.getAutoCommit()) con.rollback(); } catch (SQLException ex) { ex.printStackTrace(); }
+			throw new DataQueryException (
+					DataQueryException.ERRCODE_OTHERS, "dbCloneFrom",
+					"Помилка клонування бази даних dbCloneFrom (...) \n"+dbURL,
+					e, 1, null, "SQLException");
+		} finally {
+			try { con.setAutoCommit(oldAutoCommit); } catch (SQLException e) { e.printStackTrace(); }
+		}
+	}
+	
+	/**
+	 * Пакетоване копіювання даних з одного з'єднання в інше для вказаної таблиці
+	 */
+	private void copyTableData (Connection srcCon, Connection targetCon, String tableName, String orderBy) throws SQLException {
+		String qTableName = tableName.startsWith("\"") ? tableName : ("template".equalsIgnoreCase(tableName) ? "\"template\"" : tableName);
+		String selectSql = "SELECT * FROM " + qTableName + (orderBy != null ? " ORDER BY " + orderBy : "");
+		
+		try (PreparedStatement srcPst = srcCon.prepareStatement(selectSql);
+			 ResultSet rs = srcPst.executeQuery()) {
+			
+			ResultSetMetaData meta = rs.getMetaData();
+			int colCount = meta.getColumnCount();
+			if (colCount == 0) return;
+			
+			StringBuilder insertSql = new StringBuilder("INSERT INTO ");
+			insertSql.append(qTableName).append(" (");
+			StringBuilder valuesSql = new StringBuilder(" VALUES (");
+			
+			for (int i = 1; i <= colCount; i++) {
+				if (i > 1) {
+					insertSql.append(", ");
+					valuesSql.append(", ");
+				}
+				String colName = meta.getColumnName(i);
+				if ("template".equalsIgnoreCase(colName) || "user".equalsIgnoreCase(colName)) {
+					insertSql.append("\"").append(colName).append("\"");
+				} else {
+					insertSql.append(colName);
+				}
+				valuesSql.append("?");
+			}
+			insertSql.append(")").append(valuesSql).append(")");
+			
+			try (PreparedStatement targetPst = targetCon.prepareStatement(insertSql.toString())) {
+				int batchSize = 0;
+				while (rs.next()) {
+					for (int i = 1; i <= colCount; i++) {
+						Object val = rs.getObject(i);
+						if (val == null) {
+							targetPst.setNull(i, meta.getColumnType(i));
+						} else {
+							targetPst.setObject(i, val);
+						}
+					}
+					targetPst.addBatch();
+					batchSize++;
+					if (batchSize % 500 == 0) {
+						targetPst.executeBatch();
+					}
+				}
+				if (batchSize % 500 != 0 && batchSize > 0) {
+					targetPst.executeBatch();
+				}
+			}
+		}
+	}
+	
+	/**
+	 * Встановлення сіквенсу в MAX(id) + 1 (або 1 для порожньої таблиці)
+	 */
+	private void dbUpdateSequenceForTable (String tableName, String seqName) {
+		try {
+			String qName = tableName.startsWith("\"") ? tableName : ("template".equalsIgnoreCase(tableName) ? "\"template\"" : tableName);
+			PreparedStatement pst = con.prepareStatement("SELECT MAX(id) FROM " + qName);
+			ResultSet rs = pst.executeQuery();
+			long maxId = 0;
+			if (rs.next()) {
+				maxId = rs.getLong(1);
+			}
+			rs.close();
+			pst.close();
+			long nextVal = (maxId > 0) ? maxId + 1 : 1;
+			dbSequenceSetValue(seqName, nextVal);
+		} catch (Exception e) {
+			// Ігноруємо якщо сіквенс або таблиця відсутня
 		}
 	}
 	

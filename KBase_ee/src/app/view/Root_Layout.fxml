@@ -49,6 +49,7 @@
                   <Menu fx:id="menu_DBTools" mnemonicParsing="false" text="DataBase Tools">
                     <items>
                       <MenuItem fx:id="menuitem_ClearDB" mnemonicParsing="false" onAction="#handleClearDB" text="Clear database..." />
+                      <MenuItem fx:id="menuitem_CloneDB" mnemonicParsing="false" onAction="#handleCloneDB" text="Clone database..." />
                     </items>
                   </Menu>
               </items>
