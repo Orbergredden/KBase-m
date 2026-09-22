@@ -29,8 +29,7 @@ import javafx.util.StringConverter;
  * @author Igor Makarevich
  */
 public class DBClone_Controller {
-
-	private static final int ACCESS_TYPE_CLEAR_DB = 1;
+	private static final int ACCESS_TYPE_DB_CLONE = 2;
 
 	@FXML
 	private ImageView imageView_Icon;
@@ -193,8 +192,15 @@ public class DBClone_Controller {
 
 		// Перевірка прав доступу до бази-приймача
 		try {
-			boolean hasAccess = targetCon.db.accessGet(ACCESS_TYPE_CLEAR_DB);
-			if (!hasAccess) {
+			boolean hasAccess1 = srcCon.db.accessGet(ACCESS_TYPE_DB_CLONE);
+			boolean hasAccess2 = targetCon.db.accessGet(ACCESS_TYPE_DB_CLONE);
+			if (!hasAccess1) {
+				ShowAppMsg.showAlert("WARNING", "Доступ заборонено",
+						"У вас немає прав для клонування цієї БД",
+						"База: " + targetCon.param.getName() + "\nКористувач: " + targetCon.db.getCurrentUser());
+				return;
+			}
+			if (!hasAccess2) {
 				ShowAppMsg.showAlert("WARNING", "Доступ заборонено",
 						"У вас немає прав для очищення/запису в базу-приймач",
 						"База: " + targetCon.param.getName() + "\nКористувач: " + targetCon.db.getCurrentUser());

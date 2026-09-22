@@ -87,4 +87,25 @@ GRANT SELECT ON TABLE kbase.access_user TO kbase_user;
 insert into kbase.access_user (access_type_id, user_name)
 	values (1, 'kbase_admin')
 ;
+
+--######## insert ####################################################
+update kbase.access_type 
+   set name = 'DB Clear'
+ where id = 1
+;
+
+insert into kbase.access_type (id, name, descr)
+	values (2, 'DB Clone', '')
+;
+insert into kbase.access_user (access_type_id, user_name)
+	values (2, 'kbase_admin')
+;
+
+--######## privileges ###############################################
+--GRANT CONNECT ON DATABASE kbase_demo TO kbase_viewer;
+GRANT USAGE ON SCHEMA kbase TO kbase_viewer;
+GRANT SELECT ON ALL TABLES IN SCHEMA kbase TO kbase_viewer;
+GRANT SELECT ON ALL SEQUENCES IN SCHEMA kbase TO kbase_viewer;
+ALTER DEFAULT PRIVILEGES FOR ROLE kbase, postgres IN SCHEMA kbase GRANT SELECT ON TABLES TO kbase_viewer;
+ALTER DEFAULT PRIVILEGES FOR ROLE kbase, postgres IN SCHEMA kbase GRANT SELECT ON SEQUENCES TO kbase_viewer;
 --<<

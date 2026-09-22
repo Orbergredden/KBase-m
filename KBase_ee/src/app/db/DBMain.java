@@ -375,40 +375,40 @@ public abstract class DBMain {
 			
 			// 2. Перенос іконок (icons)
 			if (cloneIcons) {
-				copyTableData(srcDB.con, this.con, "icons", "id ASC");
-				dbUpdateSequenceForTable("icons", "seq_icons");
+				dbTableCopyData(srcDB.con, this.con, "icons", "id ASC");
+				dbSequenceSetNext("icons", "seq_icons");
 			}
 			
 			// 3. Перенос шаблонів зі стилями
 			if (cloneTemplates) {
-				copyTableData(srcDB.con, this.con, "template_themes", "id ASC");
-				copyTableData(srcDB.con, this.con, "template_files", "id ASC");
-				copyTableData(srcDB.con, this.con, "\"template\"", "id ASC");
-				copyTableData(srcDB.con, this.con, "template_style", "id ASC");
-				copyTableData(srcDB.con, this.con, "template_style_link", "id ASC");
+				dbTableCopyData(srcDB.con, this.con, "template_themes", "id ASC");
+				dbTableCopyData(srcDB.con, this.con, "template_files", "id ASC");
+				dbTableCopyData(srcDB.con, this.con, "\"template\"", "id ASC");
+				dbTableCopyData(srcDB.con, this.con, "template_style", "id ASC");
+				dbTableCopyData(srcDB.con, this.con, "template_style_link", "id ASC");
 				
-				dbUpdateSequenceForTable("template_themes", "seq_template_themes");
-				dbUpdateSequenceForTable("template_files", "seq_template_files");
-				dbUpdateSequenceForTable("\"template\"", "seq_template");
-				dbUpdateSequenceForTable("template_style", "seq_template_style");
-				dbUpdateSequenceForTable("template_style_link", "seq_template_style_link");
+				dbSequenceSetNext("template_themes", "seq_template_themes");
+				dbSequenceSetNext("template_files", "seq_template_files");
+				dbSequenceSetNext("\"template\"", "seq_template");
+				dbSequenceSetNext("template_style", "seq_template_style");
+				dbSequenceSetNext("template_style_link", "seq_template_style_link");
 			}
 			
 			// 4. Перенос розділів та інформаційних блоків
 			if (cloneSections) {
-				copyTableData(srcDB.con, this.con, "sections", "id ASC");
-				copyTableData(srcDB.con, this.con, "info", "id ASC");
-				copyTableData(srcDB.con, this.con, "info_text", "id ASC");
-				copyTableData(srcDB.con, this.con, "info_image", "id ASC");
-				copyTableData(srcDB.con, this.con, "info_file", "id ASC");
-				copyTableData(srcDB.con, this.con, "dict", "id ASC");
+				dbTableCopyData(srcDB.con, this.con, "sections", "id ASC");
+				dbTableCopyData(srcDB.con, this.con, "info", "id ASC");
+				dbTableCopyData(srcDB.con, this.con, "info_text", "id ASC");
+				dbTableCopyData(srcDB.con, this.con, "info_image", "id ASC");
+				dbTableCopyData(srcDB.con, this.con, "info_file", "id ASC");
+				dbTableCopyData(srcDB.con, this.con, "dict", "id ASC");
 				
-				dbUpdateSequenceForTable("sections", "seq_sections");
-				dbUpdateSequenceForTable("info", "seq_info");
-				dbUpdateSequenceForTable("info_text", "seq_info_text");
-				dbUpdateSequenceForTable("info_image", "seq_info_image");
-				dbUpdateSequenceForTable("info_file", "seq_info_file");
-				dbUpdateSequenceForTable("dict", "seq_dict");
+				dbSequenceSetNext("sections", "seq_sections");
+				dbSequenceSetNext("info", "seq_info");
+				dbSequenceSetNext("info_text", "seq_info_text");
+				dbSequenceSetNext("info_image", "seq_info_image");
+				dbSequenceSetNext("info_file", "seq_info_file");
+				dbSequenceSetNext("dict", "seq_dict");
 			}
 			
 			if (oldAutoCommit) {
@@ -426,66 +426,9 @@ public abstract class DBMain {
 	}
 	
 	/**
-	 * Пакетоване копіювання даних з одного з'єднання в інше для вказаної таблиці
-	 */
-	private void copyTableData (Connection srcCon, Connection targetCon, String tableName, String orderBy) throws SQLException {
-		String qTableName = tableName.startsWith("\"") ? tableName : ("template".equalsIgnoreCase(tableName) ? "\"template\"" : tableName);
-		String selectSql = "SELECT * FROM " + qTableName + (orderBy != null ? " ORDER BY " + orderBy : "");
-		
-		try (PreparedStatement srcPst = srcCon.prepareStatement(selectSql);
-			 ResultSet rs = srcPst.executeQuery()) {
-			
-			ResultSetMetaData meta = rs.getMetaData();
-			int colCount = meta.getColumnCount();
-			if (colCount == 0) return;
-			
-			StringBuilder insertSql = new StringBuilder("INSERT INTO ");
-			insertSql.append(qTableName).append(" (");
-			StringBuilder valuesSql = new StringBuilder(" VALUES (");
-			
-			for (int i = 1; i <= colCount; i++) {
-				if (i > 1) {
-					insertSql.append(", ");
-					valuesSql.append(", ");
-				}
-				String colName = meta.getColumnName(i);
-				if ("template".equalsIgnoreCase(colName) || "user".equalsIgnoreCase(colName)) {
-					insertSql.append("\"").append(colName).append("\"");
-				} else {
-					insertSql.append(colName);
-				}
-				valuesSql.append("?");
-			}
-			insertSql.append(")").append(valuesSql).append(")");
-			
-			try (PreparedStatement targetPst = targetCon.prepareStatement(insertSql.toString())) {
-				int batchSize = 0;
-				while (rs.next()) {
-					for (int i = 1; i <= colCount; i++) {
-						Object val = rs.getObject(i);
-						if (val == null) {
-							targetPst.setNull(i, meta.getColumnType(i));
-						} else {
-							targetPst.setObject(i, val);
-						}
-					}
-					targetPst.addBatch();
-					batchSize++;
-					if (batchSize % 500 == 0) {
-						targetPst.executeBatch();
-					}
-				}
-				if (batchSize % 500 != 0 && batchSize > 0) {
-					targetPst.executeBatch();
-				}
-			}
-		}
-	}
-	
-	/**
 	 * Встановлення сіквенсу в MAX(id) + 1 (або 1 для порожньої таблиці)
 	 */
-	private void dbUpdateSequenceForTable (String tableName, String seqName) {
+	public void dbSequenceSetNext (String tableName, String seqName) {
 		try {
 			String qName = tableName.startsWith("\"") ? tableName : ("template".equalsIgnoreCase(tableName) ? "\"template\"" : tableName);
 			PreparedStatement pst = con.prepareStatement("SELECT MAX(id) FROM " + qName);
@@ -549,6 +492,63 @@ public abstract class DBMain {
 		}
 	}
 	
+	/**
+	 * Пакетоване копіювання даних з одного з'єднання в інше для вказаної таблиці
+	 */
+	public void dbTableCopyData (Connection srcCon, Connection targetCon, String tableName, String orderBy) throws SQLException {
+		String qTableName = tableName.startsWith("\"") ? tableName : ("template".equalsIgnoreCase(tableName) ? "\"template\"" : tableName);
+		String selectSql = "SELECT * FROM " + qTableName + (orderBy != null ? " ORDER BY " + orderBy : "");
+		
+		try (PreparedStatement srcPst = srcCon.prepareStatement(selectSql);
+			 ResultSet rs = srcPst.executeQuery()) {
+			
+			ResultSetMetaData meta = rs.getMetaData();
+			int colCount = meta.getColumnCount();
+			if (colCount == 0) return;
+			
+			StringBuilder insertSql = new StringBuilder("INSERT INTO ");
+			insertSql.append(qTableName).append(" (");
+			StringBuilder valuesSql = new StringBuilder(" VALUES (");
+			
+			for (int i = 1; i <= colCount; i++) {
+				if (i > 1) {
+					insertSql.append(", ");
+					valuesSql.append(", ");
+				}
+				String colName = meta.getColumnName(i);
+				if ("template".equalsIgnoreCase(colName) || "user".equalsIgnoreCase(colName)) {
+					insertSql.append("\"").append(colName).append("\"");
+				} else {
+					insertSql.append(colName);
+				}
+				valuesSql.append("?");
+			}
+			insertSql.append(")").append(valuesSql).append(")");
+			
+			try (PreparedStatement targetPst = targetCon.prepareStatement(insertSql.toString())) {
+				int batchSize = 0;
+				while (rs.next()) {
+					for (int i = 1; i <= colCount; i++) {
+						Object val = rs.getObject(i);
+						if (val == null) {
+							targetPst.setNull(i, meta.getColumnType(i));
+						} else {
+							targetPst.setObject(i, val);
+						}
+					}
+					targetPst.addBatch();
+					batchSize++;
+					if (batchSize % 500 == 0) {
+						targetPst.executeBatch();
+					}
+				}
+				if (batchSize % 500 != 0 && batchSize > 0) {
+					targetPst.executeBatch();
+				}
+			}
+		}
+	}
+
 	/**
 	 * Перевіряє наявність поточного користувача в таблиці kbase.access_user
 	 * для вказаного типу доступу.
