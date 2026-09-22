@@ -131,19 +131,34 @@ public class InfoEdit_Text_Controller extends InfoEdit_Simple_Controller {
 	 * Восстанавливаем состояние контролов из иерархической структуры
 	 */
 	public void restoreControlsState (StateList stateList) {
-		
+
+		int[]    caretPos  = {0};
+		double[] scrollTop = {0.0};
+
 		for (StateItem si : stateList.list) {
 			switch (si.getName()) {
 				case "caretPosition" :
-					textArea_text.positionCaret(Integer.parseInt(si.getParams()));
+					caretPos[0] = Integer.parseInt(si.getParams());
 					break;
 				case "scrollTop" :
-					Platform.runLater(() -> {
-						textArea_text.requestFocus();
-						textArea_text.setScrollTop(Double.parseDouble(si.getParams()));
-					});
+					scrollTop[0] = Double.parseDouble(si.getParams());
 					break;
 			}
 		}
+
+		// На Linux (GTK/X11) TextArea завершує layout пізніше ніж на Windows.
+		// Один Platform.runLater() може виконатись до завершення внутрішнього
+		// layout TextArea, тому setScrollTop() скидається до 0.
+		// Подвійний runLater дає JavaFX два додаткові цикли layout,
+		// після яких TextArea гарантовано виміряна і готова до прокрутки.
+		// positionCaret виконується після setScrollTop, щоб вбудований
+		// auto-scroll TextArea не перезаписував відновлену позицію прокрутки.
+		final int    finalCaretPos  = caretPos[0];
+		final double finalScrollTop = scrollTop[0];
+		Platform.runLater(() -> Platform.runLater(() -> {
+			textArea_text.setScrollTop(finalScrollTop);
+			textArea_text.positionCaret(finalCaretPos);
+			textArea_text.requestFocus();
+		}));
 	}
 }

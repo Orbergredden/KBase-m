@@ -49,6 +49,7 @@ import javafx.scene.web.WebView;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.util.Callback;
+import javafx.util.Duration;
 import netscape.javascript.JSObject;
 
 /**
@@ -234,12 +235,9 @@ public class DocumentView_Controller implements AppItem_Interface {
 		// беремо значення позиції сплітера з конфіга
     	spliterWidth = getSpliterWidthFromConfig();
 		
-    	// Встановлення початкового розміру після побудови
-    	Platform.runLater(() -> {
-    		double position = getSpliterPos(spliterWidth); // Відносна позиція сплітера
-    	    splitPane_info.setDividerPositions(position); // Встановлення позиції
-    	    isSplitterPositionedFirst = true;
-    	});
+    	// Встановлення початкового розміру після побудови.
+    	// Використовуємо applySpliterPos з retry-логікою (на Linux getWidth() може бути 0).
+    	applySpliterPos(spliterWidth);
 
     	// Слухач для збереження позиції
     	splitPane_info.getDividers().get(0).positionProperty().addListener((observable, oldValue, newValue) -> {
@@ -455,43 +453,51 @@ public class DocumentView_Controller implements AppItem_Interface {
 			public TreeTableRow<InfoHeaderItem> call(final TreeTableView<InfoHeaderItem> param) {
 				final TreeTableRow<InfoHeaderItem> row = new TreeTableRow<InfoHeaderItem>();
 
-				WebView webView = new WebView();
-				Tooltip tooltip = new Tooltip();
+				// ======== Tooltip: показуємо деталі інфоблока при наведенні
+				// Використовуємо itemProperty замість hoverProperty:
+				// - install/uninstall викликається лише при зміні даних рядка (не при кожному hover)
+				// - коректно прибирає тултип при прокручуванні (порожні рядки)
+				final Tooltip tooltip = new Tooltip();
+				tooltip.setShowDelay(Duration.millis(400));
+				tooltip.setMaxWidth(450);
+				tooltip.setWrapText(true);
 
-	            row.hoverProperty().addListener((observable, oldValue, newValue) -> {
-	                if (row.getItem() != null) {
-	                    //tooltip.setText(row.getItem().getName());
-	                	
-	                	String styleName = 
-	                			(row.getItem().getTemplateStyleId() != 0) ?
-            					Long.toString(row.getItem().getTemplateStyleId()) +" - "+
-            					params.getConCur().db.templateStyleGet(row.getItem().getTemplateStyleId()).getName() :
-            					"<i>default</i>"; 
-	                	
-	                	String htmlContent = 
-	                			"<html>" +
-	                			"<body>" + 
-	                			"<p style='font-size: 11pt; padding:0px; margin:0px;'>"+ 
-	                				row.getItem().getName() +"</p>"+
-	                			"<p style='font-size: 11pt; padding:0px; margin:0px;'>"+ 
-	                				row.getItem().getDescr() +"</p>"+
-	                			"<p style='font-size: 11pt; padding:0px; margin:0px;'>"+ 
-	                				Long.toString(row.getItem().getInfoTypeId()) +" - "+
-	                				params.getConCur().db.infoTypeGet(row.getItem().getInfoTypeId()).getName() +"</p>"+
-	                			"<p style='font-size: 11pt; padding:0px; margin:0px;'>"+ 
-	                				styleName +"</p>"+
-	                			"<p style='font-size: 11pt; padding:0px; margin:0px;'>"+ 
-									dateConv.dateTimeToStr(row.getItem().getDateCreated()) +"  - створений</p>"+
-								"<p style='font-size: 11pt; padding:0px; margin:0px;'>"+ 
-									dateConv.dateTimeToStr(row.getItem().getDateModified()) +"  - модифікований</p>"+
-	                			"</body></html>";
-	                    webView.getEngine().loadContent(htmlContent);
-	                    webView.setPrefWidth(500);
-	                    webView.setPrefHeight(120);
-	                    tooltip.setGraphic(webView);
-	                    Tooltip.install(row, tooltip);
-	                }
-	            });
+				row.itemProperty().addListener((obs, oldItem, newItem) -> {
+					if (newItem != null && newItem.getId() >= 0) {
+						String styleName = (newItem.getTemplateStyleId() != 0) ?
+								newItem.getTemplateStyleId() + " - " +
+								params.getConCur().db.templateStyleGet(newItem.getTemplateStyleId()).getName() :
+								"default";
+
+						String typeName = (newItem.getInfoTypeId() != 0) ?
+								newItem.getInfoTypeId() + " - " +
+								params.getConCur().db.infoTypeGet(newItem.getInfoTypeId()).getName() :
+								"";
+
+						StringBuilder sb = new StringBuilder();
+						sb.append(newItem.getName())
+						  .append("  (id: ").append(newItem.getId()).append(")");
+						sb.append("\n\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500");
+						sb.append("\nТип: ").append(typeName);
+						sb.append("\nСтиль: ").append(styleName);
+						if (newItem.getDescr() != null && !newItem.getDescr().isBlank()) {
+							sb.append("\n").append(newItem.getDescr());
+						}
+						sb.append("\n\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500");
+						String userCreated  = newItem.getUserCreated()  != null ? newItem.getUserCreated()  : "";
+						String userModified = newItem.getUserModified() != null ? newItem.getUserModified() : "";
+						sb.append("\n").append(dateConv.dateTimeToStr(newItem.getDateCreated())).append(" - створений ");
+						if (!userCreated.isBlank())  sb.append("  (").append(userCreated).append(")");
+						sb.append("\n").append(dateConv.dateTimeToStr(newItem.getDateModified())).append(" - змінений");
+						if (!userModified.isBlank()) sb.append("  (").append(userModified).append(")");
+
+						tooltip.setText(sb.toString());
+						Tooltip.install(row, tooltip);
+					} else {
+						// прибираємо тултип для порожніх рядків (при прокручуванні)
+						Tooltip.uninstall(row, tooltip);
+					}
+				});
 
 				return row;
 			}
@@ -1042,13 +1048,10 @@ public class DocumentView_Controller implements AppItem_Interface {
 				}
 				break;
 			case "splitPane_info_Position" :
-				Platform.runLater(() -> {
-					spliterWidth = Integer.parseInt(si.getParams());
-		    		double position = getSpliterPos(spliterWidth); // Відносна позиція сплітера
-		    	    splitPane_info.setDividerPositions(position); // Встановлення позиції
-		    	    isSplitterPositionedFirst = true;
-		    	    //System.out.println("Рестор сплітера: " + position + " (spliterWidth: " + spliterWidth + ")");
-		    	});
+				// Використовуємо applySpliterPos з retry-логікою:
+				// на Linux getWidth() може бути 0 в момент runLater (контрол ще не відрендерений),
+				// тому повторюємо спроби до SPLITTER_RETRY_MAX разів
+				applySpliterPos(Integer.parseInt(si.getParams()));
 				break;
 			case "splitPane_info_fixMode" :
 				toggleButton_fixSplitPane.setSelected(
@@ -1105,6 +1108,42 @@ public class DocumentView_Controller implements AppItem_Interface {
     	double position = 1 - width / windowWidth; // Відносна позиція сплітера
     	
     	return position;
+    }
+    
+    /** Максимальна кількість повторних спроб встановлення позиції сплітера */
+    private static final int SPLITTER_RETRY_MAX = 5;
+    
+    /**
+     * Встановлює позицію сплітера відновлення зі збереженого стану.
+     * На Linux контрол може ще не мати реального розміру в перших тактах runLater
+     * (getWidth()==0), що призводить до ділення на нуль і зсуву сплітера вліво.
+     * Якщо розмір ще 0 — повторюємо спробу через наступний Platform.runLater
+     * (не більше SPLITTER_RETRY_MAX разів).
+     */
+    private void applySpliterPos (int targetWidth) {
+    	applySpliterPos(targetWidth, 0);
+    }
+    
+    private void applySpliterPos (int targetWidth, int attempt) {
+    	Platform.runLater(() -> {
+    		double paneSize = (splitPane_info.getOrientation() == Orientation.HORIZONTAL)
+    				? splitPane_info.getWidth()
+    				: splitPane_info.getHeight();
+    		
+    		if (paneSize <= 0) {
+    			// Контрол ще не відрендерений — повторюємо спробу
+    			if (attempt < SPLITTER_RETRY_MAX) {
+    				applySpliterPos(targetWidth, attempt + 1);
+    			}
+    			return;
+    		}
+    		
+    		spliterWidth = targetWidth;
+    		double position = 1.0 - targetWidth / paneSize; // Відносна позиція сплітера
+    		splitPane_info.setDividerPositions(position); // Встановлення позиції
+    		isSplitterPositionedFirst = true;
+    		//System.out.println("Рестор сплітера: " + position + " (spliterWidth: " + targetWidth + ", attempt: " + attempt + ")");
+    	});
     }
     
     /**

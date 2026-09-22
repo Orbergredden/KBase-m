@@ -229,9 +229,13 @@ public class TemplateFileEdit_Controller {
 		
 	    // set directory
 	    curDir = prefs.get("SelectFileDir_Text", "");
-	    if (! curDir.equals("")) 
-	    	fileChooser.setInitialDirectory(new File(curDir));
-	    
+	    if (! curDir.equals("")) {
+	        File dir = new File(curDir);
+	        if (dir.exists() && dir.isDirectory()) {
+	            fileChooser.setInitialDirectory(dir);
+	        }
+	    }
+    
 	    // Показываем диалог загрузки файла
 	    File file = fileChooser.showOpenDialog(params.getStageCur());
 		
@@ -284,11 +288,15 @@ public class TemplateFileEdit_Controller {
 	    fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Все файлы (*.*)", "*.*"));
 	    
 	    fileChooser.setInitialFileName(textField_FileName.getText());
-	    
+    
 	    // set current dir
 	    String curDir = prefs.get("SelectFileDir_Text", "");
-	    if (! curDir.equals("")) 
-	    	fileChooser.setInitialDirectory(new File(curDir));
+	    if (! curDir.equals("")) {
+	        File dir = new File(curDir);
+	        if (dir.exists() && dir.isDirectory()) {
+	            fileChooser.setInitialDirectory(dir);
+	        }
+	    }
 	    
 	    //Show save file dialog
 	    File file = fileChooser.showSaveDialog(params.getStageCur());
@@ -318,8 +326,12 @@ public class TemplateFileEdit_Controller {
 		
 		// set directory
 	    curDir = prefs.get("SelectFileDir_Image", "");
-	    if (! curDir.equals("")) 
-	    	fileChooser.setInitialDirectory(new File(curDir));
+	    if (! curDir.equals("")) {
+	        File dir = new File(curDir);
+	        if (dir.exists() && dir.isDirectory()) {
+	            fileChooser.setInitialDirectory(dir);
+	        }
+	    }
 	    
 	    // Показываем диалог загрузки файла
 	    File file = fileChooser.showOpenDialog(params.getStageCur());
@@ -367,13 +379,18 @@ public class TemplateFileEdit_Controller {
 		fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("PNG файлы (*.png)", "*.png"));
 	    //fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Изображения (*.png,*.gif,*.jpg,*.jpeg)", "*.png","*.gif","*.jpg","*.jpeg"));
 		//fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Все файлы (*.*)", "*.*"));
-	    fileChooser.setInitialFileName(textField_FileName.getText());
-	    
+		
+		fileChooser.setInitialFileName(textField_FileName.getText());
+    
 	    // set current dir
 	    String curDir = prefs.get("SelectFileDir_Image", "");
-	    if (! curDir.equals("")) 
-	    	fileChooser.setInitialDirectory(new File(curDir));
-	    
+	    if (! curDir.equals("")) {
+	        File dir = new File(curDir);
+	        if (dir.exists() && dir.isDirectory()) {
+	            fileChooser.setInitialDirectory(dir);
+	        }
+	    }
+    
 	    //Show save file dialog
 	    File file = fileChooser.showSaveDialog(params.getStageCur());
 		

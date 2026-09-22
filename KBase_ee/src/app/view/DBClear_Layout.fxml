@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.CheckBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<AnchorPane prefHeight="370.0" prefWidth="470.0" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="app.view.DBClear_Controller">
+   <children>
+
+      <!-- Заголовок: іконка + назва БД -->
+      <HBox alignment="CENTER_LEFT" layoutX="14.0" layoutY="14.0" spacing="8.0" AnchorPane.leftAnchor="14.0" AnchorPane.rightAnchor="14.0">
+         <children>
+            <ImageView fx:id="imageView_Icon" fitHeight="24.0" fitWidth="24.0" preserveRatio="true" />
+            <Label fx:id="label_DBName" style="-fx-font-size: 14px; -fx-font-weight: bold;" text="База даних" />
+         </children>
+      </HBox>
+
+      <Separator layoutX="14.0" layoutY="52.0" AnchorPane.leftAnchor="14.0" AnchorPane.rightAnchor="14.0" />
+
+      <!-- Підпис -->
+      <Label layoutX="14.0" layoutY="62.0" style="-fx-font-size: 11px;" text="Виберіть типи даних для видалення:" />
+
+      <!-- Чекбокси з іконками -->
+      <VBox layoutX="14.0" layoutY="86.0" spacing="12.0" AnchorPane.leftAnchor="14.0" AnchorPane.rightAnchor="14.0">
+         <children>
+
+            <!-- 1. Документи -->
+            <HBox alignment="CENTER_LEFT" spacing="8.0">
+               <children>
+                  <CheckBox fx:id="checkBox_Documents" mnemonicParsing="false" />
+                  <ImageView fitHeight="16.0" fitWidth="16.0" preserveRatio="true">
+                     <image><Image url="file:resources/images/icon_Sections_16.png" /></image>
+                  </ImageView>
+                  <Label style="-fx-font-weight: bold;" text="Документи" />
+                  <Label style="-fx-font-size: 10px; -fx-text-fill: gray;" text="(public.documents)" />
+               </children>
+            </HBox>
+
+            <!-- 2. Інфоблоки -->
+            <HBox alignment="CENTER_LEFT" spacing="8.0">
+               <children>
+                  <CheckBox fx:id="checkBox_Info" mnemonicParsing="false" />
+                  <ImageView fitHeight="16.0" fitWidth="16.0" preserveRatio="true">
+                     <image><Image url="file:resources/images/icon_information_16.png" /></image>
+                  </ImageView>
+                  <Label style="-fx-font-weight: bold;" text="Інфоблоки" />
+                  <Label style="-fx-font-size: 10px; -fx-text-fill: gray;" text="(info, info_text, info_image, info_file, dict)" />
+               </children>
+            </HBox>
+
+            <!-- 3. Розділи -->
+            <HBox alignment="CENTER_LEFT" spacing="8.0">
+               <children>
+                  <CheckBox fx:id="checkBox_Sections" mnemonicParsing="false" />
+                  <ImageView fitHeight="16.0" fitWidth="16.0" preserveRatio="true">
+                     <image><Image url="file:resources/images/icon_Sections_16.png" /></image>
+                  </ImageView>
+                  <Label style="-fx-font-weight: bold;" text="Розділи" />
+                  <Label style="-fx-font-size: 10px; -fx-text-fill: gray;" text="(sections)" />
+               </children>
+            </HBox>
+
+            <!-- 4. Шаблони -->
+            <HBox alignment="CENTER_LEFT" spacing="8.0">
+               <children>
+                  <CheckBox fx:id="checkBox_Templates" mnemonicParsing="false" />
+                  <ImageView fitHeight="16.0" fitWidth="16.0" preserveRatio="true">
+                     <image><Image url="file:resources/images/icon_templates/icon_CatalogTemplates_16.png" /></image>
+                  </ImageView>
+                  <Label style="-fx-font-weight: bold;" text="Шаблони" />
+                  <Label style="-fx-font-size: 10px; -fx-text-fill: gray;" text="(template, template_style, template_files, template_themes)" />
+               </children>
+            </HBox>
+
+            <!-- 5. Іконки -->
+            <HBox alignment="CENTER_LEFT" spacing="8.0">
+               <children>
+                  <CheckBox fx:id="checkBox_Icons" mnemonicParsing="false" />
+                  <ImageView fitHeight="16.0" fitWidth="16.0" preserveRatio="true">
+                     <image><Image url="file:resources/images/icon_CatalogIcons_16.png" /></image>
+                  </ImageView>
+                  <Label style="-fx-font-weight: bold;" text="Іконки" />
+                  <Label style="-fx-font-size: 10px; -fx-text-fill: gray;" text="(icons)" />
+               </children>
+            </HBox>
+
+         </children>
+      </VBox>
+
+      <!-- Попередження -->
+      <Label fx:id="label_Warning" layoutX="14.0" layoutY="292.0" style="-fx-text-fill: #c0392b; -fx-font-size: 11px;" text="⚠ Увага! Видалення є незворотньою операцією." wrapText="true" AnchorPane.leftAnchor="14.0" AnchorPane.rightAnchor="14.0" />
+
+      <!-- Кнопки -->
+      <HBox alignment="CENTER_RIGHT" layoutX="14.0" layoutY="326.0" spacing="10.0" AnchorPane.leftAnchor="14.0" AnchorPane.rightAnchor="14.0">
+         <children>
+            <Button fx:id="button_Cancel" mnemonicParsing="false" onAction="#handleCancel" prefWidth="110.0" text="Відміна" />
+            <Button fx:id="button_Clear" mnemonicParsing="false" onAction="#handleClear" prefWidth="110.0" style="-fx-background-color: #c0392b; -fx-text-fill: white; -fx-font-weight: bold;" text="Очистити" />
+         </children>
+      </HBox>
+
+   </children>
+</AnchorPane>

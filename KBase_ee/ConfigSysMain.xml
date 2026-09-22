@@ -13,10 +13,10 @@
         <id>-1284171031</id>
         <isEditable>true</isEditable>
         <isShow>true</isShow>
-        <lastModified>2025-11-21</lastModified>
+        <lastModified>2026-09-22</lastModified>
         <name>version</name>
         <sectionName>AboutProgram</sectionName>
-        <value>3.13.00.772</value>
+        <value>3.14.00.776</value>
     </ConfigMainItem>
     <ConfigMainItem>
         <id>-1284171032</id>
@@ -31,19 +31,19 @@
         <id>-1284171033</id>
         <isEditable>true</isEditable>
         <isShow>true</isShow>
-        <lastModified>2025-11-21</lastModified>
+        <lastModified>2026-09-22</lastModified>
         <name>EndDate</name>
         <sectionName>AboutProgram</sectionName>
-        <value>01.07.2026</value>
+        <value>22.09.2026</value>
     </ConfigMainItem>
     <ConfigMainItem>
         <id>-1284171034</id>
         <isEditable>true</isEditable>
         <isShow>true</isShow>
-        <lastModified>2025-11-21</lastModified>
+        <lastModified>2026-09-22</lastModified>
         <name>CodeName</name>
         <sectionName>AboutProgram</sectionName>
-        <value>find info, favorite</value>
+        <value>DB Clone</value>
     </ConfigMainItem>
     <ConfigMainItem>
         <id>-1284171035</id>
@@ -71,7 +71,7 @@
         <lastModified>2025-03-11</lastModified>
         <name>Required version.KBase Pg</name>
         <sectionName>DB</sectionName>
-        <value>2.03.00.*</value>
+        <value>2.04.00.*</value>
     </ConfigMainItem>
     <ConfigMainItem>
         <descr>Необхідна версія БД для роботи з програмою</descr>

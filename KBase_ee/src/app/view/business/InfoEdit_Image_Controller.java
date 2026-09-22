@@ -213,8 +213,12 @@ public class InfoEdit_Image_Controller extends InfoEdit_Simple_Controller {
         //prefs.remove("icons_CurDirNameForAdd");
         curDir = prefs.get("InfoEditImage_CurDirNameForLoad", "");
         //System.out.println("curDir = " + curDir);
-        if (! curDir.equals("")) 
-        	fileChooser.setInitialDirectory(new File(curDir));
+        if (! curDir.equals("")) {
+            File dir = new File(curDir);
+            if (dir.exists() && dir.isDirectory()) {
+                fileChooser.setInitialDirectory(dir);
+            }
+        }
         
         // Показываем диалог загрузки файла
         //File file = fileChooser.showOpenDialog(mainApp.getPrimaryStage());

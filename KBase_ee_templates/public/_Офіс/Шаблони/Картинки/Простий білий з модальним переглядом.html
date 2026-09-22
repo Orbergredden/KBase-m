@@ -1,0 +1,396 @@
+<!--HEAD_BEGIN css_{[templateId]}-->
+<style>
+.divMain_{[templateId]} {
+    margin: 7px; /* Значение отступов */
+    padding: 2px; /* Поля вокруг текста */
+    border: 0px solid black; /* Параметры границы */
+    background-color: #ffffff; /* Колір фону - наприклад білий */
+}
+.aTitle_{[templateId]} {
+	font-weight: bold;
+    color: rgb(40,40,140);
+    margin: 0px; /* Значение отступов */
+    padding: 0px; /* Поля вокруг текста */
+}
+.aDescr_{[templateId]} {
+    color: rgb(133,123,207);
+	margin: 0px; /* Значение отступов */
+	padding: 0px; /* Поля вокруг текста */
+}
+.pre_{[templateId]} {
+	color : #000000;
+    white-space: pre-wrap;       /* CSS 3 */
+    white-space: -moz-pre-wrap;  /* Mozilla, since 1999 */
+    white-space: -pre-wrap;      /* Opera 4-6 */
+    white-space: -o-pre-wrap;    /* Opera 7 */
+    word-wrap: break-word;       /* Internet Explorer 5.5+ */
+    padding: 0px; 
+    margin: 0px;
+}
+
+/* Курсор при наведенні на картинку в інфоблоці */
+.divMain_{[templateId]} img,
+.divMain_{[templateId]} a img {
+    cursor: zoom-in;
+    cursor: -webkit-zoom-in;
+    cursor: -moz-zoom-in;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
+}
+.divMain_{[templateId]} img:hover,
+.divMain_{[templateId]} a img:hover {
+    transform: scale(1.02);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+    opacity: 0.95;
+    z-index: 10;
+    position: relative;
+}
+
+/* Modal styles */
+.kbase-img-modal_{[templateId]} {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(2px);
+    z-index: 9999;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+.kbase-img-modal_{[templateId]}.open {
+    display: flex;
+}
+.kbase-img-modal-content_{[templateId]} {
+    position: relative;
+    max-width: 90vw;
+    max-height: 90vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.kbase-img-modal-img_{[templateId]} {
+    max-width: 90vw;
+    max-height: 90vh;
+    transform-origin: 0 0;
+    transition: transform 0.1s ease-out;
+    cursor: zoom-in;
+    user-select: none;
+}
+.kbase-img-modal-img_{[templateId]}.panning {
+    cursor: grabbing;
+}
+.kbase-img-modal-img_{[templateId]}.zoomed {
+    cursor: grab;
+}
+.kbase-img-modal-close_{[templateId]} {
+    position: absolute;
+    top: -45px;
+    right: 0;
+    width: 36px;
+    height: 36px;
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    border-radius: 50%;
+    color: white;
+    font-size: 24px;
+    line-height: 36px;
+    text-align: center;
+    cursor: pointer;
+    transition: background 0.2s;
+    z-index: 10000;
+}
+.kbase-img-modal-close_{[templateId]}:hover {
+    background: rgba(255, 255, 255, 0.4);
+}
+.kbase-img-modal-zoom-reset_{[templateId]} {
+    position: absolute;
+    bottom: -45px;
+    left: 0;
+    padding: 6px 12px;
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    border-radius: 4px;
+    color: white;
+    font-size: 13px;
+    cursor: pointer;
+    transition: background 0.2s;
+    z-index: 10000;
+    white-space: nowrap;
+}
+.kbase-img-modal-zoom-reset_{[templateId]}:hover {
+    background: rgba(255, 255, 255, 0.4);
+}
+@media (max-width: 600px) {
+    .kbase-img-modal-close_{[templateId]} {
+        top: -40px;
+        right: 0;
+        width: 32px;
+        height: 32px;
+        font-size: 20px;
+        line-height: 32px;
+    }
+    .kbase-img-modal-zoom-reset_{[templateId]} {
+        bottom: -38px;
+        left: 0;
+        padding: 4px 10px;
+        font-size: 12px;
+    }
+}
+</style>
+<!--HEAD_END css_{[templateId]}-->
+
+<!--HEAD_BEGIN jquery-->
+<script type="text/javascript" src='_files/JavaScript_lib/jquery.js'></script>
+<!--HEAD_END jquery-->
+
+<!--HEAD_BEGIN modal_js_{[templateId]}-->
+<script type="text/javascript">
+(function() {
+    // Registry for document-level event handlers (shared across all templates)
+    if (!window.kbaseModalRegistry) {
+        window.kbaseModalRegistry = {
+            modals: {},
+            activeModalId: null,
+            isPanning: false,
+            panStartX: 0,
+            panStartY: 0,
+            panStartTranslateX: 0,
+            panStartTranslateY: 0,
+            
+            init: function() {
+                if (this.initialized) return;
+                this.initialized = true;
+                
+                // Single shared mousemove handler
+                document.addEventListener('mousemove', (e) => {
+                    const active = this.modals[this.activeModalId];
+                    if (active && this.isPanning && active.scale > 1) {
+                        active.translateX = this.panStartTranslateX + (e.clientX - this.panStartX);
+                        active.translateY = this.panStartTranslateY + (e.clientY - this.panStartY);
+                        active.applyTransform();
+                    }
+                });
+                
+                // Single shared mouseup handler
+                document.addEventListener('mouseup', () => {
+                    const active = this.modals[this.activeModalId];
+                    if (active && this.isPanning) {
+                        this.isPanning = false;
+                        active.modalImg.classList.remove('panning');
+                        if (active.scale > 1) active.modalImg.classList.add('zoomed');
+                    }
+                });
+                
+                // Single shared keydown handler (ESC)
+                document.addEventListener('keydown', (e) => {
+                    if (e.key === 'Escape' && this.activeModalId) {
+                        const active = this.modals[this.activeModalId];
+                        if (active && active.modal.classList.contains('open')) {
+                            active.closeModal();
+                        }
+                    }
+                });
+            },
+            
+            register: function(templateId, modalObj) {
+                this.init();
+                this.modals[templateId] = modalObj;
+            },
+            
+            setActive: function(templateId) {
+                this.activeModalId = templateId;
+            },
+            
+            startPan: function(templateId, clientX, clientY) {
+                const active = this.modals[templateId];
+                if (active && active.scale > 1) {
+                    this.isPanning = true;
+                    this.panStartX = clientX;
+                    this.panStartY = clientY;
+                    this.panStartTranslateX = active.translateX;
+                    this.panStartTranslateY = active.translateY;
+                    active.modalImg.classList.add('panning');
+                    active.modalImg.classList.remove('zoomed');
+                }
+            }
+        };
+    }
+    
+    var modal = null;
+    var modalImg = null;
+    var scale = 1;
+    var translateX = 0;
+    var translateY = 0;
+    var currentTemplateId = '{[templateId]}';
+    var modalClass = 'kbase-img-modal_' + currentTemplateId;
+    var contentClass = 'kbase-img-modal-content_' + currentTemplateId;
+    var imgClass = 'kbase-img-modal-img_' + currentTemplateId;
+    var closeClass = 'kbase-img-modal-close_' + currentTemplateId;
+    var resetClass = 'kbase-img-modal-zoom-reset_' + currentTemplateId;
+
+    function createModal() {
+        if (modal) return;
+        
+        modal = document.createElement('div');
+        modal.className = modalClass;
+        modal.id = 'kbaseImgModal_' + currentTemplateId;
+        modal.onclick = closeModal;
+        
+        var content = document.createElement('div');
+        content.className = contentClass;
+        content.onclick = function(e) { e.stopPropagation(); };
+        
+        var closeBtn = document.createElement('button');
+        closeBtn.className = closeClass;
+        closeBtn.innerHTML = '&times;';
+        closeBtn.onclick = function(e) { e.stopPropagation(); closeModal(); };
+        closeBtn.setAttribute('aria-label', 'Закрити');
+        
+        var resetBtn = document.createElement('button');
+        resetBtn.className = resetClass;
+        resetBtn.innerHTML = '100%';
+        resetBtn.onclick = function(e) { e.stopPropagation(); resetZoom(); };
+        resetBtn.setAttribute('aria-label', 'Скинути масштаб');
+        
+        modalImg = document.createElement('img');
+        modalImg.className = imgClass;
+        modalImg.id = 'kbaseImgModalImg_' + currentTemplateId;
+        modalImg.alt = '';
+        
+        // Wheel zoom
+        modalImg.addEventListener('wheel', function(e) {
+            e.preventDefault();
+            zoom(e.deltaY > 0 ? -0.15 : 0.15, e.clientX, e.clientY);
+        }, { passive: false });
+        
+        // Pan: mouse down - use registry
+        modalImg.addEventListener('mousedown', function(e) {
+            window.kbaseModalRegistry.setActive(currentTemplateId);
+            window.kbaseModalRegistry.startPan(currentTemplateId, e.clientX, e.clientY);
+            e.preventDefault();
+        });
+        
+        content.appendChild(closeBtn);
+        content.appendChild(resetBtn);
+        content.appendChild(modalImg);
+        modal.appendChild(content);
+        document.body.appendChild(modal);
+        
+        // Register this modal in shared registry
+        window.kbaseModalRegistry.register(currentTemplateId, {
+            modal: modal,
+            modalImg: modalImg,
+            get scale() { return scale; },
+            set scale(v) { scale = v; },
+            get translateX() { return translateX; },
+            set translateX(v) { translateX = v; },
+            get translateY() { return translateY; },
+            set translateY(v) { translateY = v; },
+            applyTransform: applyTransform,
+            closeModal: closeModal
+        });
+    }
+
+    function applyTransform() {
+        if (modalImg) {
+            modalImg.style.transform = 'translate(' + translateX + 'px, ' + translateY + 'px) scale(' + scale + ')';
+        }
+    }
+
+    function clampScale(s) {
+        return Math.max(0.25, Math.min(5, s));
+    }
+
+    function zoom(delta, clientX, clientY) {
+        var newScale = clampScale(scale + delta);
+        if (newScale === scale) return;
+        
+        var scaleRatio = newScale / scale;
+        translateX = clientX - (clientX - translateX) * scaleRatio;
+        translateY = clientY - (clientY - translateY) * scaleRatio;
+        
+        scale = newScale;
+        applyTransform();
+        
+        if (scale > 1) {
+            modalImg.classList.add('zoomed');
+            modalImg.classList.remove('panning');
+        } else {
+            modalImg.classList.remove('zoomed', 'panning');
+            translateX = 0;
+            translateY = 0;
+            applyTransform();
+        }
+    }
+
+    function resetZoom() {
+        scale = 1;
+        translateX = 0;
+        translateY = 0;
+        applyTransform();
+        modalImg.classList.remove('zoomed', 'panning');
+    }
+
+    function openModal(src) {
+        createModal();
+        window.kbaseModalRegistry.setActive(currentTemplateId);
+        modalImg.src = src;
+        resetZoom();
+        modal.classList.add('open');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeModal() {
+        if (modal) {
+            modal.classList.remove('open');
+            document.body.style.overflow = '';
+        }
+    }
+
+    // Expose globally
+    window['kbaseOpenModal_' + currentTemplateId] = openModal;
+    window['kbaseCloseModal_' + currentTemplateId] = closeModal;
+})();
+</script>
+<!--HEAD_END modal_js_{[templateId]}-->
+
+<!--BODY_BEGIN {[InfoBlockId]}-->
+<div class="divMain_{[templateId]}">
+
+<SCRIPT type="text/javascript">
+(function() {
+    var v_InfoImageTitle = "{[InfoImageTitle]}";
+    var v_InfoImagePath = "{[InfoImagePath]}";
+    var v_InfoImageWidth = {[InfoImageWidth]};
+    var v_InfoImageHeight = {[InfoImageHeight]};
+    var v_InfoImageDescr = "{[InfoImageDescr]}";
+    var v_isShowTitle = {[isShowTitle]};
+    var v_isShowDescr = {[isShowDescr]};
+
+    var s_InfoImageWidth  = (v_InfoImageWidth  > 0) ? " width='"+v_InfoImageWidth+"' " : "";
+    var s_InfoImageHeight = (v_InfoImageHeight > 0) ? " height='"+v_InfoImageHeight+"' " : "";
+
+    if (v_isShowTitle == 1) {
+        document.write("<a id='{[InfoBlockId]}' class='aTitle_{[templateId]}'>" + v_InfoImageTitle + "</a>");
+        document.write("<br>");
+    } else {
+        document.write("<a id='{[InfoBlockId]}'></a>");
+    }
+
+    document.write("<img "+ s_InfoImageWidth + s_InfoImageHeight +" src='" + v_InfoImagePath + "' onclick=\"window.kbaseOpenModal_{[templateId]}(this.src)\">");
+    document.write("<br>");
+
+    if (v_isShowDescr == 1) {
+        document.write("<a class='aDescr_{[templateId]}'>" + v_InfoImageDescr + "</a>");
+        document.write("<br>");
+    }
+})();
+</SCRIPT>
+
+<pre id="pre_{[InfoBlockId]}" class="pre_{[templateId]}">{[InfoImageText]}</pre>
+
+</div>
+<!--BODY_END-->

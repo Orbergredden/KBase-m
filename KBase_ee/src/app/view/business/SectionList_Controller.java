@@ -14,15 +14,12 @@ import app.model.DBConn_Parameters;
 import app.model.Params;
 import app.model.StateItem;
 import app.model.StateList;
-import app.model.business.DictionaryItem;
 import app.model.business.InfoHeaderItem;
 import app.model.business.Info_FileItem;
 import app.model.business.Info_ImageItem;
 import app.model.business.Info_TextItem;
 import app.model.business.SectionClipboardInfo;
-import app.model.business.SectionFavoriteItem;
 import app.model.business.SectionItem;
-import app.util.FormattedDate;
 import app.view.structure.TabNavigationHistory;
 
 import java.io.File;
@@ -57,7 +54,6 @@ import javafx.scene.input.TransferMode;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.paint.Color;
-import javafx.scene.web.WebView;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.util.Callback;
@@ -214,6 +210,8 @@ public class SectionList_Controller implements Container_Interface, AppItem_Inte
 	private static final int MAX_RETRIES = 5000;
 	// при переході на вказаний Розділ, не робимо вибір Розділу при динамічному завантаженні гілки
 	private volatile boolean isGotoSection = false;
+	// прапорець відновлення збереженого стану — блокує doSafeSelection під час restoreControlsState
+	private volatile boolean isRestoringState = false;
 
 	//
 	private SectionFavoriteList_Controller controller_Favorite;
@@ -1555,6 +1553,9 @@ public class SectionList_Controller implements Container_Interface, AppItem_Inte
 					listItemsForExpand.add(new Long(si.getParams()));
 					break;
 				case "TreeItemsDoExpandAndSelected" :
+					// блокуємо doSafeSelection поки відновлюємо стан дерева
+					isRestoringState = true;
+					
 					restoreTreeItemStateRecursive(listItemsForExpand,treeTableView_sections.getRoot());
 					treeTableView_sections.sort();
 					restoreTreeItemSelectedRecursive(selectedItemId,treeTableView_sections.getRoot());
@@ -1566,6 +1567,11 @@ public class SectionList_Controller implements Container_Interface, AppItem_Inte
 			    			mi.getChildren().add(treeViewCtrl.createItem_Loading());
 			    		}
 			    	}
+					
+					// знімаємо прапорець після того як всі PauseTransition(50ms) у createChildItems відпрацюють
+					PauseTransition resetRestoreFlag = new PauseTransition(Duration.millis(300));
+					resetRestoreFlag.setOnFinished(e -> isRestoringState = false);
+					resetRestoreFlag.play();
 					
 					break;
 				//======= Favorite
@@ -2293,33 +2299,56 @@ public class SectionList_Controller implements Container_Interface, AppItem_Inte
 				public TreeTableRow<SectionItem> call(final TreeTableView<SectionItem> param) {
 					final TreeTableRow<SectionItem> row = new TreeTableRow<SectionItem>();
 
-					WebView webView = new WebView();
-					Tooltip tooltip = new Tooltip();
+					// ======== Tooltip: показуємо деталі розділу при наведенні
+					// Використовуємо itemProperty замість hoverProperty:
+					// - install/uninstall викликається лише при зміні даних рядка (не при кожному hover)
+					// - коректно прибирає тултип при прокручуванні (порожні рядки)
+					final Tooltip tooltip = new Tooltip();
+					tooltip.setShowDelay(Duration.millis(400));
+					tooltip.setMaxWidth(450);
+					tooltip.setWrapText(true);
 
-		            row.hoverProperty().addListener((observable, oldValue, newValue) -> {
-		                if (row.getItem() != null) {
-		                    //tooltip.setText(row.getItem().getName());
-		                	
-		                	String htmlContent = 
-		                			"<html>" +
-		                			"<body>" + 
-		                			"<p style='font-size: 11pt; padding:0px; margin:0px;'>"+ 
-		                				row.getItem().getName() +" ("+ row.getItem().getId() +")</p>"+
-		                			"<p style='font-size: 11pt; padding:0px; margin:0px;'>"+ 
-		                				row.getItem().getDescr() +"</p>"+
-		                			"<p style='font-size: 11pt; padding:0px; margin:0px;'>"+ 
-										dateConv.dateTimeToStr(row.getItem().getDateCreated()) +"  - створений</p>"+
-									"<p style='font-size: 11pt; padding:0px; margin:0px;'>"+ 
-										dateConv.dateTimeToStr(row.getItem().getDateModified()) +"  - модифікований</p>"+
-									"<p style='font-size: 11pt; padding:0px; margin:0px;'>"+ 
-										dateConv.dateTimeToStr(row.getItem().getDateModifiedInfo()) +"  - інформація</p>"+
-		                			"</body></html>";
-		                    webView.getEngine().loadContent(htmlContent);
-		                    webView.setPrefHeight(100);
-		                    tooltip.setGraphic(webView);
-		                    Tooltip.install(row, tooltip);
-		                }
-		            });
+					row.itemProperty().addListener((obs, oldItem, newItem) -> {
+						if (newItem != null && newItem.getId() >= 0) {
+							// шлях до поточного розділу (без самого розділу)
+							TreeItem<SectionItem> ti = treeTableView_sections.getTreeItem(row.getIndex());
+							String path = treeViewCtrl.getSectionPath(ti, 0);
+
+							// тип розділу
+							String typeStr;
+							switch (newItem.getTypeId()) {
+								case 1:  typeStr = "Документ"; break;
+								case 2:  typeStr = "Словник";  break;
+								default: typeStr = "Розділ";   break;
+							}
+
+							StringBuilder sb = new StringBuilder();
+							sb.append(newItem.getName())
+							  .append("  (id: ").append(newItem.getId()).append(")");
+							if (path != null && !path.isBlank()) {
+								sb.append("\n\u25B8 ").append(path);
+							}
+							sb.append("\n\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500");
+							sb.append("\nТип: ").append(typeStr);
+							if (newItem.getDescr() != null && !newItem.getDescr().isBlank()) {
+								sb.append("\n").append(newItem.getDescr());
+							}
+							sb.append("\n\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500");
+							String userCreated  = newItem.getUserCreated()  != null ? newItem.getUserCreated()  : "";
+							String userModified = newItem.getUserModified() != null ? newItem.getUserModified() : "";
+							sb.append("\n").append(dateConv.dateTimeToStr(newItem.getDateCreated())).append(" - створений ");
+							if (!userCreated.isBlank())  sb.append("  (").append(userCreated).append(")");
+							sb.append("\n").append(dateConv.dateTimeToStr(newItem.getDateModified())).append(" - змінений");
+							if (!userModified.isBlank()) sb.append("  (").append(userModified).append(")");
+							sb.append("\n").append(dateConv.dateTimeToStr(newItem.getDateModifiedInfo())).append(" - інфо змінена");
+
+							tooltip.setText(sb.toString());
+							Tooltip.install(row, tooltip);
+						} else {
+							// прибираємо тултип для порожніх рядків (при прокручуванні)
+							Tooltip.uninstall(row, tooltip);
+						}
+					});
 					
 					row.setOnDragDetected(new EventHandler<MouseEvent>() {
 						@Override
@@ -2767,12 +2796,17 @@ public class SectionList_Controller implements Container_Interface, AppItem_Inte
 
 	        		// Відновлюємо активний елемент
 	        		if (! isGotoSection) {
-	        			PauseTransition pause = new PauseTransition(Duration.millis(50));
-	        			pause.setOnFinished(e -> {
-	        				doSafeSelection();
-	        			});
-
-	        			pause.play();
+	        			if (! isRestoringState) {
+	        				// звичайний режим — відновлюємо вибір після динамічного завантаження гілки
+	        				PauseTransition pause = new PauseTransition(Duration.millis(50));
+	        				pause.setOnFinished(e -> {
+	        					doSafeSelection();
+	        				});
+	        				pause.play();
+	        			} else {
+	        				// режим відновлення стану при старті — не перескакуємо, просто знімаємо прапорець завантаження
+	        				isTreeLoading = false;
+	        			}
 	        		} else {
 	        			isTreeLoading = false;
 	                }

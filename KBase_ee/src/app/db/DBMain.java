@@ -36,6 +36,7 @@ import java.io.InputStream;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
@@ -232,6 +233,330 @@ public abstract class DBMain {
 		
 		pst.setTimestamp(pos, new java.sql.Timestamp(pstDate.getTime()));
 	}
+	
+	/**
+	 * Очищення таблиць БД в одній транзакції.
+	 * Порядок видалення відповідає залежностям FK.
+	 * Після успішного очищення скидає відповідні sequences.
+	 * @param clearDocuments  видаляти documents
+	 * @param clearInfo       видаляти info та пов'язані info_text/image/file/dict
+	 * @param clearSections   видаляти sections
+	 * @param clearTemplates  видаляти template_style_link, template_style, current_style, template, template_files, template_themes
+	 * @param clearIcons      видаляти icons
+	 */
+	public void dbClear (boolean clearDocuments, boolean clearInfo,
+	                     boolean clearSections, boolean clearTemplates, boolean clearIcons) 
+	                    		 throws DataConnectionException,DataQueryException {
+		PreparedStatement pst = null;
+		
+		checkConnectEx();
+		
+		boolean oldAutoCommit = true;
+		try {
+			oldAutoCommit = con.getAutoCommit();
+			if (oldAutoCommit) {
+				con.setAutoCommit(false);
+			}
+
+			// 1. Documents — залежать від sections (FK)
+			if (clearDocuments || clearSections) {
+				pst = con.prepareStatement("DELETE FROM documents");
+				pst.executeUpdate(); pst.close();
+			}
+
+			// 2. Info blocks — залежать від sections (FK) та template_style (FK)
+			if (clearInfo) {
+				pst = con.prepareStatement("DELETE FROM info_file");
+				pst.executeUpdate(); pst.close();
+
+				pst = con.prepareStatement("DELETE FROM info_image");
+				pst.executeUpdate(); pst.close();
+
+				pst = con.prepareStatement("DELETE FROM info_text");
+				pst.executeUpdate(); pst.close();
+
+				pst = con.prepareStatement("DELETE FROM dict");
+				pst.executeUpdate(); pst.close();
+
+				pst = con.prepareStatement("DELETE FROM info");
+				pst.executeUpdate(); pst.close();
+			}
+
+			// 3. Sections — дерево розділів
+			if (clearSections) {
+				pst = con.prepareStatement("DELETE FROM sections_favorite");
+				pst.executeUpdate(); pst.close();
+
+				pst = con.prepareStatement("DELETE FROM sections");
+				pst.executeUpdate(); pst.close();
+			}
+
+			// 4. Templates — шаблони (template_style_link → template_style/current_style/template → template_files → template_themes)
+			if (clearTemplates) {
+				pst = con.prepareStatement("DELETE FROM template_style_link");
+				pst.executeUpdate(); pst.close();
+
+				pst = con.prepareStatement("DELETE FROM current_style");
+				pst.executeUpdate(); pst.close();
+
+				pst = con.prepareStatement("DELETE FROM template_style");
+				pst.executeUpdate(); pst.close();
+
+				pst = con.prepareStatement("DELETE FROM \"template\"");
+				pst.executeUpdate(); pst.close();
+
+				pst = con.prepareStatement("DELETE FROM template_files");
+				pst.executeUpdate(); pst.close();
+
+				pst = con.prepareStatement("DELETE FROM template_themes");
+				pst.executeUpdate(); pst.close();
+			}
+
+			// 5. Icons — піктограми (current_icon → icons)
+			if (clearIcons) {
+				pst = con.prepareStatement("DELETE FROM current_icon");
+				pst.executeUpdate(); pst.close();
+
+				pst = con.prepareStatement("DELETE FROM icons");
+				pst.executeUpdate(); pst.close();
+			}
+
+			if (oldAutoCommit) {
+				con.commit();
+			}
+
+			// --- Скидання sequences після успішного очищення
+			dbSequencesReset(clearDocuments, clearInfo, clearSections, clearTemplates, clearIcons);
+
+		} catch (SQLException e) {
+			try { if (oldAutoCommit && !con.getAutoCommit()) con.rollback(); } catch (SQLException ex) { ex.printStackTrace(); }
+			throw new DataQueryException (
+					DataQueryException.ERRCODE_OTHERS, "dbClear",
+					"Помилка очищення бази даних, dbClear (...) \n"+dbURL,
+					e, 1, null, "SQLException");
+		} finally {
+			try { con.setAutoCommit(oldAutoCommit); } catch (SQLException e) { e.printStackTrace(); }
+		}
+	}
+	
+	/**
+	 * Клонування обраних блоків даних з іншої БД (srcDB) у поточну БД (this).
+	 * Перед копіюванням цільова БД очищується від відповідних даних за допомогою dbClear.
+	 * Згідно вимог: current_icon, current_style, infotype, settings, sections_favorite, documents НЕ переносяться.
+	 * 
+	 * @param srcDB джерело даних
+	 * @param cloneIcons чи переносити піктограми (icons)
+	 * @param cloneTemplates чи переносити шаблони зі стилями (template_themes, template_files, template, template_style, template_style_link)
+	 * @param cloneSections чи переносити розділи з інформацією (sections, info, info_text, info_image, info_file, dict)
+	 * @throws DataConnectionException
+	 * @throws DataQueryException
+	 */
+	public void dbCloneFrom (DBMain srcDB, boolean cloneIcons, boolean cloneTemplates, boolean cloneSections) 
+			throws DataConnectionException, DataQueryException {
+		if (srcDB == null || srcDB.con == null) {
+			throw new DataQueryException (
+					DataQueryException.ERRCODE_OTHERS, "dbCloneFrom",
+					"Некоректне джерело даних для клонування БД",
+					null, 1, null, "IllegalArgumentException");
+		}
+		
+		checkConnectEx();
+		srcDB.checkConnectEx();
+		
+		boolean oldAutoCommit = true;
+		try {
+			oldAutoCommit = con.getAutoCommit();
+			if (oldAutoCommit) {
+				con.setAutoCommit(false);
+			}
+
+			// 1. Очищення цільової БД від обраних блоків
+			dbClear(false, cloneSections, cloneSections, cloneTemplates, cloneIcons);
+			
+			// 2. Перенос іконок (icons)
+			if (cloneIcons) {
+				dbTableCopyData(srcDB.con, this.con, "icons", "id ASC");
+				dbSequenceSetNext("icons", "seq_icons");
+			}
+			
+			// 3. Перенос шаблонів зі стилями
+			if (cloneTemplates) {
+				dbTableCopyData(srcDB.con, this.con, "template_themes", "id ASC");
+				dbTableCopyData(srcDB.con, this.con, "template_files", "id ASC");
+				dbTableCopyData(srcDB.con, this.con, "\"template\"", "id ASC");
+				dbTableCopyData(srcDB.con, this.con, "template_style", "id ASC");
+				dbTableCopyData(srcDB.con, this.con, "template_style_link", "id ASC");
+				
+				dbSequenceSetNext("template_themes", "seq_template_themes");
+				dbSequenceSetNext("template_files", "seq_template_files");
+				dbSequenceSetNext("\"template\"", "seq_template");
+				dbSequenceSetNext("template_style", "seq_template_style");
+				dbSequenceSetNext("template_style_link", "seq_template_style_link");
+			}
+			
+			// 4. Перенос розділів та інформаційних блоків
+			if (cloneSections) {
+				dbTableCopyData(srcDB.con, this.con, "sections", "id ASC");
+				dbTableCopyData(srcDB.con, this.con, "info", "id ASC");
+				dbTableCopyData(srcDB.con, this.con, "info_text", "id ASC");
+				dbTableCopyData(srcDB.con, this.con, "info_image", "id ASC");
+				dbTableCopyData(srcDB.con, this.con, "info_file", "id ASC");
+				dbTableCopyData(srcDB.con, this.con, "dict", "id ASC");
+				
+				dbSequenceSetNext("sections", "seq_sections");
+				dbSequenceSetNext("info", "seq_info");
+				dbSequenceSetNext("info_text", "seq_info_text");
+				dbSequenceSetNext("info_image", "seq_info_image");
+				dbSequenceSetNext("info_file", "seq_info_file");
+				dbSequenceSetNext("dict", "seq_dict");
+			}
+			
+			if (oldAutoCommit) {
+				con.commit();
+			}
+		} catch (SQLException e) {
+			try { if (oldAutoCommit && !con.getAutoCommit()) con.rollback(); } catch (SQLException ex) { ex.printStackTrace(); }
+			throw new DataQueryException (
+					DataQueryException.ERRCODE_OTHERS, "dbCloneFrom",
+					"Помилка клонування бази даних dbCloneFrom (...) \n"+dbURL,
+					e, 1, null, "SQLException");
+		} finally {
+			try { con.setAutoCommit(oldAutoCommit); } catch (SQLException e) { e.printStackTrace(); }
+		}
+	}
+	
+	/**
+	 * Встановлення сіквенсу в MAX(id) + 1 (або 1 для порожньої таблиці)
+	 */
+	public void dbSequenceSetNext (String tableName, String seqName) {
+		try {
+			String qName = tableName.startsWith("\"") ? tableName : ("template".equalsIgnoreCase(tableName) ? "\"template\"" : tableName);
+			PreparedStatement pst = con.prepareStatement("SELECT MAX(id) FROM " + qName);
+			ResultSet rs = pst.executeQuery();
+			long maxId = 0;
+			if (rs.next()) {
+				maxId = rs.getLong(1);
+			}
+			rs.close();
+			pst.close();
+			long nextVal = (maxId > 0) ? maxId + 1 : 1;
+			dbSequenceSetValue(seqName, nextVal);
+		} catch (Exception e) {
+			// Ігноруємо якщо сіквенс або таблиця відсутня
+		}
+	}
+	
+	/**
+	 * Встановлюємо значення сіквенсу
+	 * @param name ім'я сіквенсу
+	 * @param value нове значення
+	 * @throws DataConnectionException
+	 * @throws DataQueryException
+	 */
+	abstract public void dbSequenceSetValue (String name, long value) 
+			throws DataConnectionException,DataQueryException;
+	
+
+	/**
+	 * Скидає всі інформаційні sequences до 1
+	 */
+	public void dbSequencesReset (boolean clearDocuments, boolean clearInfo,
+	                              boolean clearSections, boolean clearTemplates,
+	                              boolean clearIcons) 
+	          throws DataConnectionException,DataQueryException {
+		if (clearDocuments || clearSections) {
+			dbSequenceSetValue ("seq_documents", 1);
+		}
+		if (clearInfo) {
+			dbSequenceSetValue ("seq_info", 1);
+			dbSequenceSetValue ("seq_info_text", 1);
+			dbSequenceSetValue ("seq_info_image", 1);
+			dbSequenceSetValue ("seq_info_file", 1);
+			dbSequenceSetValue ("seq_dict", 1);
+		}
+		if (clearSections) {
+			dbSequenceSetValue ("seq_sections_favorite", 1);
+			dbSequenceSetValue ("seq_sections", 1);
+		}
+		if (clearTemplates) {
+			dbSequenceSetValue ("seq_current_style", 1);
+			dbSequenceSetValue ("seq_template_style_link", 1);
+			dbSequenceSetValue ("seq_template", 1);
+			dbSequenceSetValue ("seq_template_files", 1);
+			dbSequenceSetValue ("seq_template_style", 1);
+			dbSequenceSetValue ("seq_template_themes", 1);
+		}
+		if (clearIcons) {
+			dbSequenceSetValue ("seq_current_icon", 1);
+			dbSequenceSetValue ("seq_icons", 1);
+		}
+	}
+	
+	/**
+	 * Пакетоване копіювання даних з одного з'єднання в інше для вказаної таблиці
+	 */
+	public void dbTableCopyData (Connection srcCon, Connection targetCon, String tableName, String orderBy) throws SQLException {
+		String qTableName = tableName.startsWith("\"") ? tableName : ("template".equalsIgnoreCase(tableName) ? "\"template\"" : tableName);
+		String selectSql = "SELECT * FROM " + qTableName + (orderBy != null ? " ORDER BY " + orderBy : "");
+		
+		try (PreparedStatement srcPst = srcCon.prepareStatement(selectSql);
+			 ResultSet rs = srcPst.executeQuery()) {
+			
+			ResultSetMetaData meta = rs.getMetaData();
+			int colCount = meta.getColumnCount();
+			if (colCount == 0) return;
+			
+			StringBuilder insertSql = new StringBuilder("INSERT INTO ");
+			insertSql.append(qTableName).append(" (");
+			StringBuilder valuesSql = new StringBuilder(" VALUES (");
+			
+			for (int i = 1; i <= colCount; i++) {
+				if (i > 1) {
+					insertSql.append(", ");
+					valuesSql.append(", ");
+				}
+				String colName = meta.getColumnName(i);
+				if ("template".equalsIgnoreCase(colName) || "user".equalsIgnoreCase(colName)) {
+					insertSql.append("\"").append(colName).append("\"");
+				} else {
+					insertSql.append(colName);
+				}
+				valuesSql.append("?");
+			}
+			insertSql.append(")").append(valuesSql).append(")");
+			
+			try (PreparedStatement targetPst = targetCon.prepareStatement(insertSql.toString())) {
+				int batchSize = 0;
+				while (rs.next()) {
+					for (int i = 1; i <= colCount; i++) {
+						Object val = rs.getObject(i);
+						if (val == null) {
+							targetPst.setNull(i, meta.getColumnType(i));
+						} else {
+							targetPst.setObject(i, val);
+						}
+					}
+					targetPst.addBatch();
+					batchSize++;
+					if (batchSize % 500 == 0) {
+						targetPst.executeBatch();
+					}
+				}
+				if (batchSize % 500 != 0 && batchSize > 0) {
+					targetPst.executeBatch();
+				}
+			}
+		}
+	}
+
+	/**
+	 * Перевіряє наявність поточного користувача в таблиці kbase.access_user
+	 * для вказаного типу доступу.
+	 * @param accessTypeId  id типу доступу (1 = 'clear db')
+	 * @return true — доступ дозволено, false — заборонено або помилка
+	 */
+	abstract public boolean accessGet (int accessTypeId)
+			throws DataConnectionException,DataQueryException;
 	
 	/**
 	 * Словник. Додавання нового елемента.
@@ -2475,7 +2800,6 @@ public abstract class DBMain {
 				e, 1, null, "SQLException");
 		}
 	}
-	//TODO
 	
 	/**
 	 * шукаємо чи є вказаний Розділ в Дереві Favorite

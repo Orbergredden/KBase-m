@@ -14,6 +14,8 @@ import app.model.WinItem;
 import app.module.scheduler.view.TaskList_Controller;
 import app.view.business.IconsList_Controller;
 import app.view.business.template.TemplateList_Controller;
+import app.view.DBClear_Controller;
+import app.view.DBClone_Controller;
 import app.view.business.Container_Interface;
 import app.view.structure.TabNavigationHistory;
 
@@ -101,6 +103,21 @@ public class Root_Controller implements Container_Interface {
     @FXML
     private MenuItem menuitem_CatalogTemplates;
     /**
+     * підменю для роботи з БД
+     */
+    @FXML
+    private Menu menu_DBTools;
+    /**
+     * Пункт меню с "Clear DataBase..."
+     */
+    @FXML
+    private MenuItem menuitem_ClearDB;
+    /**
+     * Пункт меню "Clone DataBase..."
+     */
+    @FXML
+    private MenuItem menuitem_CloneDB;
+    /**
      * Пункт меню Планувальник, Перелік завдань
      */
     @FXML
@@ -168,6 +185,9 @@ public class Root_Controller implements Container_Interface {
 		menuitem_SectionsOfDocuments.setGraphic(new ImageView(new Image("file:resources/images/icon_Sections_16.png",16,16,false,false)));
 		menuitem_CatalogIcons.setGraphic(new ImageView(new Image("file:resources/images/icon_CatalogIcons_16.png")));
     	menuitem_CatalogTemplates.setGraphic(new ImageView(new Image("file:resources/images/icon_templates/icon_CatalogTemplates_16.png")));
+    	menu_DBTools.setGraphic(new ImageView(new Image("file:resources/images/icon_DBTools_16.png")));
+    	menuitem_ClearDB.setGraphic(new ImageView(new Image("file:resources/images/icon_DBClear_16.png")));
+    	menuitem_CloneDB.setGraphic(new ImageView(new Image("file:resources/images/icon_copy_16.png")));
     	menuitem_Tasks.setGraphic(new ImageView(new Image("file:resources/images/scheduler/icon_scheduler_16.png")));
     	menuitem_About.setGraphic(new ImageView(new Image("file:resources/images/icon_About_16.png")));
     	
@@ -423,11 +443,16 @@ public class Root_Controller implements Container_Interface {
     	
     	// Задаём фильтр расширений
         fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("XML файли (*.xml)", "*.xml"));
+        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("All files (*)", "*"));
     	
         // set directory
         curDir = prefs.get("openTab_Dir", "");
-        if (! curDir.equals("")) 
-        	fileChooser.setInitialDirectory(new File(curDir));
+        if (! curDir.equals("")) {
+            File dir = new File(curDir);
+            if (dir.exists() && dir.isDirectory()) {
+                fileChooser.setInitialDirectory(dir);
+            }
+        }
         
         // Показываем диалог загрузки файла
         File file = fileChooser.showOpenDialog(params.getStageCur());
@@ -477,8 +502,12 @@ public class Root_Controller implements Container_Interface {
         
         // set current dir and file
         String curDir = prefs.get("saveProgramState_CurDirName", "");
-        if (! curDir.equals("")) 
-        	fileChooser.setInitialDirectory(new File(curDir));
+        if (! curDir.equals("")) {
+            File dir = new File(curDir);
+            if (dir.exists() && dir.isDirectory()) {
+                fileChooser.setInitialDirectory(dir);
+            }
+        }
         
         String fileName = prefs.get("saveProgramState_FileName", "");
         if (! fileName.equals(""))
@@ -725,6 +754,82 @@ public class Root_Controller implements Container_Interface {
     	tabPane_Main.getTabs().add(tab);
     	tabPane_Main.getSelectionModel().select(tab);
     }
+    
+    /**
+     * Відкриває діалог очищення бази даних.
+     * Перевіряє наявність активного з'єднання перед відкриттям вікна.
+     */
+    @FXML
+    public void handleClearDB() {
+    	DBConCur_Parameters conCur = getActiveConnection();
+
+    	if (conCur == null) {
+    		ShowAppMsg.showAlert("INFORMATION", "Повідомлення",
+    			"Немає активного з'єднання з БД",
+    			"Підключіться до бази даних перед очищенням.");
+    		return;
+    	}
+
+    	try {
+    		FXMLLoader loader = new FXMLLoader();
+    		loader.setLocation(Main.class.getResource("view/DBClear_Layout.fxml"));
+    		AnchorPane page = loader.load();
+
+    		Stage dialogStage = new Stage();
+    		dialogStage.setTitle("Очищення бази даних — " + conCur.param.getName());
+    		dialogStage.initModality(Modality.WINDOW_MODAL);
+    		dialogStage.initOwner(params.getMainStage());
+    		dialogStage.setScene(new Scene(page));
+    		dialogStage.setResizable(false);
+    		dialogStage.getIcons().add(new Image("file:resources/images/icon_DBClear_16.png"));
+
+    		DBClear_Controller controller = loader.getController();
+    		Params p = new Params(this.params);
+    		p.setConCur(conCur);
+    		p.setStageCur(dialogStage);
+    		controller.setParams(p);
+
+    		dialogStage.showAndWait();
+    	} catch (IOException e) {
+    		e.printStackTrace();
+    	}
+    }
+
+	/**
+	 * Відкриває вікно клонування бази даних (DBClone)
+	 */
+	@FXML
+	private void handleCloneDB() {
+		if (params.getConnDB() == null || params.getConnDB().conList.size() < 2) {
+			ShowAppMsg.showAlert("INFORMATION", "Повідомлення",
+				"Недостатньо відкритих підключень БД",
+				"Для клонування бази даних необхідно мати щонайменше 2 відкритих підключення до БД.");
+			return;
+		}
+
+		try {
+			FXMLLoader loader = new FXMLLoader();
+			loader.setLocation(Main.class.getResource("view/DBClone_Layout.fxml"));
+			AnchorPane page = loader.load();
+
+			Stage dialogStage = new Stage();
+			dialogStage.setTitle("Клонування бази даних");
+			dialogStage.initModality(Modality.WINDOW_MODAL);
+			dialogStage.initOwner(params.getMainStage());
+			dialogStage.setScene(new Scene(page));
+			dialogStage.setResizable(false);
+			dialogStage.getIcons().add(new Image("file:resources/images/icon_copy_16.png"));
+
+			DBClone_Controller controller = loader.getController();
+			Params p = new Params(this.params);
+			p.setStageCur(dialogStage);
+			controller.setParams(p);
+
+			dialogStage.showAndWait();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
     
     /**
      * Відкриває таб Планувальник, Перелік завдань

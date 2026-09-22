@@ -193,8 +193,12 @@ public class InfoEdit_File_Controller extends InfoEdit_Simple_Controller {
         
         // set directory
         curDir = prefs.get("InfoEditFile_CurDirNameForLoad", "");
-        if (! curDir.equals("")) 
-        	fileChooser.setInitialDirectory(new File(curDir));
+        if (! curDir.equals("")) {
+            File dir = new File(curDir);
+            if (dir.exists() && dir.isDirectory()) {
+                fileChooser.setInitialDirectory(dir);
+            }
+        }
         
         // Показываем диалог загрузки файла
         //File file = fileChooser.showOpenDialog(mainApp.getPrimaryStage());
@@ -239,8 +243,12 @@ public class InfoEdit_File_Controller extends InfoEdit_Simple_Controller {
         
         // set directory
         curDir = prefs.get("InfoEditFile_CurDirNameForLoad", "");
-        if (! curDir.equals("")) 
-        	fileChooser.setInitialDirectory(new File(curDir));
+        if (! curDir.equals("")) {
+            File dir = new File(curDir);
+            if (dir.exists() && dir.isDirectory()) {
+                fileChooser.setInitialDirectory(dir);
+            }
+        }
         
         // Показываем диалог загрузки файла
         //File file = fileChooser.showOpenDialog(params.getStageCur());
