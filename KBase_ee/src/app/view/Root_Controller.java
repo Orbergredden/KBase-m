@@ -15,6 +15,7 @@ import app.module.scheduler.view.TaskList_Controller;
 import app.view.business.IconsList_Controller;
 import app.view.business.template.TemplateList_Controller;
 import app.view.DBClear_Controller;
+import app.view.DBClone_Controller;
 import app.view.business.Container_Interface;
 import app.view.structure.TabNavigationHistory;
 
@@ -112,6 +113,11 @@ public class Root_Controller implements Container_Interface {
     @FXML
     private MenuItem menuitem_ClearDB;
     /**
+     * Пункт меню "Clone DataBase..."
+     */
+    @FXML
+    private MenuItem menuitem_CloneDB;
+    /**
      * Пункт меню Планувальник, Перелік завдань
      */
     @FXML
@@ -181,6 +187,7 @@ public class Root_Controller implements Container_Interface {
     	menuitem_CatalogTemplates.setGraphic(new ImageView(new Image("file:resources/images/icon_templates/icon_CatalogTemplates_16.png")));
     	menu_DBTools.setGraphic(new ImageView(new Image("file:resources/images/icon_DBTools_16.png")));
     	menuitem_ClearDB.setGraphic(new ImageView(new Image("file:resources/images/icon_DBClear_16.png")));
+    	menuitem_CloneDB.setGraphic(new ImageView(new Image("file:resources/images/icon_copy_16.png")));
     	menuitem_Tasks.setGraphic(new ImageView(new Image("file:resources/images/scheduler/icon_scheduler_16.png")));
     	menuitem_About.setGraphic(new ImageView(new Image("file:resources/images/icon_About_16.png")));
     	
@@ -787,6 +794,42 @@ public class Root_Controller implements Container_Interface {
     		e.printStackTrace();
     	}
     }
+
+	/**
+	 * Відкриває вікно клонування бази даних (DBClone)
+	 */
+	@FXML
+	private void handleCloneDB() {
+		if (params.getConnDB() == null || params.getConnDB().conList.size() < 2) {
+			ShowAppMsg.showAlert("INFORMATION", "Повідомлення",
+				"Недостатньо відкритих підключень БД",
+				"Для клонування бази даних необхідно мати щонайменше 2 відкритих підключення до БД.");
+			return;
+		}
+
+		try {
+			FXMLLoader loader = new FXMLLoader();
+			loader.setLocation(Main.class.getResource("view/DBClone_Layout.fxml"));
+			AnchorPane page = loader.load();
+
+			Stage dialogStage = new Stage();
+			dialogStage.setTitle("Клонування бази даних");
+			dialogStage.initModality(Modality.WINDOW_MODAL);
+			dialogStage.initOwner(params.getMainStage());
+			dialogStage.setScene(new Scene(page));
+			dialogStage.setResizable(false);
+			dialogStage.getIcons().add(new Image("file:resources/images/icon_copy_16.png"));
+
+			DBClone_Controller controller = loader.getController();
+			Params p = new Params(this.params);
+			p.setStageCur(dialogStage);
+			controller.setParams(p);
+
+			dialogStage.showAndWait();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
     
     /**
      * Відкриває таб Планувальник, Перелік завдань
