@@ -171,7 +171,8 @@ public class SectionFavoriteList_Controller implements AppItem_Interface {
 					if ((row.getSection().getIconId() > 0) || (row.getSection().getId() <= 0)) {
 						graphic = new ImageView(row.getSection().icon);
 					} else {	// show default icon
-						long iconIdDef = params.getConCur().db.sectionGetIconIdDefault(row.getParentId(), true);
+						//long iconIdDef = params.getConCur().db.sectionGetIconIdDefault(row.getParentId(), true);
+						long iconIdDef = params.getConCur().db.sectionGetIconIdDefault(row.getSection().getParentId(), true);
 						graphic = new ImageView(params.getConCur().db.iconGetImageById(iconIdDef));
 					}
 				} catch (NullPointerException e) {
