@@ -39,6 +39,7 @@ import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -493,11 +494,20 @@ public abstract class DBMain {
 	}
 	
 	/**
-	 * Пакетоване копіювання даних з одного з'єднання в інше для вказаної таблиці
+	 * Пакетоване копіювання даних з одного з'єднання в інше для вказаної таблиці.
+	 * Підтримує адаптивне перетворення типів дат/часу та бінарних полів між Postgres та SQLite.
 	 */
 	public void dbTableCopyData (Connection srcCon, Connection targetCon, String tableName, String orderBy) throws SQLException {
 		String qTableName = tableName.startsWith("\"") ? tableName : ("template".equalsIgnoreCase(tableName) ? "\"template\"" : tableName);
 		String selectSql = "SELECT * FROM " + qTableName + (orderBy != null ? " ORDER BY " + orderBy : "");
+		
+		boolean isTargetSQLite = false;
+		try {
+			String dbProduct = targetCon.getMetaData().getDatabaseProductName();
+			if (dbProduct != null && dbProduct.toLowerCase().contains("sqlite")) {
+				isTargetSQLite = true;
+			}
+		} catch (Exception e) {}
 		
 		try (PreparedStatement srcPst = srcCon.prepareStatement(selectSql);
 			 ResultSet rs = srcPst.executeQuery()) {
@@ -527,13 +537,79 @@ public abstract class DBMain {
 			
 			try (PreparedStatement targetPst = targetCon.prepareStatement(insertSql.toString())) {
 				int batchSize = 0;
+				SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+				
 				while (rs.next()) {
 					for (int i = 1; i <= colCount; i++) {
-						Object val = rs.getObject(i);
-						if (val == null) {
-							targetPst.setNull(i, meta.getColumnType(i));
+						String colName = meta.getColumnName(i);
+						int colType = meta.getColumnType(i);
+						
+						boolean isDateCol = (colName != null && colName.toLowerCase().startsWith("date"))
+								|| colType == java.sql.Types.TIMESTAMP 
+								|| colType == java.sql.Types.TIMESTAMP_WITH_TIMEZONE
+								|| colType == java.sql.Types.DATE;
+						
+						boolean isBinaryCol = colType == java.sql.Types.BLOB
+								|| colType == java.sql.Types.BINARY
+								|| colType == java.sql.Types.VARBINARY
+								|| colType == java.sql.Types.LONGVARBINARY
+								|| "image".equalsIgnoreCase(colName)
+								|| "file_body".equalsIgnoreCase(colName)
+								|| "body_bin".equalsIgnoreCase(colName);
+						
+						if (isDateCol) {
+							Timestamp ts = null;
+							try {
+								ts = rs.getTimestamp(i);
+							} catch (Exception e) {}
+							
+							if (ts == null) {
+								Object raw = rs.getObject(i);
+								if (raw != null) {
+									String str = raw.toString().trim();
+									if (!str.isEmpty()) {
+										if (str.matches("^\\d+$")) {
+											try {
+												ts = new Timestamp(Long.parseLong(str));
+											} catch (Exception ex) {}
+										} else {
+											try {
+												if (str.length() == 10) str += " 00:00:00";
+												ts = Timestamp.valueOf(str);
+											} catch (Exception ex) {
+												try {
+													java.util.Date d = dateFormat.parse(str);
+													ts = new Timestamp(d.getTime());
+												} catch (Exception ex2) {}
+											}
+										}
+									}
+								}
+							}
+							
+							if (ts == null) {
+								targetPst.setNull(i, isTargetSQLite ? java.sql.Types.VARCHAR : java.sql.Types.TIMESTAMP);
+							} else {
+								if (isTargetSQLite) {
+									targetPst.setString(i, dateFormat.format(ts));
+								} else {
+									targetPst.setTimestamp(i, ts);
+								}
+							}
+						} else if (isBinaryCol) {
+							byte[] bytes = rs.getBytes(i);
+							if (bytes == null) {
+								targetPst.setNull(i, java.sql.Types.BINARY);
+							} else {
+								targetPst.setBytes(i, bytes);
+							}
 						} else {
-							targetPst.setObject(i, val);
+							Object val = rs.getObject(i);
+							if (val == null) {
+								targetPst.setNull(i, meta.getColumnType(i));
+							} else {
+								targetPst.setObject(i, val);
+							}
 						}
 					}
 					targetPst.addBatch();
