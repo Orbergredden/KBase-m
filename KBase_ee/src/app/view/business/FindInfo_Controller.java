@@ -475,7 +475,7 @@ public class FindInfo_Controller implements AppItem_Interface {
 		load();
 
 		tabPane_Main.getSelectionModel().select(1);
-
+/*
 		for (FindResultItem item : listResult) {
 			System.out.println("texttype: " + item.getTextType());
 			System.out.println("sectionId: " + item.getSectionId());
@@ -489,7 +489,7 @@ public class FindInfo_Controller implements AppItem_Interface {
 			System.out.println("userCreated: " + item.getUserCreated());
 			System.out.println("userModified: " + item.getUserModified());
 			System.out.println("----------------------------------------");
-		}
+		}*/
 	}
 
 	/**
