@@ -17,7 +17,7 @@
 <?import javafx.scene.control.TreeTableView?>
 <?import javafx.scene.layout.AnchorPane?>
 
-<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="521.0" prefWidth="698.0" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="app.view.business.FindInfo_Controller">
+<AnchorPane maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" prefHeight="521.0" prefWidth="698.0" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="app.view.business.FindInfo_Controller">
 	<children>
 		<TabPane fx:id="tabPane_Main" prefHeight="200.0" prefWidth="200.0" tabClosingPolicy="UNAVAILABLE" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
 			<tabs>
@@ -35,11 +35,11 @@
 								<Label fx:id="label_StartInTree_Root" layoutX="123.0" layoutY="45.0" text="Label" />
 								<Label fx:id="label_StartInTree_Current" layoutX="123.0" layoutY="62.0" text="Label" />
 								<RadioButton fx:id="radioButton_StartInTree_All" disable="true" layoutX="14.0" layoutY="29.0" mnemonicParsing="false" selected="true" text="Все" toggleGroup="$StartInTree" />
-								<Label layoutX="14.0" layoutY="86.0" text="ID розділу : одиночний, перелік &amp;quot;,&amp;quot;, діапазон &amp;quot;-&amp;quot;, умови &amp;quot;&amp;gt;&amp;quot; та &amp;quot;&amp;lt;&amp;quot;" />
+								<Label layoutX="14.0" layoutY="86.0" text="ID розділу : одиночний, перелік &quot;,&quot;, діапазон &quot;-&quot;, умови &quot;&gt;&quot; та &quot;&lt;&quot;" />
 								<TextField fx:id="textField_sectionId" disable="true" layoutX="15.0" layoutY="103.0" AnchorPane.leftAnchor="15.0" AnchorPane.rightAnchor="15.0" />
-								<Label layoutX="14.0" layoutY="137.0" text="Дата або період, формат &amp;quot;YYYY-MM-DD HH24:MI:SS&amp;quot;" />
+								<Label layoutX="14.0" layoutY="137.0" text="Дата або період, формат &quot;YYYY-MM-DD HH24:MI:SS&quot;" />
 								<TextField fx:id="textField_dateBegin" disable="true" layoutX="15.0" layoutY="154.0" />
-								<TextField fx:id="textField_dateEnd" disable="true" layoutX="175.0" layoutY="154.0" />
+								<TextField fx:id="textField_dateEnd" disable="true" layoutX="186.0" layoutY="154.0" />
 								<Label layoutX="14.0" layoutY="189.0" text="Шукати текст в :" />
                 <CheckBox fx:id="checkBox_Section" layoutX="15.0" layoutY="206.0" mnemonicParsing="false" selected="true" text="розділах" />
                 <CheckBox fx:id="checkBox_Text" layoutX="15.0" layoutY="229.0" mnemonicParsing="false" selected="true" text="тексті" />
@@ -53,10 +53,10 @@
                 <TextField fx:id="textField_User" disable="true" layoutX="15.0" layoutY="364.0" AnchorPane.leftAnchor="15.0" AnchorPane.rightAnchor="15.0" />
                 <CheckBox fx:id="checkBox_Text_IgnoreRegistr" layoutX="15.0" layoutY="322.0" mnemonicParsing="false" selected="true" text="ігнорувати регістр" />
                 <Label layoutX="14.0" layoutY="397.0" text="Сортувати по : Даті" />
-                <CheckBox fx:id="checkBox_SortTypeDesc" disable="true" layoutX="128.0" layoutY="397.0" mnemonicParsing="false" selected="true" text="з більшого до меншого" />
+                <CheckBox fx:id="checkBox_SortTypeDesc" disable="true" layoutX="144.0" layoutY="397.0" mnemonicParsing="false" selected="true" text="з більшого до меншого" />
                 <Label layoutX="15.0" layoutY="417.0" text="Кількість елементів на сторінці результату" />
-                <TextField fx:id="textField_NumberOfElements" disable="true" layoutX="253.0" layoutY="413.0" prefHeight="25.0" prefWidth="45.0" text="30" />
-                <Button fx:id="button_Find" layoutX="15.0" layoutY="447.0" mnemonicParsing="false" onAction="#handleButtonFind" prefHeight="25.0" prefWidth="171.0" text="Шукати    >>" />
+                <TextField fx:id="textField_NumberOfElements" disable="true" layoutX="295.0" layoutY="413.0" prefHeight="25.0" prefWidth="45.0" text="30" />
+                <Button fx:id="button_Find" layoutX="15.0" layoutY="447.0" mnemonicParsing="false" onAction="#handleButtonFind" prefHeight="25.0" prefWidth="171.0" text="Шукати    &gt;&gt;" />
 							</children>
 						</AnchorPane>
 					</content>
@@ -80,9 +80,9 @@
 														<Label fx:id="label_ResultCount" text="???" />
 														<Separator orientation="VERTICAL" />
 														<Label text="Pager : " />
-														<Button fx:id="button_ResultPageLeft" mnemonicParsing="false" onAction="#handleButtonResultPageLeft" text="&amp;lt;" />
+														<Button fx:id="button_ResultPageLeft" mnemonicParsing="false" onAction="#handleButtonResultPageLeft" text="&lt;" />
 														<Label fx:id="label_ResultPageCur" text="0" />
-														<Button fx:id="button_ResultPageRight" mnemonicParsing="false" onAction="#handleButtonResultPageRight" text="&amp;gt;" />
+														<Button fx:id="button_ResultPageRight" mnemonicParsing="false" onAction="#handleButtonResultPageRight" text="&gt;" />
 													</items>
 												</ToolBar>
                         <TreeTableView fx:id="treeTableView_Result" layoutX="40.0" layoutY="77.0" prefHeight="200.0" prefWidth="200.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="40.0">
