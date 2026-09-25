@@ -41,7 +41,9 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.imageio.ImageIO;
 
@@ -341,10 +343,22 @@ public abstract class DBMain {
 	}
 	
 	/**
+	 * Аліаси таблиці settings, які переносяться при клонуванні БД.
+	 * Інші налаштування (VERSION_*, MAIN__*, ...) НЕ чіпаються.
+	 */
+	public static final String[] CLONE_SETTINGS_ALIASES = {
+		"SECTION_THEME_DEFAULT",
+		"SECTION_ICON_DEFAULT",
+		"SECTION_TEMPLATE_MAIN_DEFAULT",
+		"SECTION_TREE_DYNAMIC_LOAD"
+	};
+
+	/**
 	 * Клонування обраних блоків даних з іншої БД (srcDB) у поточну БД (this).
 	 * Перед копіюванням цільова БД очищується від відповідних даних за допомогою dbClear.
-	 * Згідно вимог: current_icon, current_style, infotype, settings, sections_favorite, documents НЕ переносяться.
-	 * 
+	 * Згідно вимог: current_icon, current_style, infotype, sections_favorite, documents НЕ переносяться.
+	 * З таблиці settings переносяться тільки аліаси з CLONE_SETTINGS_ALIASES (через UPDATE/INSERT, без очищення).
+	 *
 	 * @param srcDB джерело даних
 	 * @param cloneIcons чи переносити піктограми (icons)
 	 * @param cloneTemplates чи переносити шаблони зі стилями (template_themes, template_files, template, template_style, template_style_link)
@@ -352,7 +366,24 @@ public abstract class DBMain {
 	 * @throws DataConnectionException
 	 * @throws DataQueryException
 	 */
-	public void dbCloneFrom (DBMain srcDB, boolean cloneIcons, boolean cloneTemplates, boolean cloneSections) 
+	public void dbCloneFrom (DBMain srcDB, boolean cloneIcons, boolean cloneTemplates, boolean cloneSections)
+			throws DataConnectionException, DataQueryException {
+		dbCloneFrom(srcDB, cloneIcons, cloneTemplates, cloneSections, false);
+	}
+
+	/**
+	 * Клонування обраних блоків даних з іншої БД (srcDB) у поточну БД (this)
+	 * з опційним переносом частини налаштувань (settings).
+	 *
+	 * @param srcDB джерело даних
+	 * @param cloneIcons чи переносити піктограми (icons)
+	 * @param cloneTemplates чи переносити шаблони зі стилями (template_themes, template_files, template, template_style, template_style_link)
+	 * @param cloneSections чи переносити розділи з інформацією (sections, info, info_text, info_image, info_file, dict)
+	 * @param cloneSettings чи переносити налаштування розділів (settings: CLONE_SETTINGS_ALIASES)
+	 * @throws DataConnectionException
+	 * @throws DataQueryException
+	 */
+	public void dbCloneFrom (DBMain srcDB, boolean cloneIcons, boolean cloneTemplates, boolean cloneSections, boolean cloneSettings)
 			throws DataConnectionException, DataQueryException {
 		if (srcDB == null || srcDB.con == null) {
 			throw new DataQueryException (
@@ -403,7 +434,7 @@ public abstract class DBMain {
 				dbTableCopyData(srcDB.con, this.con, "info_image", "id ASC");
 				dbTableCopyData(srcDB.con, this.con, "info_file", "id ASC");
 				dbTableCopyData(srcDB.con, this.con, "dict", "id ASC");
-				
+
 				dbSequenceSetNext("sections", "seq_sections");
 				dbSequenceSetNext("info", "seq_info");
 				dbSequenceSetNext("info_text", "seq_info_text");
@@ -411,7 +442,13 @@ public abstract class DBMain {
 				dbSequenceSetNext("info_file", "seq_info_file");
 				dbSequenceSetNext("dict", "seq_dict");
 			}
-			
+
+			// 5. Перенос частини налаштувань (settings: тільки CLONE_SETTINGS_ALIASES).
+			// Без очищення таблиці — UPDATE за аліасом, INSERT якщо аліаса нема в приймачі.
+			if (cloneSettings) {
+				dbCloneSettingsFrom(srcDB);
+			}
+
 			if (oldAutoCommit) {
 				con.commit();
 			}
@@ -425,7 +462,88 @@ public abstract class DBMain {
 			try { con.setAutoCommit(oldAutoCommit); } catch (SQLException e) { e.printStackTrace(); }
 		}
 	}
-	
+
+	/**
+	 * Перенос частини налаштувань (settings) з джерела в поточну БД.
+	 * Копіюються тільки аліаси з CLONE_SETTINGS_ALIASES.
+	 * Для кожного аліаса: UPDATE value/date_modified/user_modified в приймачі;
+	 * якщо такого аліаса в приймачі нема — INSERT повного рядка з джерела (з новим id).
+	 * Інші рядки settings (VERSION_*, MAIN__* тощо) НЕ чіпаються.
+	 * Працює в межах зовнішньої транзакції dbCloneFrom, крос-СУБД (Postgres &lt;-&gt; SQLite).
+	 * Кидає тільки SQLException, щоб зовнішній dbCloneFrom гарантовано робив rollback.
+	 * @param srcDB джерело даних (з'єднання вже перевірене в dbCloneFrom)
+	 * @throws SQLException
+	 */
+	public void dbCloneSettingsFrom (DBMain srcDB) throws SQLException {
+		for (String alias : CLONE_SETTINGS_ALIASES) {
+			String srcValue = null;
+			String srcSection = null;
+			String srcSubject = null;
+			String srcName = null;
+			String srcDescr = null;
+			boolean srcFound = false;
+
+			try (PreparedStatement srcPst = srcDB.con.prepareStatement(
+					"SELECT value, section, subject, name, descr FROM settings WHERE alias = ?")) {
+				srcPst.setString(1, alias);
+				try (ResultSet rs = srcPst.executeQuery()) {
+					if (rs.next()) {
+						srcValue = rs.getString("value");
+						srcSection = rs.getString("section");
+						srcSubject = rs.getString("subject");
+						srcName = rs.getString("name");
+						srcDescr = rs.getString("descr");
+						srcFound = true;
+					}
+				}
+			}
+
+			if (!srcFound) {
+				continue;
+			}
+
+			int updated;
+			try (PreparedStatement trgPst = con.prepareStatement(
+					"UPDATE settings SET value = ?, date_modified = ?, user_modified = ? WHERE alias = ?")) {
+				if (srcValue == null) {
+					trgPst.setNull(1, java.sql.Types.VARCHAR);
+				} else {
+					trgPst.setString(1, srcValue);
+				}
+				pstSetDate(trgPst, 2, new java.util.Date());
+				trgPst.setString(3, getCurrentUser());
+				trgPst.setString(4, alias);
+				updated = trgPst.executeUpdate();
+			}
+
+			if (updated == 0) {
+				try (PreparedStatement insPst = con.prepareStatement(
+						"INSERT INTO settings (id, alias, section, subject, name, value, descr, " +
+						"date_created, date_modified, user_created, user_modified) " +
+						"VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")) {
+					insPst.setLong(1, getNextId("seq_settings"));
+					insPst.setString(2, alias);
+					insPst.setString(3, srcSection);
+					insPst.setString(4, srcSubject);
+					insPst.setString(5, srcName);
+					if (srcValue == null) {
+						insPst.setNull(6, java.sql.Types.VARCHAR);
+					} else {
+						insPst.setString(6, srcValue);
+					}
+					insPst.setString(7, srcDescr);
+					pstSetDate(insPst, 8, new java.util.Date());
+					pstSetDate(insPst, 9, new java.util.Date());
+					insPst.setString(10, getCurrentUser());
+					insPst.setString(11, getCurrentUser());
+					insPst.executeUpdate();
+				}
+			}
+		}
+
+		dbSequenceSetNext("settings", "seq_settings");
+	}
+
 	/**
 	 * Встановлення сіквенсу в MAX(id) + 1 (або 1 для порожньої таблиці)
 	 */
@@ -496,11 +614,14 @@ public abstract class DBMain {
 	/**
 	 * Пакетоване копіювання даних з одного з'єднання в інше для вказаної таблиці.
 	 * Підтримує адаптивне перетворення типів дат/часу та бінарних полів між Postgres та SQLite.
+	 * Рядкові значення, довші за ліміт varchar-колонки БД-приймача (актуально для Postgres,
+	 * бо SQLite довжину TEXT не контролює), обрізаються до ліміту з записом у лог.
+	 * При помилці batch до винятку додається ім'я таблиці.
 	 */
 	public void dbTableCopyData (Connection srcCon, Connection targetCon, String tableName, String orderBy) throws SQLException {
 		String qTableName = tableName.startsWith("\"") ? tableName : ("template".equalsIgnoreCase(tableName) ? "\"template\"" : tableName);
 		String selectSql = "SELECT * FROM " + qTableName + (orderBy != null ? " ORDER BY " + orderBy : "");
-		
+
 		boolean isTargetSQLite = false;
 		try {
 			String dbProduct = targetCon.getMetaData().getDatabaseProductName();
@@ -508,7 +629,40 @@ public abstract class DBMain {
 				isTargetSQLite = true;
 			}
 		} catch (Exception e) {}
-		
+
+		// Ліміти довжини рядкових колонок приймача (нижній регістр імені -> max довжина).
+		// Потрібні тільки для СУБД з жорстким контролем varchar (Postgres); для SQLite
+		// обрізання не робимо, щоб даремно не втрачати дані.
+		Map<String, Integer> targetStrLimits = new HashMap<String, Integer>();
+		if (!isTargetSQLite) {
+			try {
+				String metaTable = qTableName.replace("\"", "").toLowerCase();
+				java.sql.DatabaseMetaData dbMeta = targetCon.getMetaData();
+				ResultSet cols = dbMeta.getColumns(null, "kbase", metaTable, "%");
+				while (cols.next()) {
+					int dataType = cols.getInt("DATA_TYPE");
+					if (dataType == java.sql.Types.CHAR
+							|| dataType == java.sql.Types.VARCHAR
+							|| dataType == java.sql.Types.NCHAR
+							|| dataType == java.sql.Types.NVARCHAR
+							|| dataType == java.sql.Types.LONGVARCHAR
+							|| dataType == java.sql.Types.LONGNVARCHAR) {
+						String colName = cols.getString("COLUMN_NAME");
+						int colSize = cols.getInt("COLUMN_SIZE");
+						if (colName != null && colSize > 0) {
+							targetStrLimits.put(colName.toLowerCase(), colSize);
+						}
+					}
+				}
+				cols.close();
+			} catch (Exception e) {
+				targetStrLimits.clear();
+			}
+		}
+
+		int truncCount = 0;
+		StringBuilder truncLog = new StringBuilder();
+
 		try (PreparedStatement srcPst = srcCon.prepareStatement(selectSql);
 			 ResultSet rs = srcPst.executeQuery()) {
 			
@@ -538,8 +692,9 @@ public abstract class DBMain {
 			try (PreparedStatement targetPst = targetCon.prepareStatement(insertSql.toString())) {
 				int batchSize = 0;
 				SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-				
+
 				while (rs.next()) {
+					String rowId = "?";
 					for (int i = 1; i <= colCount; i++) {
 						String colName = meta.getColumnName(i);
 						int colType = meta.getColumnType(i);
@@ -608,6 +763,23 @@ public abstract class DBMain {
 							if (val == null) {
 								targetPst.setNull(i, meta.getColumnType(i));
 							} else {
+								if ("id".equalsIgnoreCase(colName)) {
+									rowId = val.toString();
+								}
+								if (val instanceof String && colName != null && !targetStrLimits.isEmpty()) {
+									Integer maxLen = targetStrLimits.get(colName.toLowerCase());
+									String s = (String) val;
+									if (maxLen != null && s.length() > maxLen) {
+										val = s.substring(0, maxLen);
+										truncCount++;
+										if (truncLog.length() < 2000) {
+											truncLog.append("id=").append(rowId)
+													.append(" col=").append(colName)
+													.append(" len=").append(s.length())
+													.append("->").append(maxLen).append("; ");
+										}
+									}
+								}
 								targetPst.setObject(i, val);
 							}
 						}
@@ -615,13 +787,37 @@ public abstract class DBMain {
 					targetPst.addBatch();
 					batchSize++;
 					if (batchSize % 500 == 0) {
-						targetPst.executeBatch();
+						try {
+							targetPst.executeBatch();
+						} catch (SQLException e) {
+							throw new SQLException("dbTableCopyData (" + tableName + "): " + e.getMessage(),
+									e.getSQLState(), e.getErrorCode(), e);
+						}
 					}
 				}
 				if (batchSize % 500 != 0 && batchSize > 0) {
-					targetPst.executeBatch();
+					try {
+						targetPst.executeBatch();
+					} catch (SQLException e) {
+						throw new SQLException("dbTableCopyData (" + tableName + "): " + e.getMessage(),
+								e.getSQLState(), e.getErrorCode(), e);
+					}
 				}
 			}
+
+			if (truncCount > 0) {
+				try {
+					LogFileUser.write(params, "dbTableCopyData (" + tableName + "): обрізано довгих рядкових значень: "
+							+ truncCount + ". " + truncLog.toString());
+				} catch (Exception e) {
+				}
+			}
+		} catch (SQLException e) {
+			if (e.getMessage() != null && e.getMessage().startsWith("dbTableCopyData (")) {
+				throw e;
+			}
+			throw new SQLException("dbTableCopyData (" + tableName + "): " + e.getMessage(),
+					e.getSQLState(), e.getErrorCode(), e);
 		}
 	}
 
