@@ -616,6 +616,8 @@ public abstract class DBMain {
 	 * Підтримує адаптивне перетворення типів дат/часу та бінарних полів між Postgres та SQLite.
 	 * Рядкові значення, довші за ліміт varchar-колонки БД-приймача (актуально для Postgres,
 	 * бо SQLite довжину TEXT не контролює), обрізаються до ліміту з записом у лог.
+	 * Числовий 0 в nullable FK-колонці приймача (сентинел «немає» з Лайту, де FK не контролюються)
+	 * записується як NULL, інакше Postgres відхиляє рядок (напр. sections.icon_id=0).
 	 * При помилці batch до винятку додається ім'я таблиці.
 	 */
 	public void dbTableCopyData (Connection srcCon, Connection targetCon, String tableName, String orderBy) throws SQLException {
@@ -630,37 +632,85 @@ public abstract class DBMain {
 			}
 		} catch (Exception e) {}
 
-		// Ліміти довжини рядкових колонок приймача (нижній регістр імені -> max довжина).
-		// Потрібні тільки для СУБД з жорстким контролем varchar (Postgres); для SQLite
-		// обрізання не робимо, щоб даремно не втрачати дані.
+		// Ліміти довжини рядкових колонок приймача (нижній регістр імені -> max довжина)
+		// та nullable FK-колонки приймача. Потрібні тільки для СУБД з жорстким контролем
+		// (Postgres); для SQLite адаптацію не робимо, щоб даремно не втрачати дані.
 		Map<String, Integer> targetStrLimits = new HashMap<String, Integer>();
+		java.util.Set<String> targetNullableFkCols = new java.util.HashSet<String>();
 		if (!isTargetSQLite) {
 			try {
 				String metaTable = qTableName.replace("\"", "").toLowerCase();
 				java.sql.DatabaseMetaData dbMeta = targetCon.getMetaData();
+				Map<String, Boolean> colNullable = new HashMap<String, Boolean>();
+				// Основна схема — kbase (як у search_path застосунку); fallback — без схеми.
+				// Кожен probe лишає курсор на 1-му рядку, тому далі do-while.
 				ResultSet cols = dbMeta.getColumns(null, "kbase", metaTable, "%");
-				while (cols.next()) {
-					int dataType = cols.getInt("DATA_TYPE");
-					if (dataType == java.sql.Types.CHAR
-							|| dataType == java.sql.Types.VARCHAR
-							|| dataType == java.sql.Types.NCHAR
-							|| dataType == java.sql.Types.NVARCHAR
-							|| dataType == java.sql.Types.LONGVARCHAR
-							|| dataType == java.sql.Types.LONGNVARCHAR) {
-						String colName = cols.getString("COLUMN_NAME");
-						int colSize = cols.getInt("COLUMN_SIZE");
-						if (colName != null && colSize > 0) {
-							targetStrLimits.put(colName.toLowerCase(), colSize);
+				if (!cols.next()) {
+					cols.close();
+					cols = dbMeta.getColumns(null, null, metaTable, "%");
+					if (!cols.next()) {
+						cols.close();
+						cols = dbMeta.getColumns(null, null, metaTable.toUpperCase(), "%");
+						if (!cols.next()) {
+							cols.close();
+							cols = null;
 						}
 					}
 				}
-				cols.close();
+				if (cols != null) {
+					do {
+						String colName = cols.getString("COLUMN_NAME");
+						if (colName == null) {
+							continue;
+						}
+						String colKey = colName.toLowerCase();
+						int dataType = cols.getInt("DATA_TYPE");
+						if (dataType == java.sql.Types.CHAR
+								|| dataType == java.sql.Types.VARCHAR
+								|| dataType == java.sql.Types.NCHAR
+								|| dataType == java.sql.Types.NVARCHAR
+								|| dataType == java.sql.Types.LONGVARCHAR
+								|| dataType == java.sql.Types.LONGNVARCHAR) {
+							int colSize = cols.getInt("COLUMN_SIZE");
+							if (colSize > 0) {
+								targetStrLimits.put(colKey, colSize);
+							}
+						}
+						colNullable.put(colKey, cols.getInt("NULLABLE") == java.sql.DatabaseMetaData.columnNullable);
+					} while (cols.next());
+					cols.close();
+				}
+				// Той самий fallback по схемі для FK.
+				ResultSet fks = dbMeta.getImportedKeys(null, "kbase", metaTable);
+				if (!fks.next()) {
+					fks.close();
+					fks = dbMeta.getImportedKeys(null, null, metaTable);
+					if (!fks.next()) {
+						fks.close();
+						fks = dbMeta.getImportedKeys(null, null, metaTable.toUpperCase());
+						if (!fks.next()) {
+							fks.close();
+							fks = null;
+						}
+					}
+				}
+				if (fks != null) {
+					do {
+						String fkCol = fks.getString("FKCOLUMN_NAME");
+						if (fkCol != null && Boolean.TRUE.equals(colNullable.get(fkCol.toLowerCase()))) {
+							targetNullableFkCols.add(fkCol.toLowerCase());
+						}
+					} while (fks.next());
+					fks.close();
+				}
 			} catch (Exception e) {
 				targetStrLimits.clear();
+				targetNullableFkCols.clear();
 			}
 		}
 
 		int truncCount = 0;
+		int fkNullCount = 0;
 		StringBuilder truncLog = new StringBuilder();
 
 		try (PreparedStatement srcPst = srcCon.prepareStatement(selectSql);
@@ -766,21 +816,33 @@ public abstract class DBMain {
 								if ("id".equalsIgnoreCase(colName)) {
 									rowId = val.toString();
 								}
-								if (val instanceof String && colName != null && !targetStrLimits.isEmpty()) {
-									Integer maxLen = targetStrLimits.get(colName.toLowerCase());
-									String s = (String) val;
-									if (maxLen != null && s.length() > maxLen) {
-										val = s.substring(0, maxLen);
-										truncCount++;
-										if (truncLog.length() < 2000) {
-											truncLog.append("id=").append(rowId)
-													.append(" col=").append(colName)
-													.append(" len=").append(s.length())
-													.append("->").append(maxLen).append("; ");
+								if (val instanceof Number && colName != null && !targetNullableFkCols.isEmpty()
+										&& targetNullableFkCols.contains(colName.toLowerCase())
+										&& ((Number) val).longValue() == 0) {
+									targetPst.setNull(i, java.sql.Types.BIGINT);
+									fkNullCount++;
+									if (truncLog.length() < 2000) {
+										truncLog.append("id=").append(rowId)
+												.append(" col=").append(colName)
+												.append(" 0->NULL; ");
+									}
+								} else {
+									if (val instanceof String && colName != null && !targetStrLimits.isEmpty()) {
+										Integer maxLen = targetStrLimits.get(colName.toLowerCase());
+										String s = (String) val;
+										if (maxLen != null && s.length() > maxLen) {
+											val = s.substring(0, maxLen);
+											truncCount++;
+											if (truncLog.length() < 2000) {
+												truncLog.append("id=").append(rowId)
+														.append(" col=").append(colName)
+														.append(" len=").append(s.length())
+														.append("->").append(maxLen).append("; ");
+											}
 										}
 									}
+									targetPst.setObject(i, val);
 								}
-								targetPst.setObject(i, val);
 							}
 						}
 					}
@@ -805,10 +867,10 @@ public abstract class DBMain {
 				}
 			}
 
-			if (truncCount > 0) {
+			if (truncCount > 0 || fkNullCount > 0) {
 				try {
 					LogFileUser.write(params, "dbTableCopyData (" + tableName + "): обрізано довгих рядкових значень: "
-							+ truncCount + ". " + truncLog.toString());
+							+ truncCount + ", 0->NULL у nullable FK: " + fkNullCount + ". " + truncLog.toString());
 				} catch (Exception e) {
 				}
 			}

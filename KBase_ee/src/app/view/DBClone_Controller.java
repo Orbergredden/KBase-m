@@ -229,7 +229,8 @@ public class DBClone_Controller {
 				"Приймач: " + targetCon.param.getName() + "\n\n" +
 				"Буде перенесено:\n" + blocks.toString() + "\n" +
 				"УВАГА! База-приймач буде попередньо очищена від вибраних блоків даних. Операція є незворотньою.\n" +
-				"Довгі текстові поля, що перевищують ліміти БД-приймача, будуть обрізані (деталі — у kbase_user.log).");
+				"Довгі текстові поля, що перевищують ліміти БД-приймача, будуть обрізані, " +
+				"порожні посилання (0) — записані як NULL (деталі — у kbase_user.log).");
 
 		Optional<ButtonType> result = alert.showAndWait();
 		if (result.isPresent() && result.get() == ButtonType.OK) {
