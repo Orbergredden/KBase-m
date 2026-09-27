@@ -12,7 +12,7 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 
-<AnchorPane prefHeight="480.0" prefWidth="520.0" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="app.view.DBClone_Controller">
+<AnchorPane prefHeight="510.0" prefWidth="520.0" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="app.view.DBClone_Controller">
 	<children>
 
 		<!-- Заголовок -->
@@ -81,23 +81,35 @@
 					</children>
 				</HBox>
 
-				<!-- 4. Документи (disabled) -->
-				<HBox alignment="CENTER_LEFT" spacing="8.0">
-					<children>
-						<CheckBox fx:id="checkBox_Documents" disable="true" mnemonicParsing="false" selected="false" />
-						<ImageView fitHeight="16.0" fitWidth="16.0" opacity="0.5" preserveRatio="true">
-							<image><Image url="file:resources/images/icon_Sections_16.png" /></image>
-						</ImageView>
-						<Label style="-fx-font-weight: bold; -fx-text-fill: gray;" text="Документи" />
-						<Label style="-fx-font-size: 10px; -fx-text-fill: gray;" text="(documents — не переносяться)" />
-					</children>
-				</HBox>
+			<!-- 4. Налаштування розділів -->
+			<HBox alignment="CENTER_LEFT" spacing="8.0">
+				<children>
+					<CheckBox fx:id="checkBox_Settings" mnemonicParsing="false" selected="true" />
+					<ImageView fitHeight="16.0" fitWidth="16.0" preserveRatio="true">
+						<image><Image url="file:resources/images/icon_setting_16.png" /></image>
+					</ImageView>
+					<Label style="-fx-font-weight: bold;" text="Налаштування розділів" />
+					<Label style="-fx-font-size: 10px; -fx-text-fill: gray;" text="(settings: SECTION_THEME_DEFAULT, SECTION_ICON_DEFAULT, ...)" wrapText="true" />
+				</children>
+			</HBox>
+
+			<!-- 5. Документи (disabled) -->
+			<HBox alignment="CENTER_LEFT" spacing="8.0">
+				<children>
+					<CheckBox fx:id="checkBox_Documents" disable="true" mnemonicParsing="false" selected="false" />
+					<ImageView fitHeight="16.0" fitWidth="16.0" opacity="0.5" preserveRatio="true">
+						<image><Image url="file:resources/images/icon_Sections_16.png" /></image>
+					</ImageView>
+					<Label style="-fx-font-weight: bold; -fx-text-fill: gray;" text="Документи" />
+					<Label style="-fx-font-size: 10px; -fx-text-fill: gray;" text="(documents — не переносяться)" />
+				</children>
+			</HBox>
 
 			</children>
 		</VBox>
 
-		<!-- Попередження та стан -->
-		<VBox layoutX="14.0" layoutY="350.0" spacing="4.0" AnchorPane.leftAnchor="14.0" AnchorPane.rightAnchor="14.0">
+	<!-- Попередження та стан -->
+	<VBox layoutX="14.0" layoutY="380.0" spacing="4.0" AnchorPane.leftAnchor="14.0" AnchorPane.rightAnchor="14.0">
 			<children>
 				<Label fx:id="label_Warning" style="-fx-text-fill: #c0392b; -fx-font-size: 11px;" text="⚠ Увага! База-приймач буде попередньо очищена від вибраних типів даних." wrapText="true" />
 				<ProgressBar fx:id="progressBar" prefWidth="492.0" progress="0.0" visible="false" />
@@ -105,8 +117,8 @@
 			</children>
 		</VBox>
 
-		<!-- Кнопки -->
-		<HBox alignment="CENTER_RIGHT" layoutX="14.0" layoutY="436.0" spacing="10.0" AnchorPane.leftAnchor="14.0" AnchorPane.rightAnchor="14.0">
+	<!-- Кнопки -->
+	<HBox alignment="CENTER_RIGHT" layoutX="14.0" layoutY="466.0" spacing="10.0" AnchorPane.leftAnchor="14.0" AnchorPane.rightAnchor="14.0">
 			<children>
 				<Button fx:id="button_Cancel" mnemonicParsing="false" onAction="#handleCancel" prefWidth="110.0" text="Відміна" />
 				<Button fx:id="button_Clone" mnemonicParsing="false" onAction="#handleClone" prefWidth="110.0" style="-fx-background-color: #2980b9; -fx-text-fill: white; -fx-font-weight: bold;" text="Клонувати" />

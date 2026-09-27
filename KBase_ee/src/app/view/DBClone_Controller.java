@@ -44,6 +44,8 @@ public class DBClone_Controller {
 	@FXML
 	private CheckBox checkBox_Sections;
 	@FXML
+	private CheckBox checkBox_Settings;
+	@FXML
 	private CheckBox checkBox_Documents;
 	@FXML
 	private Label label_Warning;
@@ -184,13 +186,14 @@ public class DBClone_Controller {
 		boolean doIcons = checkBox_Icons.isSelected();
 		boolean doTemplates = checkBox_Templates.isSelected();
 		boolean doSections = checkBox_Sections.isSelected();
+		boolean doSettings = checkBox_Settings.isSelected();
 
-		if (!doIcons && !doTemplates && !doSections) {
+		if (!doIcons && !doTemplates && !doSections && !doSettings) {
 			ShowAppMsg.showAlert("WARNING", "Нічого не вибрано", "Оберіть дані для переносу", "Потрібно відмітити хоча б один тип даних.");
 			return;
 		}
 
-		// Перевірка прав доступу до бази-приймача
+		// Перевірка прав доступу до баз
 		try {
 			boolean hasAccess1 = srcCon.db.accessGet(ACCESS_TYPE_DB_CLONE);
 			boolean hasAccess2 = targetCon.db.accessGet(ACCESS_TYPE_DB_CLONE);
@@ -213,21 +216,31 @@ public class DBClone_Controller {
 		}
 
 		// Підтвердження
+		StringBuilder blocks = new StringBuilder();
+		if (doIcons) blocks.append("  • Піктограми\n");
+		if (doTemplates) blocks.append("  • Шаблони зі стилями\n");
+		if (doSections) blocks.append("  • Розділи з інформацією\n");
+		if (doSettings) blocks.append("  • Налаштування розділів (settings)\n");
+
 		Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
 		alert.setTitle("Підтвердження клонування");
 		alert.setHeaderText("Ви дійсно бажаєте виконати клонування даних?");
-		alert.setContentText("Джерело: " + srcCon.param.getName() + "\n" +
-				"Приймач: " + targetCon.param.getName() + "\n\n" +
-				"УВАГА! База-приймач буде попередньо очищена від вибраних блоків даних. Операція є незворотньою.");
+		alert.setContentText(
+				"Джерело: " + srcCon.param.getConnName() +" ("+ srcCon.param.getName() + ")\n" +
+				"Приймач: " + targetCon.param.getConnName() +" ("+ targetCon.param.getName() + ")\n\n" +
+				"Буде перенесено:\n" + blocks.toString() + "\n" +
+				"УВАГА! База-приймач буде попередньо очищена від вибраних блоків даних. Операція є незворотньою.\n" +
+				"Довгі текстові поля, що перевищують ліміти БД-приймача, будуть обрізані, " +
+				"порожні посилання (0) — записані як NULL (деталі — у kbase_user.log).");
 
 		Optional<ButtonType> result = alert.showAndWait();
 		if (result.isPresent() && result.get() == ButtonType.OK) {
-			runCloneProcess(srcCon, targetCon, doIcons, doTemplates, doSections);
+			runCloneProcess(srcCon, targetCon, doIcons, doTemplates, doSections, doSettings);
 		}
 	}
 
 	private void runCloneProcess(DBConCur_Parameters srcCon, DBConCur_Parameters targetCon,
-	                            boolean doIcons, boolean doTemplates, boolean doSections) {
+	                            boolean doIcons, boolean doTemplates, boolean doSections, boolean doSettings) {
 		button_Clone.setDisable(true);
 		button_Cancel.setDisable(true);
 		comboBox_SourceDB.setDisable(true);
@@ -235,6 +248,7 @@ public class DBClone_Controller {
 		checkBox_Icons.setDisable(true);
 		checkBox_Templates.setDisable(true);
 		checkBox_Sections.setDisable(true);
+		checkBox_Settings.setDisable(true);
 
 		progressBar.setVisible(true);
 		progressBar.setProgress(ProgressBar.INDETERMINATE_PROGRESS);
@@ -244,7 +258,7 @@ public class DBClone_Controller {
 		Task<Void> task = new Task<Void>() {
 			@Override
 			protected Void call() throws Exception {
-				targetCon.db.dbCloneFrom(srcCon.db, doIcons, doTemplates, doSections);
+				targetCon.db.dbCloneFrom(srcCon.db, doIcons, doTemplates, doSections, doSettings);
 				return null;
 			}
 		};
@@ -254,7 +268,7 @@ public class DBClone_Controller {
 			label_Status.setText("Клонування успішно завершено!");
 			ShowAppMsg.showAlert("INFORMATION", "Повідомлення",
 					"Клонування бази даних завершено",
-					"Дані з БД '" + srcCon.param.getName() + "' успішно перенесені в БД '" + targetCon.param.getName() + "'.");
+					"Дані з БД '" + srcCon.param.getConnName() + "' успішно перенесені в БД '" + targetCon.param.getConnName() + "'.");
 			closeStage();
 		});
 
@@ -268,6 +282,7 @@ public class DBClone_Controller {
 			checkBox_Icons.setDisable(false);
 			checkBox_Templates.setDisable(false);
 			checkBox_Sections.setDisable(false);
+			checkBox_Settings.setDisable(false);
 
 			Throwable e = task.getException();
 			if (e instanceof DataQueryException) {
