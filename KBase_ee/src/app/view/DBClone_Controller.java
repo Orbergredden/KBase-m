@@ -193,7 +193,7 @@ public class DBClone_Controller {
 			return;
 		}
 
-		// Перевірка прав доступу до бази-приймача
+		// Перевірка прав доступу до баз
 		try {
 			boolean hasAccess1 = srcCon.db.accessGet(ACCESS_TYPE_DB_CLONE);
 			boolean hasAccess2 = targetCon.db.accessGet(ACCESS_TYPE_DB_CLONE);
@@ -225,8 +225,9 @@ public class DBClone_Controller {
 		Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
 		alert.setTitle("Підтвердження клонування");
 		alert.setHeaderText("Ви дійсно бажаєте виконати клонування даних?");
-		alert.setContentText("Джерело: " + srcCon.param.getName() + "\n" +
-				"Приймач: " + targetCon.param.getName() + "\n\n" +
+		alert.setContentText(
+				"Джерело: " + srcCon.param.getConnName() +" ("+ srcCon.param.getName() + ")\n" +
+				"Приймач: " + targetCon.param.getConnName() +" ("+ targetCon.param.getName() + ")\n\n" +
 				"Буде перенесено:\n" + blocks.toString() + "\n" +
 				"УВАГА! База-приймач буде попередньо очищена від вибраних блоків даних. Операція є незворотньою.\n" +
 				"Довгі текстові поля, що перевищують ліміти БД-приймача, будуть обрізані, " +
@@ -267,7 +268,7 @@ public class DBClone_Controller {
 			label_Status.setText("Клонування успішно завершено!");
 			ShowAppMsg.showAlert("INFORMATION", "Повідомлення",
 					"Клонування бази даних завершено",
-					"Дані з БД '" + srcCon.param.getName() + "' успішно перенесені в БД '" + targetCon.param.getName() + "'.");
+					"Дані з БД '" + srcCon.param.getConnName() + "' успішно перенесені в БД '" + targetCon.param.getConnName() + "'.");
 			closeStage();
 		});
 
