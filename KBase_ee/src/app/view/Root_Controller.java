@@ -36,6 +36,7 @@ import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseButton;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.Node;
 import javafx.scene.Scene;
@@ -913,13 +914,38 @@ public class Root_Controller implements Container_Interface {
      */
     @FXML
     private void handleAbout() {
-    	ShowAppMsg.showAlert("INFORMATION", "О програмі", params.getConfigSys().getItemValue("AboutProgram", "name"), 
-				 "Версія: "+params.getConfigSys().getItemValue("AboutProgram", "version")+
-				 " ("+params.getConfigSys().getItemValue("AboutProgram", "BeginDate")+
-				 " - "+params.getConfigSys().getItemValue("AboutProgram", "EndDate")+")\n" +
-                "Кодова назва : "+params.getConfigSys().getItemValue("AboutProgram", "CodeName")+" \n" +
-                "Автор: "+params.getConfigSys().getItemValue("AboutProgram", "Author")+"\n" +
-                   "Сайт: "+params.getConfigSys().getItemValue("AboutProgram", "site"));
+    	try {
+    		// Загружаем fxml-файл и создаём новую сцену
+    		// для всплывающего диалогового окна.
+    		FXMLLoader loader = new FXMLLoader();
+    		loader.setLocation(Main.class.getResource("view/About_Layout.fxml"));
+    		VBox page = loader.load();
+
+    		// Создаём диалоговое окно Stage.
+    		Stage dialogStage = new Stage();
+    		dialogStage.setTitle("Про програму");
+    		dialogStage.initModality(Modality.WINDOW_MODAL);
+    		dialogStage.initOwner(params.getMainStage());
+    		Scene scene = new Scene(page);
+    		dialogStage.setScene(scene);
+    		dialogStage.getIcons().add(new Image("file:resources/images/icon_About_16.png"));
+
+    		// Даём контроллеру доступ к главному прилодению.
+    		About_Controller controller = loader.getController();
+    		controller.setAppInfo(
+    				params.getConfigSys().getItemValue("AboutProgram", "name"),
+    				params.getConfigSys().getItemValue("AboutProgram", "version"),
+    				params.getConfigSys().getItemValue("AboutProgram", "BeginDate")
+    						+ " - " + params.getConfigSys().getItemValue("AboutProgram", "EndDate"),
+    				params.getConfigSys().getItemValue("AboutProgram", "CodeName"),
+    				params.getConfigSys().getItemValue("AboutProgram", "Author"),
+    				params.getConfigSys().getItemValue("AboutProgram", "site"));
+
+    		// Отображаем диалоговое окно и ждём, пока пользователь его не закроет
+    		dialogStage.showAndWait();
+    	} catch (IOException e) {
+    		e.printStackTrace();
+    	}
     }
 
 	/**

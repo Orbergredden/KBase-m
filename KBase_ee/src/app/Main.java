@@ -19,6 +19,7 @@ import app.model.WinItem;
 import app.module.scheduler.Scheduler;
 import app.view.InputPassword_Controller;
 import app.view.Root_Controller;
+import app.view.Splash_Controller;
 import app.view.business.SectionList_Controller;
 
 import java.io.File;
@@ -29,10 +30,12 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.GeneralSecurityException;
 
+import javafx.animation.PauseTransition;
 import javafx.application.Application;
 import javafx.event.EventHandler;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
+import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tab;
@@ -43,7 +46,9 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+import javafx.stage.StageStyle;
 import javafx.stage.WindowEvent;
+import javafx.util.Duration;
 
 // test
 import java.time.LocalDate;     // change !!!!!! on DateTime
@@ -64,6 +69,10 @@ public class Main extends Application {
 	// собираем данные до кучи и передаем в виде параметра
 	private Params params;
 
+	// стартове віконце (splash) та його контролер
+	private Stage splashStage;
+	private Splash_Controller splashController;
+
 	/**
      * for Drag&Drop
      */
@@ -75,29 +84,98 @@ public class Main extends Application {
      */	
 	@Override
 	public void start(Stage mainStage) {
-		Preferences prefs = Preferences.userNodeForPackage(Main.class);
-		
-		//--------
 		params.setMainStage(mainStage);
-        params.getMainStage().setTitle("KBase ee");
-        params.getMainStage().getIcons().add(new Image("file:resources/images/MainIco.png")); // Устанавливаем иконку приложения
-        params.getMainStage().setWidth(prefs.getDouble("primaryStageWidth", 800));
-        params.getMainStage().setHeight(prefs.getDouble("primaryStageHeight", 600));
-        params.getMainStage().setX(prefs.getDouble("primaryStagePosX", 0));
-        params.getMainStage().setY(prefs.getDouble("primaryStagePosY", 0));
-        
-        initRootLayout();
-        
-        params.setScheduler(new Scheduler(params));
-        //System.out.println(params.getScheduler().toString());
 
-		if (params.getConfig().getItemValue("AppState","SaveAppStateOnExit").equals("1")) {
-			restoreControlsStateMain(null);
-		} else {
-			autoDbConnect();
+		//-------- показуємо стартове віконце, воно зникне коли відкриється основне вікно
+		showSplash();
+
+		//-------- даємо сплеш-віконцю шанс відмалюватись до початку важкого завантаження
+		PauseTransition pause = new PauseTransition(Duration.millis(150));
+		pause.setOnFinished(e -> finishStartup());
+		pause.play();
+	}
+
+	/**
+	 * Показує стартове віконце (splash) з головною іконкою, назвою, версією та датою версії.
+	 */
+	private void showSplash() {
+		try {
+			FXMLLoader loader = new FXMLLoader();
+			loader.setLocation(Main.class.getResource("view/Splash_Layout.fxml"));
+			Parent splashLayout = loader.load();
+
+			splashController = loader.getController();
+			splashController.setAppInfo(
+					params.getConfigSys().getItemValue("AboutProgram", "name"),
+					params.getConfigSys().getItemValue("AboutProgram", "version"),
+					params.getConfigSys().getItemValue("AboutProgram", "BeginDate")
+							+ " - " + params.getConfigSys().getItemValue("AboutProgram", "EndDate"),
+					params.getConfigSys().getItemValue("AboutProgram", "CodeName"));
+			splashController.setStatus("Завантаження...");
+
+			splashStage = new Stage(StageStyle.UNDECORATED);
+			splashStage.setTitle(params.getConfigSys().getItemValue("AboutProgram", "name"));
+			splashStage.getIcons().add(new Image("file:resources/images/MainIco.png"));
+			splashStage.setScene(new Scene(splashLayout));
+			splashStage.show();
+			splashStage.centerOnScreen();
+		} catch (IOException e) {
+			e.printStackTrace();
+			splashStage = null;
+			splashController = null;
 		}
-		
-		LogFile.write("Start program.");
+	}
+
+	/**
+	 * Показує поточний етап завантаження у стартовому віконці (якщо воно відкрите).
+	 */
+	private void setSplashStatus(String text) {
+		if (splashController != null) {
+			splashController.setStatus(text);
+		}
+	}
+
+	/**
+	 * Важке завантаження програми: інтерфейс, з'єднання з БД, відновлення стану.
+	 * Після того як основне вікно відкрилось - закриває стартове віконце.
+	 */
+	private void finishStartup() {
+		Preferences prefs = Preferences.userNodeForPackage(Main.class);
+
+		try {
+			setSplashStatus("Завантаження інтерфейсу...");
+
+			params.getMainStage().setTitle("KBase ee");
+			params.getMainStage().getIcons().add(new Image("file:resources/images/MainIco.png")); // Устанавливаем иконку приложения
+			params.getMainStage().setWidth(prefs.getDouble("primaryStageWidth", 800));
+			params.getMainStage().setHeight(prefs.getDouble("primaryStageHeight", 600));
+			params.getMainStage().setX(prefs.getDouble("primaryStagePosX", 0));
+			params.getMainStage().setY(prefs.getDouble("primaryStagePosY", 0));
+
+			initRootLayout();
+
+			params.setScheduler(new Scheduler(params));
+			//System.out.println(params.getScheduler().toString());
+
+			if (params.getConfig().getItemValue("AppState","SaveAppStateOnExit").equals("1")) {
+				setSplashStatus("Відновлення стану програми...");
+				restoreControlsStateMain(null);
+			} else {
+				setSplashStatus("Підключення до бази даних...");
+				autoDbConnect();
+			}
+
+			LogFile.write("Start program.");
+		} finally {
+			//-------- показуємо основне вікно і тільки після цього ховаємо стартове
+			if (params.getMainStage().getScene() != null) {
+				params.getMainStage().show();
+				params.getMainStage().toFront();
+			}
+			if (splashStage != null) {
+				splashStage.close();
+			}
+		}
 	}
 
 	/**
@@ -143,10 +221,9 @@ public class Main extends Application {
             // Даём контроллеру доступ к главному прилодению.
             Root_Controller controller = loader.getController();
             controller.setParams(params);
-            
-            params.getMainStage().show();
 
-            // событие выхода из программы
+            //-------- основне вікно показуємо пізніше, у finishStartup(), після завантаження
+            //-------- событие выхода из программы
             params.getMainStage().setOnCloseRequest(new EventHandler<WindowEvent>() {
 				public void handle(WindowEvent we) {
 					if (ShowAppMsg.showQuestion("CONFIRMATION", "Вихід з додатку",

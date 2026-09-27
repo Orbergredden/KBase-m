@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ProgressBar?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox alignment="CENTER" prefHeight="360.0" prefWidth="380.0" spacing="6.0" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="app.view.Splash_Controller">
+	<children>
+		<ImageView fx:id="imageView_AppIcon" fitHeight="96.0" fitWidth="96.0" preserveRatio="true" />
+		<Label fx:id="label_AppName" style="-fx-font-size: 22px; -fx-font-weight: bold;" text="KBase-ee" />
+		<Label fx:id="label_Version" text="Версія:" />
+		<Label fx:id="label_Date" text="" />
+		<Label fx:id="label_CodeName" text="" />
+		<ProgressBar prefWidth="280.0" progress="-1.0" />
+		<Label fx:id="label_Status" text="Завантаження..." />
+	</children>
+	<padding>
+		<Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
+	</padding>
+</VBox>
