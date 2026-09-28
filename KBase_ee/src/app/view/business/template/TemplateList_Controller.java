@@ -612,7 +612,7 @@ public class TemplateList_Controller implements AppItem_Interface {
 			Scene scene = new Scene(page);
 			scene.getStylesheets().add((getClass().getResource("/app/view/custom.css")).toExternalForm());
 			dialogStage.setScene(scene);
-			dialogStage.getIcons().add(new Image("file:resources/images/icon_templates/icon_CatalogTemplates_16.png"));
+			dialogStage.getIcons().setAll(params.getMainStage().getIcons());
 			
 			Preferences prefs = Preferences.userNodeForPackage(TemplateTypeSelect.class);
 			dialogStage.setWidth(prefs.getDouble("stageTemplateTypeSelect_Width", 500));
@@ -681,7 +681,7 @@ public class TemplateList_Controller implements AppItem_Interface {
 			Scene scene = new Scene(page);
 			scene.getStylesheets().add((getClass().getResource("/app/view/custom.css")).toExternalForm());
 			dialogStage.setScene(scene);
-			dialogStage.getIcons().add(new Image("file:resources/images/icon_templates/icon_theme_16.png"));
+			dialogStage.getIcons().setAll(params.getMainStage().getIcons());
   
 			Preferences prefs = Preferences.userNodeForPackage(TemplateList_Controller.class);
 	    	dialogStage.setWidth(prefs.getDouble("stageThemeEdit_Width", 700));
@@ -776,7 +776,7 @@ public class TemplateList_Controller implements AppItem_Interface {
 			Scene scene = new Scene(page);
 			scene.getStylesheets().add((getClass().getResource("/app/view/custom.css")).toExternalForm());
 			dialogStage.setScene(scene);
-			dialogStage.getIcons().add(new Image("file:resources/images/icon_templates/"+iconFileName));
+			dialogStage.getIcons().setAll(params.getMainStage().getIcons());
 
 			Preferences prefs = Preferences.userNodeForPackage(TemplateList_Controller.class);
 	    	dialogStage.setWidth(prefs.getDouble ("stageTemplateDirEdit_Width", 700));
@@ -851,7 +851,7 @@ public class TemplateList_Controller implements AppItem_Interface {
 			Scene scene = new Scene(page);
 			scene.getStylesheets().add((getClass().getResource("/app/view/custom.css")).toExternalForm());
 			dialogStage.setScene(scene);
-			dialogStage.getIcons().add(new Image("file:resources/images/icon_templates/"+iconFileName));
+			dialogStage.getIcons().setAll(params.getMainStage().getIcons());
 
 			Preferences prefs = Preferences.userNodeForPackage(TemplateList_Controller.class);
 	    	dialogStage.setWidth(prefs.getDouble ("stageTemplateFileEdit_Width", 700));
@@ -922,7 +922,7 @@ public class TemplateList_Controller implements AppItem_Interface {
 			Scene scene = new Scene(page);
 			scene.getStylesheets().add((getClass().getResource("/app/view/custom.css")).toExternalForm());
 			dialogStage.setScene(scene);
-			dialogStage.getIcons().add(new Image("file:resources/images/icon_templates/"+iconFileName));
+			dialogStage.getIcons().setAll(params.getMainStage().getIcons());
 
 			Preferences prefs = Preferences.userNodeForPackage(TemplateList_Controller.class);
 	    	dialogStage.setWidth(prefs.getDouble ("stageTemplateStyleEdit_Width", 700));
@@ -994,7 +994,7 @@ public class TemplateList_Controller implements AppItem_Interface {
 			Scene scene = new Scene(page);
 			scene.getStylesheets().add((getClass().getResource("/app/view/custom.css")).toExternalForm());
 			dialogStage.setScene(scene);
-			dialogStage.getIcons().add(new Image("file:resources/images/icon_templates/"+iconFileName));
+			dialogStage.getIcons().setAll(params.getMainStage().getIcons());
     	
 			Preferences prefs = Preferences.userNodeForPackage(TemplateList_Controller.class);
 	    	dialogStage.setWidth(prefs.getDouble ("stageTemplateEdit_Width", 700));

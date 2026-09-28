@@ -728,7 +728,7 @@ public class SectionList_Controller implements Container_Interface, AppItem_Inte
 			dialogStage.initOwner(params.getMainStage());
 			Scene scene = new Scene(page);
 			dialogStage.setScene(scene);
-			dialogStage.getIcons().add(new Image("file:resources/images/icon_Sections_24.png"));
+			dialogStage.getIcons().setAll(params.getMainStage().getIcons());
 			
 			Preferences prefs = Preferences.userNodeForPackage(SectionList_Controller.class);
 	    	dialogStage.setWidth(prefs.getDouble("stageSectionsEdit_Width", 500));
@@ -779,7 +779,7 @@ public class SectionList_Controller implements Container_Interface, AppItem_Inte
 			dialogStage.initOwner(params.getMainStage());
 			Scene scene = new Scene(page);
 			dialogStage.setScene(scene);
-			dialogStage.getIcons().add(new Image("file:resources/images/icon_Sections_24.png"));
+			dialogStage.getIcons().setAll(params.getMainStage().getIcons());
 			
 			Preferences prefs = Preferences.userNodeForPackage(SectionList_Controller.class);
 			dialogStage.setWidth(prefs.getDouble("stageSectionsEdit_Width", 500));

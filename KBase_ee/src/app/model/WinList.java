@@ -70,9 +70,9 @@ public class WinList implements Container_Interface {
 
         stage.getIcons().clear();
         if (isChanged) {               // was change
-            stage.getIcons().add(new Image("file:resources/images/icon_edited_16.png"));
+            stage.getIcons().setAll(new Image("file:resources/images/MainIco.png"));
         } else {
-            stage.getIcons().add(new Image("file:resources/images/icon_edit_16.png"));
+            stage.getIcons().setAll(new Image("file:resources/images/MainIco.png"));
         }
         winItem.isChanged = isChanged;
     }

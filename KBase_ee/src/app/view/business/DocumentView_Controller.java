@@ -735,7 +735,7 @@ public class DocumentView_Controller implements AppItem_Interface {
     		Scene scene = new Scene(page);
     		scene.getStylesheets().add((getClass().getResource("/app/view/custom.css")).toExternalForm());
     		dialogStage.setScene(scene);
-    		dialogStage.getIcons().add(new Image("file:resources/images/icon_insert_up_16.png"));
+    		dialogStage.getIcons().setAll(params.getMainStage().getIcons());
     		
     		Preferences prefs = Preferences.userNodeForPackage(DocumentView_Controller.class);
 	    	dialogStage.setWidth(prefs.getDouble("stageInfoAdd_Width", 450));
@@ -784,7 +784,7 @@ public class DocumentView_Controller implements AppItem_Interface {
     		Scene scene = new Scene(page);
     		scene.getStylesheets().add((getClass().getResource("/app/view/custom.css")).toExternalForm());
     		dialogStage.setScene(scene);
-    		dialogStage.getIcons().add(new Image("file:resources/images/icon_insert_down_16.png"));
+    		dialogStage.getIcons().setAll(params.getMainStage().getIcons());
     		
     		Preferences prefs = Preferences.userNodeForPackage(DocumentView_Controller.class);
 	    	dialogStage.setWidth(prefs.getDouble("stageInfoAdd_Width", 450));

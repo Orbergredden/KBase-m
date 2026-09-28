@@ -225,7 +225,7 @@ public class AppDataObj {
 		stage.setTitle(winTitle);
 		//dialogStage.initModality(Modality.NONE);
 		stage.initOwner(null);
-		stage.getIcons().add(new Image("file:resources/images/icon_Sections_16.png"));
+		stage.getIcons().setAll(params.getMainStage().getIcons());
 
 		if (d_win.length == 4) {
 			stage.setWidth(d_win[0].doubleValue());
@@ -398,7 +398,7 @@ public class AppDataObj {
 			stage.setTitle(winTitle);
 			//dialogStage.initModality(Modality.NONE);
 			stage.initOwner(null);
-			stage.getIcons().add(new Image("file:resources/images/icon_document_16.png"));
+			stage.getIcons().setAll(params.getMainStage().getIcons());
 
 			if (d_win.length == 4) {
 				stage.setWidth(d_win[0].doubleValue());
@@ -449,7 +449,7 @@ public class AppDataObj {
 			stage.setTitle(winTitle);
 			//dialogStage.initModality(Modality.NONE);
 			stage.initOwner(null);
-			stage.getIcons().add(new Image("file:resources/images/icon_dictionary_16.png"));
+			stage.getIcons().setAll(params.getMainStage().getIcons());
 
 			if (d_win.length == 4) {
 				stage.setWidth(d_win[0].doubleValue());
@@ -559,7 +559,7 @@ public class AppDataObj {
 		stage.setTitle(winTitle);
 		//dialogStage.initModality(Modality.NONE);
 		stage.initOwner(null);
-		stage.getIcons().add(new Image("file:resources/images/icon_edit_16.png"));
+		stage.getIcons().setAll(params.getMainStage().getIcons());
 
 		if (d_win.length == 4) {
 			stage.setWidth(d_win[0].doubleValue());

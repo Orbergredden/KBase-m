@@ -342,7 +342,7 @@ public class SectionEdit_Controller {
 			dialogStage.initOwner(params.getStageCur());
 			Scene scene = new Scene(page);
 			dialogStage.setScene(scene);
-			dialogStage.getIcons().add(new Image("file:resources/images/icon_CatalogIcons_16.png"));
+			dialogStage.getIcons().setAll(params.getMainStage().getIcons());
 			
 			Preferences prefs = Preferences.userNodeForPackage(SectionEdit_Controller.class);
 			dialogStage.setWidth(prefs.getDouble("stageIconSelect_Width", 500));
@@ -431,7 +431,7 @@ public class SectionEdit_Controller {
 			dialogStage.initOwner(params.getStageCur());
 			Scene scene = new Scene(page);
 			dialogStage.setScene(scene);
-			dialogStage.getIcons().add(new Image("file:resources/images/icon_CatalogIcons_16.png"));
+			dialogStage.getIcons().setAll(params.getMainStage().getIcons());
 			
 			Preferences prefs = Preferences.userNodeForPackage(SectionEdit_Controller.class);
 			dialogStage.setWidth(prefs.getDouble("stageIconSelect_Width", 500));
@@ -491,7 +491,7 @@ public class SectionEdit_Controller {
 			dialogStage.initOwner(params.getStageCur());
 			Scene scene = new Scene(page);
 			dialogStage.setScene(scene);
-			dialogStage.getIcons().add(new Image("file:resources/images/icon_CatalogIcons_16.png"));
+			dialogStage.getIcons().setAll(params.getMainStage().getIcons());
 			
 			Preferences prefs = Preferences.userNodeForPackage(SectionEdit_Controller.class);
 			dialogStage.setWidth(prefs.getDouble("stageIconSelect_Width", 500));
@@ -551,7 +551,7 @@ public class SectionEdit_Controller {
 			Scene scene = new Scene(page);
 			scene.getStylesheets().add((getClass().getResource("/app/view/custom.css")).toExternalForm());
 			dialogStage.setScene(scene);
-			dialogStage.getIcons().add(new Image("file:resources/images/icon_theme_16.png"));
+			dialogStage.getIcons().setAll(params.getMainStage().getIcons());
 			
 			Preferences prefs = Preferences.userNodeForPackage(TemplateThemeSelect_Controller.class);
 			dialogStage.setWidth(prefs.getDouble("stageTemplateThemeSelect_Width", 500));
@@ -608,7 +608,7 @@ public class SectionEdit_Controller {
 			Scene scene = new Scene(page);
 			scene.getStylesheets().add((getClass().getResource("/app/view/custom.css")).toExternalForm());
 			dialogStage.setScene(scene);
-			dialogStage.getIcons().add(new Image("file:resources/images/icon_templates/icon_style_16.png"));
+			dialogStage.getIcons().setAll(params.getMainStage().getIcons());
 
 			Preferences prefs = Preferences.userNodeForPackage(TemplateStyleSelect_Controller.class);
 			dialogStage.setWidth(prefs.getDouble("stageTemplateStyleSelect_Width", 500));
@@ -679,7 +679,7 @@ public class SectionEdit_Controller {
 			Scene scene = new Scene(page);
 			scene.getStylesheets().add((getClass().getResource("/app/view/custom.css")).toExternalForm());
 			dialogStage.setScene(scene);
-			dialogStage.getIcons().add(new Image("file:resources/images/icon_templates/icon_style_16.png"));
+			dialogStage.getIcons().setAll(params.getMainStage().getIcons());
 
 			Preferences prefs = Preferences.userNodeForPackage(TemplateStyleSelect_Controller.class);
 			dialogStage.setWidth(prefs.getDouble("stageTemplateStyleSelect_Width", 500));

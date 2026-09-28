@@ -295,7 +295,7 @@ public class InfoEdit_File_Controller extends InfoEdit_Simple_Controller {
 			dialogStage.initOwner(params.getStageCur());
 			Scene scene = new Scene(page);
 			dialogStage.setScene(scene);
-			dialogStage.getIcons().add(new Image("file:resources/images/icon_CatalogIcons_16.png"));
+			dialogStage.getIcons().setAll(params.getMainStage().getIcons());
 			
 			dialogStage.setWidth(prefs.getDouble("stageIconSelect_Width", 500));
 			dialogStage.setHeight(prefs.getDouble("stageIconSelect_Height", 600));

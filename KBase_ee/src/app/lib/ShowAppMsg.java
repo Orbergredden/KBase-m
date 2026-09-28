@@ -58,7 +58,7 @@ public class ShowAppMsg {
 			case "WARNING"      : iconFileName = new String("icon_warning_16.png");       break;
 			default             : iconFileName = new String("MainIco.png");               break;
 		}
-		stage.getIcons().add(new Image("file:resources/images/"+ iconFileName));
+		stage.getIcons().setAll(new Image("file:resources/images/MainIco.png"));
         
         alert.showAndWait();
 	}
@@ -83,7 +83,7 @@ public class ShowAppMsg {
 			case "WARNING"      : iconFileName = new String("icon_warning_16.png");       break;
 			default             : iconFileName = new String("MainIco.png");               break;
 		}
-		stage.getIcons().add(new Image("file:resources/images/"+ iconFileName));
+		stage.getIcons().setAll(new Image("file:resources/images/MainIco.png"));
 		
 		Optional<ButtonType> result = alert.showAndWait();
 
@@ -123,7 +123,7 @@ public class ShowAppMsg {
 			case "WARNING"      : iconFileName = "icon_warning_16.png";       break;
 			default             : iconFileName = "MainIco.png";               break;
 		}
-		stage.getIcons().add(new Image("file:resources/images/"+ iconFileName));
+		stage.getIcons().setAll(new Image("file:resources/images/MainIco.png"));
 		
 		Optional<ButtonType> result = alert.showAndWait();
 		if (result.isPresent() && result.get() == buttonType_Ok) {
@@ -197,7 +197,7 @@ public class ShowAppMsg {
 			case "WARNING"      : iconFileName = new String("icon_warning_16.png");       break;
 			default             : iconFileName = new String("MainIco.png");               break;
 		}
-		stage.getIcons().add(new Image("file:resources/images/"+ iconFileName));
+		stage.getIcons().setAll(new Image("file:resources/images/MainIco.png"));
 		
 		Optional<ButtonType> result = alert.showAndWait();
 
@@ -230,7 +230,7 @@ public class ShowAppMsg {
             case "WARNING"      : iconFileName = new String("icon_warning_16.png");       break;
             default             : iconFileName = new String("MainIco.png");               break;
         }
-        stage.getIcons().add(new Image("file:resources/images/"+ iconFileName));
+        stage.getIcons().setAll(new Image("file:resources/images/MainIco.png"));
 
         Optional<ButtonType> result = alert.showAndWait();
 

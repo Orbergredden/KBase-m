@@ -316,7 +316,7 @@ public class InfoEdit_Controller implements AppItem_Interface {
 			Scene scene = new Scene(page);
 			scene.getStylesheets().add((getClass().getResource("/app/view/custom.css")).toExternalForm());
 			dialogStage.setScene(scene);
-			dialogStage.getIcons().add(new Image("file:resources/images/icon_templates/icon_style_16.png"));
+			dialogStage.getIcons().setAll(params.getMainStage().getIcons());
 
 			Preferences prefs = Preferences.userNodeForPackage(TemplateStyleSelect_Controller.class);
 			dialogStage.setWidth(prefs.getDouble("stageTemplateStyleSelect_Width", 500));

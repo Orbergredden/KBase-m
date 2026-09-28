@@ -348,7 +348,7 @@ public class DBConnList_Controller {
 			dialogStage.initOwner(this.dialogStage);
 			Scene scene = new Scene(page);
 			dialogStage.setScene(scene);
-			dialogStage.getIcons().add(new Image("file:resources/images/icon_Connect_16.png"));
+			dialogStage.getIcons().setAll(params.getMainStage().getIcons());
 			
 			Preferences prefs = Preferences.userNodeForPackage(DBConnEdit_Controller.class);
 			dialogStage.setX(prefs.getDouble("stageDBConnEdit_PosX", 0));
@@ -393,7 +393,7 @@ public class DBConnList_Controller {
 			dialogStage.initOwner(this.dialogStage);
 			Scene scene = new Scene(page);
 			dialogStage.setScene(scene);
-			dialogStage.getIcons().add(new Image("file:resources/images/icon_Connect_16.png"));
+			dialogStage.getIcons().setAll(params.getMainStage().getIcons());
 			
 			Preferences prefs = Preferences.userNodeForPackage(DBConnEdit_Controller.class);
 			dialogStage.setX(prefs.getDouble("stageDBConnEdit_PosX", 0));

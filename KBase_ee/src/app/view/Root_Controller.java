@@ -594,7 +594,7 @@ public class Root_Controller implements Container_Interface {
 			dialogStage.initOwner(params.getMainStage());
 			Scene scene = new Scene(page);
 			dialogStage.setScene(scene);
-			dialogStage.getIcons().add(new Image("file:resources/images/icon_Connect_16.png"));
+			dialogStage.getIcons().setAll(params.getMainStage().getIcons());
 			
 			Preferences prefs = Preferences.userNodeForPackage(DBConnList_Controller.class);
 			dialogStage.setWidth(prefs.getDouble("stageDBConnList_Width", 600));
@@ -782,7 +782,7 @@ public class Root_Controller implements Container_Interface {
     		dialogStage.initOwner(params.getMainStage());
     		dialogStage.setScene(new Scene(page));
     		dialogStage.setResizable(false);
-    		dialogStage.getIcons().add(new Image("file:resources/images/icon_DBClear_16.png"));
+    		dialogStage.getIcons().setAll(params.getMainStage().getIcons());
 
     		DBClear_Controller controller = loader.getController();
     		Params p = new Params(this.params);
@@ -819,7 +819,7 @@ public class Root_Controller implements Container_Interface {
 			dialogStage.initOwner(params.getMainStage());
 			dialogStage.setScene(new Scene(page));
 			dialogStage.setResizable(false);
-			dialogStage.getIcons().add(new Image("file:resources/images/icon_DBClone_16.png"));
+			dialogStage.getIcons().setAll(params.getMainStage().getIcons());
 
 			DBClone_Controller controller = loader.getController();
 			Params p = new Params(this.params);
@@ -928,7 +928,7 @@ public class Root_Controller implements Container_Interface {
     		dialogStage.initOwner(params.getMainStage());
     		Scene scene = new Scene(page);
     		dialogStage.setScene(scene);
-    		dialogStage.getIcons().add(new Image("file:resources/images/icon_About_16.png"));
+    		dialogStage.getIcons().setAll(params.getMainStage().getIcons());
 
     		// Даём контроллеру доступ к главному прилодению.
     		About_Controller controller = loader.getController();
@@ -1031,7 +1031,7 @@ public class Root_Controller implements Container_Interface {
 			dialogStage.initOwner(params.getMainStage());
 			Scene scene = new Scene(page);
 			dialogStage.setScene(scene);
-			dialogStage.getIcons().add(new Image("file:resources/images/icon_setting_16.png"));
+			dialogStage.getIcons().setAll(params.getMainStage().getIcons());
 
 			Preferences prefs = Preferences.userNodeForPackage(ConfigMainList_Controller.class);
 			dialogStage.setWidth(prefs.getDouble("ConfigMainList_Width", 600));
