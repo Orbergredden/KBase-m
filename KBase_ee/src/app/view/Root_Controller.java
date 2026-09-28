@@ -940,6 +940,7 @@ public class Root_Controller implements Container_Interface {
     				params.getConfigSys().getItemValue("AboutProgram", "CodeName"),
     				params.getConfigSys().getItemValue("AboutProgram", "Author"),
     				params.getConfigSys().getItemValue("AboutProgram", "site"));
+    		controller.setHostServices(params.getMain().getHostServices());
 
     		// Отображаем диалоговое окно и ждём, пока пользователь его не закроет
     		dialogStage.showAndWait();

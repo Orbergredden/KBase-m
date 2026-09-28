@@ -1,8 +1,6 @@
 package app.view;
 
-import java.awt.Desktop;
-import java.net.URI;
-
+import javafx.application.HostServices;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.Hyperlink;
@@ -35,6 +33,8 @@ public class About_Controller {
 
 	// адреса сайту для відкриття у браузері
 	private String siteUrl;
+	// сервіси JavaFX для відкриття посилань (задається ззовні, бо контролер створюється через FXML)
+	private HostServices hostServices;
 
 	/**
 	 * Конструктор.
@@ -70,17 +70,32 @@ public class About_Controller {
 	}
 
 	/**
+	 * Задає сервіси JavaFX для відкриття посилань у браузері.
+	 */
+	public void setHostServices(HostServices hostServices) {
+		this.hostServices = hostServices;
+	}
+
+	/**
 	 * Відкриває сайт програми у браузері за замовчуванням.
+	 * Виконується у фоновому потоці, бо відкриття браузера може блокуватись
+	 * (особливо під Linux), а потік інтерфейсу заморожувати не можна.
 	 */
 	@FXML
 	private void handleSiteLink() {
-		try {
-			if ((siteUrl != null) && (! siteUrl.isEmpty()) && Desktop.isDesktopSupported()) {
-				Desktop.getDesktop().browse(new URI(siteUrl));
-			}
-		} catch (Exception e) {
-			e.printStackTrace();
+		if ((siteUrl == null) || siteUrl.isEmpty() || (hostServices == null)) {
+			return;
 		}
+
+		Thread opener = new Thread(() -> {
+			try {
+				hostServices.showDocument(siteUrl);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}, "about-open-site");
+		opener.setDaemon(true);
+		opener.start();
 	}
 
 	/**
