@@ -66,9 +66,9 @@ public class DBClone_Controller {
 
 	@FXML
 	private void initialize() {
-		button_Clone.setGraphic(new ImageView(new Image("file:resources/images/icon_copy_16.png")));
+		button_Clone.setGraphic(new ImageView(new Image("file:resources/images/icon_DBClone_16.png")));
 		button_Cancel.setGraphic(new ImageView(new Image("file:resources/images/icon_cancel_16.png")));
-		imageView_Icon.setImage(new Image("file:resources/images/icon_copy_16.png"));
+		imageView_Icon.setImage(new Image("file:resources/images/icon_DBClone_16.png"));
 	}
 
 	public void setParams(Params params) {

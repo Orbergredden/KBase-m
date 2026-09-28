@@ -188,7 +188,7 @@ public class Root_Controller implements Container_Interface {
     	menuitem_CatalogTemplates.setGraphic(new ImageView(new Image("file:resources/images/icon_templates/icon_CatalogTemplates_16.png")));
     	menu_DBTools.setGraphic(new ImageView(new Image("file:resources/images/icon_DBTools_16.png")));
     	menuitem_ClearDB.setGraphic(new ImageView(new Image("file:resources/images/icon_DBClear_16.png")));
-    	menuitem_CloneDB.setGraphic(new ImageView(new Image("file:resources/images/icon_copy_16.png")));
+    	menuitem_CloneDB.setGraphic(new ImageView(new Image("file:resources/images/icon_DBClone_16.png")));
     	menuitem_Tasks.setGraphic(new ImageView(new Image("file:resources/images/scheduler/icon_scheduler_16.png")));
     	menuitem_About.setGraphic(new ImageView(new Image("file:resources/images/icon_About_16.png")));
     	
@@ -819,7 +819,7 @@ public class Root_Controller implements Container_Interface {
 			dialogStage.initOwner(params.getMainStage());
 			dialogStage.setScene(new Scene(page));
 			dialogStage.setResizable(false);
-			dialogStage.getIcons().add(new Image("file:resources/images/icon_copy_16.png"));
+			dialogStage.getIcons().add(new Image("file:resources/images/icon_DBClone_16.png"));
 
 			DBClone_Controller controller = loader.getController();
 			Params p = new Params(this.params);
