@@ -166,7 +166,27 @@ public class Main extends Application {
 			}
 
 			LogFile.write("Start program.");
+		} catch (Exception e) {
+			e.printStackTrace();
+			ShowAppMsg.showAlert("ERROR", "Помилка запуску", "Помилка під час завантаження програми", e.getMessage());
 		} finally {
+			//-------- нормалізуємо вибір таба перед показом вікна (захист від краху TabPaneSkin при порожньому/битому стані)
+			try {
+				if (params.getTabPane_Main() != null) {
+					int tabCount = params.getTabPane_Main().getTabs().size();
+					if (tabCount == 0) {
+						params.getTabPane_Main().getSelectionModel().clearSelection();
+					} else {
+						int sel = params.getTabPane_Main().getSelectionModel().getSelectedIndex();
+						if (sel < 0 || sel >= tabCount) {
+							params.getTabPane_Main().getSelectionModel().select(0);
+						}
+					}
+				}
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+
 			//-------- показуємо основне вікно і тільки після цього ховаємо стартове
 			if (params.getMainStage().getScene() != null) {
 				params.getMainStage().show();
@@ -729,7 +749,19 @@ public class Main extends Application {
 					}
 					break;
 				case "tabActiveIndex" :
-					params.getTabPane_Main().getSelectionModel().select(Integer.parseInt(si.getParams()));
+					try {
+						int idx = Integer.parseInt(si.getParams());
+						int tabCount = params.getTabPane_Main().getTabs().size();
+						if (idx >= 0 && idx < tabCount) {
+							params.getTabPane_Main().getSelectionModel().select(idx);
+						} else if (tabCount > 0) {
+							params.getTabPane_Main().getSelectionModel().select(0);
+						} else {
+							params.getTabPane_Main().getSelectionModel().clearSelection();
+						}
+					} catch (NumberFormatException e) {
+						params.getTabPane_Main().getSelectionModel().clearSelection();
+					}
 					break;
 
 				//---- open window

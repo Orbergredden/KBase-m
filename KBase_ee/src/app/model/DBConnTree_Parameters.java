@@ -3,6 +3,7 @@ package app.model;
 import app.exceptions.KBase_DublicateConnIdEx;
 import app.lib.FileUtil;
 import app.lib.KeyStorePrg;
+import app.lib.LogFile;
 import app.lib.ShowAppMsg;
 
 import java.io.File;
@@ -135,6 +136,11 @@ public class DBConnTree_Parameters {
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
+			try {
+				LogFile.write("DBConnTree migration failed: " + e.getMessage());
+			} catch (Exception le) {
+				le.printStackTrace();
+			}
 			// не вважаємо фатальним — просто не мігрували
 		}
 		return false;
