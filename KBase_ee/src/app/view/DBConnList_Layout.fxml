@@ -4,12 +4,25 @@
 <?import javafx.scene.control.ContextMenu?>
 <?import javafx.scene.control.MenuItem?>
 <?import javafx.scene.control.SeparatorMenuItem?>
-<?import javafx.scene.control.TreeView?>
+<?import javafx.scene.control.TreeTableColumn?>
+<?import javafx.scene.control.TreeTableView?>
 <?import javafx.scene.layout.AnchorPane?>
 
 <AnchorPane prefHeight="400.0" prefWidth="945.0" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="app.view.DBConnList_Controller">
 	<children>
-		<TreeView fx:id="treeView_Connections" layoutX="10.0" layoutY="10.0" prefHeight="257.0" prefWidth="879.0" AnchorPane.bottomAnchor="45.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+		<TreeTableView fx:id="treeTableView_Connections" layoutX="10.0" layoutY="10.0" prefHeight="257.0" prefWidth="879.0" AnchorPane.bottomAnchor="45.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+			<columns>
+				<TreeTableColumn id="ConnName" fx:id="treeTableColumn_ConnName" prefWidth="165.0" text="Назва з'єднання" />
+				<TreeTableColumn id="Descr" fx:id="treeTableColumn_Descr" prefWidth="150.0" text="Опис" />
+				<TreeTableColumn id="Type" fx:id="treeTableColumn_Type" prefWidth="92.0" text="Тип" />
+				<TreeTableColumn id="Host" fx:id="treeTableColumn_Host" prefWidth="89.0" text="Сервер" />
+				<TreeTableColumn id="Port" fx:id="treeTableColumn_Port" prefWidth="41.0" text="Порт" />
+				<TreeTableColumn id="Name" fx:id="treeTableColumn_Name" prefWidth="123.0" text="Ім'я БД" />
+				<TreeTableColumn id="Login" fx:id="treeTableColumn_Login" prefWidth="81.0" text="Логін" />
+				<TreeTableColumn id="AutoConn" fx:id="treeTableColumn_AutoConn" prefWidth="75.0" text="Автопідключення" />
+				<TreeTableColumn id="lastConn" fx:id="treeTableColumn_lastConn" prefWidth="129.0" text="Останнє підключення" />
+				<TreeTableColumn id="counter" fx:id="treeTableColumn_counter" prefWidth="125.0" text="Лічильник" />
+			</columns>
 			<contextMenu>
 				<ContextMenu>
 					<items>
@@ -23,7 +36,7 @@
 					</items>
 				</ContextMenu>
 			</contextMenu>
-		</TreeView>
+		</TreeTableView>
 		<Button fx:id="button_AddFolder" layoutX="11.0" layoutY="265.0" mnemonicParsing="false" onAction="#handleButtonAddFolder" prefHeight="25.0" prefWidth="90.0" text="Папка..." AnchorPane.bottomAnchor="10.0" AnchorPane.leftAnchor="10.0" />
 		<Button fx:id="button_Add" layoutX="106.0" layoutY="265.0" mnemonicParsing="false" onAction="#handleButtonAdd" prefHeight="25.0" prefWidth="100.0" text="Додати..." AnchorPane.bottomAnchor="10.0" AnchorPane.leftAnchor="105.0" />
 		<Button fx:id="button_Edit" layoutX="211.0" layoutY="265.0" mnemonicParsing="false" onAction="#handleButtonEdit" prefHeight="25.0" prefWidth="110.0" text="Редагувати..." AnchorPane.bottomAnchor="10.0" AnchorPane.leftAnchor="210.0" />

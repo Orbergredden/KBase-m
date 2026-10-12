@@ -20,21 +20,28 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.prefs.Preferences;
 
+import javafx.beans.property.ReadOnlyObjectWrapper;
+import javafx.beans.property.ReadOnlyStringWrapper;
+import javafx.collections.ListChangeListener;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
-import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
-import javafx.scene.control.TreeCell;
 import javafx.scene.control.TreeItem;
-import javafx.scene.control.TreeView;
+import javafx.scene.control.TreeSortMode;
+import javafx.scene.control.TreeTableCell;
+import javafx.scene.control.TreeTableColumn;
+import javafx.scene.control.TreeTableRow;
+import javafx.scene.control.TreeTableView;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.AnchorPane;
@@ -46,6 +53,7 @@ import javafx.stage.Stage;
 /**
  * Контролер вікна дерева підключень до БД.
  * Папки з необмеженою вкладеністю, підключення всередині.
+ * Видимий корінь "Підключення" — папки першого рівня створюються в ньому.
  *
  * @author Ігор Макаревич
  */
@@ -65,7 +73,27 @@ public class DBConnList_Controller {
 	private Stage dialogStage;
 
 	@FXML
-	private TreeView<Object> treeView_Connections;
+	private TreeTableView<Object> treeTableView_Connections;
+	@FXML
+	private TreeTableColumn<Object, String> treeTableColumn_ConnName;
+	@FXML
+	private TreeTableColumn<Object, String> treeTableColumn_Descr;
+	@FXML
+	private TreeTableColumn<Object, String> treeTableColumn_Type;
+	@FXML
+	private TreeTableColumn<Object, String> treeTableColumn_Host;
+	@FXML
+	private TreeTableColumn<Object, String> treeTableColumn_Port;
+	@FXML
+	private TreeTableColumn<Object, String> treeTableColumn_Name;
+	@FXML
+	private TreeTableColumn<Object, String> treeTableColumn_Login;
+	@FXML
+	private TreeTableColumn<Object, Boolean> treeTableColumn_AutoConn;
+	@FXML
+	private TreeTableColumn<Object, LocalDate> treeTableColumn_lastConn;
+	@FXML
+	private TreeTableColumn<Object, Integer> treeTableColumn_counter;
 
 	@FXML
 	private MenuItem menuitem_AddFolder;
@@ -96,6 +124,9 @@ public class DBConnList_Controller {
 	private Button button_Exit;
 
 	private Preferences prefs;
+
+	//
+	private TreeTableColumn currentSortColumn;
 
 	/**
 	 * Папка-призначення для нового підключення (встановлюється перед діалогом додавання)
@@ -140,91 +171,24 @@ public class DBConnList_Controller {
 		prefs = Preferences.userNodeForPackage(DBConnList_Controller.class);
 
 		loadIcons();
+		initColumns();
 
-		treeView_Connections.setShowRoot(false);
-		treeView_Connections.setCellFactory(tv -> new TreeCell<Object>() {
-			@Override
-			protected void updateItem(Object item, boolean empty) {
-				super.updateItem(item, empty);
-				if (empty || item == null) {
-					setText(null);
-					setGraphic(null);
-					setStyle("");
-					setTooltip(null);
-					return;
-				}
-				if (item instanceof DBConnFolder) {
-					DBConnFolder f = (DBConnFolder) item;
-					int cnt = f.getFolders().size() + f.getConnections().size();
-					setText(f.getFolderName() + (cnt > 0 ? " (" + cnt + ")" : ""));
-					setGraphic(new ImageView(folderIcon));
-					setStyle("");
-					String tip = f.getDescr() != null && !f.getDescr().isEmpty() ? f.getDescr() : "Папка";
-					setTooltip(new Tooltip(tip));
-				} else if (item instanceof DBConn_Parameters) {
-					DBConn_Parameters c = (DBConn_Parameters) item;
-					boolean active = isConnectionActive(c.getConnId());
-					setText(c.getConnName() + (active ? "  ●" : ""));
-					setGraphic(new ImageView(getTypeIcon(c.getType())));
-					if (c.getColorEnable()) {
-						try {
-							Color tc;
-							Color bc;
-							if (active) {
-								tc = new Color(c.getColorTRed_A(), c.getColorTGreen_A(), c.getColorTBlue_A(), c.getColorTOpacity_A());
-								bc = new Color(c.getColorBRed_A(), c.getColorBGreen_A(), c.getColorBBlue_A(), c.getColorBOpacity_A());
-							} else {
-								tc = new Color(c.getColorTRed_N(), c.getColorTGreen_N(), c.getColorTBlue_N(), c.getColorTOpacity_N());
-								bc = new Color(c.getColorBRed_N(), c.getColorBGreen_N(), c.getColorBBlue_N(), c.getColorBOpacity_N());
-							}
-							String st = "-fx-text-fill: #" + ConvertType.colorToHex(tc) + "; "
-									+ "-fx-background-color: #" + ConvertType.colorToHex(bc) + ";"
-									+ (active ? " -fx-font-weight: bold;" : "");
-							setStyle(st);
-						} catch (Exception e) {
-							setStyle(active ? "-fx-font-weight: bold;" : "");
-						}
-					} else {
-						setStyle(active ? "-fx-font-weight: bold;" : "");
-					}
-					StringBuilder sb = new StringBuilder();
-					if (c.getDescr() != null && !c.getDescr().isEmpty()) {
-						sb.append(c.getDescr()).append("\n");
-					}
-					sb.append(typeTitle(c.getType()));
-					if (c.getHost() != null && !c.getHost().isEmpty()) {
-						sb.append("  ").append(c.getHost());
-					}
-					if (c.getPort() != null && !c.getPort().isEmpty()) {
-						sb.append(":").append(c.getPort());
-					}
-					if (c.getName() != null && !c.getName().isEmpty()) {
-						sb.append(" / ").append(c.getName());
-					}
-					if (active) {
-						sb.append("\nАктивне");
-					}
-					setTooltip(new Tooltip(sb.toString()));
-				} else {
-					setText(item.toString());
-					setGraphic(null);
-					setStyle("");
-					setTooltip(null);
-				}
-			}
-		});
-
+		treeTableView_Connections.setShowRoot(true);
 		buildTree();
 
-		treeView_Connections.setOnMouseClicked(event -> {
+		// перефарбування при навігації: вибраний елемент — активні кольори, решта — неактивні
+		treeTableView_Connections.getSelectionModel().selectedItemProperty().addListener(
+				(observable, oldValue, newValue) -> treeTableView_Connections.refresh());
+
+		treeTableView_Connections.setOnMouseClicked(event -> {
 			if (event.getClickCount() == 2) {
-				TreeItem<Object> sel = treeView_Connections.getSelectionModel().getSelectedItem();
+				TreeItem<Object> sel = treeTableView_Connections.getSelectionModel().getSelectedItem();
 				if (sel == null || sel.getValue() == null) {
 					return;
 				}
 				if (sel.getValue() instanceof DBConn_Parameters) {
 					handleButtonConnect();
-				} else if (sel.getValue() instanceof DBConnFolder) {
+				} else {
 					sel.setExpanded(!sel.isExpanded());
 				}
 			}
@@ -246,6 +210,332 @@ public class DBConnList_Controller {
 		button_Connect.setGraphic(new ImageView(new Image("file:resources/images/icon_Connect_16.png")));
 		button_Disconnect.setGraphic(new ImageView(new Image("file:resources/images/icon_disconnect_16.png")));
 		button_Exit.setGraphic(new ImageView(new Image("file:resources/images/icon_close_16.png")));
+	}
+
+	/**
+	 * Ініціалізація колонок: значення, ширина (зберігається), сортування (зберігається), вигляд клітинок.
+	 */
+	private void initColumns() {
+		//======== значення колонок
+		treeTableColumn_ConnName.setCellValueFactory(param -> {
+			Object v = param.getValue().getValue();
+			if (v instanceof DBConnFolder) {
+				return new ReadOnlyStringWrapper(((DBConnFolder) v).getFolderName());
+			}
+			if (v instanceof DBConn_Parameters) {
+				return new ReadOnlyStringWrapper(((DBConn_Parameters) v).getConnName());
+			}
+			return new ReadOnlyStringWrapper(v == null ? "" : v.toString());
+		});
+		treeTableColumn_Descr.setCellValueFactory(param -> {
+			Object v = param.getValue().getValue();
+			if (v instanceof DBConnFolder) {
+				return new ReadOnlyStringWrapper(((DBConnFolder) v).getDescr());
+			}
+			if (v instanceof DBConn_Parameters) {
+				return new ReadOnlyStringWrapper(((DBConn_Parameters) v).getDescr());
+			}
+			return new ReadOnlyStringWrapper("");
+		});
+		treeTableColumn_Type.setCellValueFactory(param -> {
+			Object v = param.getValue().getValue();
+			if (v instanceof DBConn_Parameters) {
+				return new ReadOnlyStringWrapper(typeTitle(((DBConn_Parameters) v).getType()));
+			}
+			return new ReadOnlyStringWrapper("");
+		});
+		treeTableColumn_Host.setCellValueFactory(param -> {
+			Object v = param.getValue().getValue();
+			if (v instanceof DBConn_Parameters) {
+				return new ReadOnlyStringWrapper(((DBConn_Parameters) v).getHost());
+			}
+			return new ReadOnlyStringWrapper("");
+		});
+		treeTableColumn_Port.setCellValueFactory(param -> {
+			Object v = param.getValue().getValue();
+			if (v instanceof DBConn_Parameters) {
+				return new ReadOnlyStringWrapper(((DBConn_Parameters) v).getPort());
+			}
+			return new ReadOnlyStringWrapper("");
+		});
+		treeTableColumn_Name.setCellValueFactory(param -> {
+			Object v = param.getValue().getValue();
+			if (v instanceof DBConn_Parameters) {
+				return new ReadOnlyStringWrapper(((DBConn_Parameters) v).getName());
+			}
+			return new ReadOnlyStringWrapper("");
+		});
+		treeTableColumn_Login.setCellValueFactory(param -> {
+			Object v = param.getValue().getValue();
+			if (v instanceof DBConn_Parameters) {
+				return new ReadOnlyStringWrapper(((DBConn_Parameters) v).getLogin());
+			}
+			return new ReadOnlyStringWrapper("");
+		});
+		treeTableColumn_AutoConn.setCellValueFactory(param -> {
+			Object v = param.getValue().getValue();
+			if (v instanceof DBConn_Parameters) {
+				return new ReadOnlyObjectWrapper<Boolean>(((DBConn_Parameters) v).getAutoConn());
+			}
+			return new ReadOnlyObjectWrapper<Boolean>(null);
+		});
+		treeTableColumn_lastConn.setCellValueFactory(param -> {
+			Object v = param.getValue().getValue();
+			if (v instanceof DBConn_Parameters) {
+				return new ReadOnlyObjectWrapper<LocalDate>(((DBConn_Parameters) v).getLastConn());
+			}
+			return new ReadOnlyObjectWrapper<LocalDate>(null);
+		});
+		treeTableColumn_counter.setCellValueFactory(param -> {
+			Object v = param.getValue().getValue();
+			if (v instanceof DBConn_Parameters) {
+				return new ReadOnlyObjectWrapper<Integer>(((DBConn_Parameters) v).getCounter());
+			}
+			return new ReadOnlyObjectWrapper<Integer>(null);
+		});
+
+		// сортування порожніх (папки) — nulls першими
+		treeTableColumn_AutoConn.setComparator(Comparator.nullsFirst(Comparator.naturalOrder()));
+		treeTableColumn_lastConn.setComparator(Comparator.nullsFirst(Comparator.naturalOrder()));
+		treeTableColumn_counter.setComparator(Comparator.nullsFirst(Comparator.naturalOrder()));
+
+		//======== ширина колонок (зберігається, як в інших деревах проєкту)
+		initColumnWidth(treeTableColumn_ConnName, "DBConnList__treeTableColumn_ConnName__PrefWidth");
+		initColumnWidth(treeTableColumn_Descr, "DBConnList__treeTableColumn_Descr__PrefWidth");
+		initColumnWidth(treeTableColumn_Type, "DBConnList__treeTableColumn_Type__PrefWidth");
+		initColumnWidth(treeTableColumn_Host, "DBConnList__treeTableColumn_Host__PrefWidth");
+		initColumnWidth(treeTableColumn_Port, "DBConnList__treeTableColumn_Port__PrefWidth");
+		initColumnWidth(treeTableColumn_Name, "DBConnList__treeTableColumn_Name__PrefWidth");
+		initColumnWidth(treeTableColumn_Login, "DBConnList__treeTableColumn_Login__PrefWidth");
+		initColumnWidth(treeTableColumn_AutoConn, "DBConnList__treeTableColumn_AutoConn__PrefWidth");
+		initColumnWidth(treeTableColumn_lastConn, "DBConnList__treeTableColumn_lastConn__PrefWidth");
+		initColumnWidth(treeTableColumn_counter, "DBConnList__treeTableColumn_counter__PrefWidth");
+
+		//======== вигляд клітинок
+		treeTableColumn_ConnName.setCellFactory(ttc -> new TreeTableCell<Object, String>() {
+			@Override
+			protected void updateItem(String item, boolean empty) {
+				super.updateItem(item, empty);
+				TreeTableRow<Object> row = getTreeTableRow();
+				Object v = (row == null) ? null : row.getItem();
+				if (empty || v == null) {
+					setText(null);
+					setGraphic(null);
+					setStyle("");
+					setTooltip(null);
+					return;
+				}
+				if (v instanceof DBConnFolder) {
+					DBConnFolder f = (DBConnFolder) v;
+					int cnt = f.getFolders().size() + f.getConnections().size();
+					setText((item == null ? "" : item) + (cnt > 0 ? " (" + cnt + ")" : ""));
+					setGraphic(new ImageView(folderIcon));
+					setStyle("");
+					String tip = (f.getDescr() != null && !f.getDescr().isEmpty()) ? f.getDescr() : "Папка";
+					setTooltip(new Tooltip(tip));
+				} else if (v instanceof DBConn_Parameters) {
+					DBConn_Parameters c = (DBConn_Parameters) v;
+					boolean open = isConnectionActive(c.getConnId());
+					setText((item == null ? "" : item) + (open ? "  ●" : ""));
+					setGraphic(new ImageView(getTypeIcon(c.getType())));
+					setTooltip(new Tooltip(buildConnTooltip(c, open)));
+					styleConnectionCell(this, c);
+				} else {
+					setText(item);
+					setGraphic(new ImageView(folderIcon));
+					setStyle("");
+					setTooltip(null);
+				}
+			}
+		});
+
+		treeTableColumn_Descr.setCellFactory(ttc -> createTextCell());
+		treeTableColumn_Type.setCellFactory(ttc -> createTextCell());
+		treeTableColumn_Host.setCellFactory(ttc -> createTextCell());
+		treeTableColumn_Port.setCellFactory(ttc -> createTextCell());
+		treeTableColumn_Name.setCellFactory(ttc -> createTextCell());
+		treeTableColumn_Login.setCellFactory(ttc -> createTextCell());
+
+		treeTableColumn_AutoConn.setCellFactory(ttc -> new TreeTableCell<Object, Boolean>() {
+			private final CheckBox checkBox = new CheckBox();
+			{
+				checkBox.setDisable(true);
+				checkBox.setFocusTraversable(false);
+				setAlignment(Pos.CENTER);
+			}
+			@Override
+			protected void updateItem(Boolean item, boolean empty) {
+				super.updateItem(item, empty);
+				if (empty) {
+					setText(null);
+					setGraphic(null);
+					setStyle("");
+					return;
+				}
+				TreeTableRow<Object> row = getTreeTableRow();
+				Object v = (row == null) ? null : row.getItem();
+				if (v instanceof DBConn_Parameters) {
+					checkBox.setSelected(item != null && item);
+					setText(null);
+					setGraphic(checkBox);
+					styleConnectionCell(this, (DBConn_Parameters) v);
+				} else {
+					setText(null);
+					setGraphic(null);
+					setStyle("");
+				}
+			}
+		});
+
+		treeTableColumn_lastConn.setCellFactory(ttc -> new TreeTableCell<Object, LocalDate>() {
+			@Override
+			protected void updateItem(LocalDate item, boolean empty) {
+				super.updateItem(item, empty);
+				if (empty) {
+					setText(null);
+					setGraphic(null);
+					setStyle("");
+					return;
+				}
+				setText(item == null ? "" : item.toString());
+				setGraphic(null);
+				TreeTableRow<Object> row = getTreeTableRow();
+				Object v = (row == null) ? null : row.getItem();
+				if (v instanceof DBConn_Parameters) {
+					styleConnectionCell(this, (DBConn_Parameters) v);
+				} else {
+					setStyle("");
+				}
+			}
+		});
+
+		treeTableColumn_counter.setCellFactory(ttc -> new TreeTableCell<Object, Integer>() {
+			@Override
+			protected void updateItem(Integer item, boolean empty) {
+				super.updateItem(item, empty);
+				if (empty) {
+					setText(null);
+					setGraphic(null);
+					setStyle("");
+					return;
+				}
+				setText(item == null ? "" : item.toString());
+				setGraphic(null);
+				TreeTableRow<Object> row = getTreeTableRow();
+				Object v = (row == null) ? null : row.getItem();
+				if (v instanceof DBConn_Parameters) {
+					styleConnectionCell(this, (DBConn_Parameters) v);
+				} else {
+					setStyle("");
+				}
+			}
+		});
+
+		//======== збереження сортування (як в інших деревах проєкту)
+		treeTableView_Connections.getSortOrder().addListener((ListChangeListener<TreeTableColumn<Object, ?>>) change -> {
+			if (!change.getList().isEmpty()) {
+				TreeTableColumn<Object, ?> sortedColumn = change.getList().get(0);
+				prefs.put("stageDBConnList_sortColumnId", sortedColumn.getId());
+				prefs.put("stageDBConnList_sortType", sortedColumn.getSortType().toString());
+			}
+		});
+
+		for (TreeTableColumn<Object, ?> column : treeTableView_Connections.getColumns()) {
+			column.sortTypeProperty().addListener((obs, oldVal, newVal) -> {
+				if (treeTableView_Connections.getSortOrder().contains(column)) {
+					prefs.put("stageDBConnList_sortColumnId", column.getId());
+					prefs.put("stageDBConnList_sortType", newVal.toString());
+				}
+			});
+		}
+	}
+
+	/**
+	 * Ширина колонки: відновлення зі сховища + збереження при зміні.
+	 */
+	private void initColumnWidth(TreeTableColumn<Object, ?> column, String prefKey) {
+		column.setPrefWidth(prefs.getDouble(prefKey, column.getPrefWidth()));
+		column.widthProperty().addListener((obs, oldVal, newVal) -> prefs.putDouble(prefKey, newVal.doubleValue()));
+	}
+
+	/**
+	 * Текстова клітинка з кольорами з'єднання.
+	 */
+	private TreeTableCell<Object, String> createTextCell() {
+		return new TreeTableCell<Object, String>() {
+			@Override
+			protected void updateItem(String item, boolean empty) {
+				super.updateItem(item, empty);
+				if (empty) {
+					setText(null);
+					setGraphic(null);
+					setStyle("");
+					return;
+				}
+				setText(item);
+				setGraphic(null);
+				TreeTableRow<Object> row = getTreeTableRow();
+				Object v = (row == null) ? null : row.getItem();
+				if (v instanceof DBConn_Parameters) {
+					styleConnectionCell(this, (DBConn_Parameters) v);
+				} else {
+					setStyle("");
+				}
+			}
+		};
+	}
+
+	/**
+	 * Кольори клітинки з'єднання: вибраний елемент — активні кольори, решта — неактивні.
+	 * Відкрите з'єднання позначається лише маркером ● (не кольором).
+	 */
+	private void styleConnectionCell(TreeTableCell<?, ?> cell, DBConn_Parameters c) {
+		boolean selected = cell.getTreeTableRow() != null && cell.getTreeTableRow().isSelected();
+		boolean open = isConnectionActive(c.getConnId());
+		if (c.getColorEnable()) {
+			try {
+				Color tc;
+				Color bc;
+				if (selected) {
+					tc = new Color(c.getColorTRed_A(), c.getColorTGreen_A(), c.getColorTBlue_A(), c.getColorTOpacity_A());
+					bc = new Color(c.getColorBRed_A(), c.getColorBGreen_A(), c.getColorBBlue_A(), c.getColorBOpacity_A());
+				} else {
+					tc = new Color(c.getColorTRed_N(), c.getColorTGreen_N(), c.getColorTBlue_N(), c.getColorTOpacity_N());
+					bc = new Color(c.getColorBRed_N(), c.getColorBGreen_N(), c.getColorBBlue_N(), c.getColorBOpacity_N());
+				}
+				cell.setStyle("-fx-text-fill: #" + ConvertType.colorToHex(tc) + "; "
+						+ "-fx-background-color: #" + ConvertType.colorToHex(bc) + ";"
+						+ (open ? " -fx-font-weight: bold;" : ""));
+			} catch (Exception e) {
+				cell.setStyle(open ? "-fx-font-weight: bold;" : "");
+			}
+		} else {
+			cell.setStyle(open ? "-fx-font-weight: bold;" : "");
+		}
+	}
+
+	/**
+	 * Підказка для з'єднання.
+	 */
+	private String buildConnTooltip(DBConn_Parameters c, boolean open) {
+		StringBuilder sb = new StringBuilder();
+		if (c.getDescr() != null && !c.getDescr().isEmpty()) {
+			sb.append(c.getDescr()).append("\n");
+		}
+		sb.append(typeTitle(c.getType()));
+		if (c.getHost() != null && !c.getHost().isEmpty()) {
+			sb.append("  ").append(c.getHost());
+		}
+		if (c.getPort() != null && !c.getPort().isEmpty()) {
+			sb.append(":").append(c.getPort());
+		}
+		if (c.getName() != null && !c.getName().isEmpty()) {
+			sb.append(" / ").append(c.getName());
+		}
+		if (open) {
+			sb.append("\nВідкрите ●");
+		}
+		return sb.toString();
 	}
 
 	private void loadIcons() {
@@ -300,7 +590,7 @@ public class DBConnList_Controller {
 	}
 
 	/**
-	 * Чи підключення зараз активне (відкрите).
+	 * Чи підключення зараз відкрите.
 	 */
 	private boolean isConnectionActive(int connId) {
 		if (params == null || params.getConnDB() == null) {
@@ -315,18 +605,44 @@ public class DBConnList_Controller {
 	}
 
 	/**
+	 * Відновлення збереженого сортування (як в інших деревах проєкту).
+	 */
+	private void restoreSort() {
+		String sortColumnId = prefs.get("stageDBConnList_sortColumnId", "");
+		if (sortColumnId == null || sortColumnId.isEmpty()) {
+			return;
+		}
+		for (TreeTableColumn<Object, ?> column : treeTableView_Connections.getColumns()) {
+			if (sortColumnId.equals(column.getId())) {
+				String sortType = prefs.get("stageDBConnList_sortType", "ASCENDING");
+				treeTableView_Connections.setSortMode(TreeSortMode.ALL_DESCENDANTS);
+				column.setSortable(true);
+				if (!treeTableView_Connections.getSortOrder().contains(column)) {
+					treeTableView_Connections.getSortOrder().add(column);
+				}
+				if ("DESCENDING".equals(sortType)) {
+					column.setSortType(TreeTableColumn.SortType.DESCENDING);
+				} else {
+					column.setSortType(TreeTableColumn.SortType.ASCENDING);
+				}
+				treeTableView_Connections.sort();
+			}
+		}
+	}
+
+	/**
 	 * Побудова дерева зі збереженням розкриття та вибору.
 	 */
 	private void buildTree() {
 		Set<Integer> expanded = new HashSet<>();
 		Object selectedValue = null;
-		TreeItem<Object> curSel = treeView_Connections.getSelectionModel().getSelectedItem();
+		TreeItem<Object> curSel = treeTableView_Connections.getSelectionModel().getSelectedItem();
 		if (curSel != null && curSel.getValue() != null) {
 			selectedValue = curSel.getValue();
 		}
-		collectExpanded(treeView_Connections.getRoot(), expanded);
+		collectExpanded(treeTableView_Connections.getRoot(), expanded);
 
-		TreeItem<Object> root = new TreeItem<>((Object) "ROOT");
+		TreeItem<Object> root = new TreeItem<>((Object) "Підключення");
 		root.setExpanded(true);
 
 		List<DBConnFolder> sortedFolders = new ArrayList<>(dbTree.folders);
@@ -340,7 +656,7 @@ public class DBConnList_Controller {
 			root.getChildren().add(new TreeItem<>((Object) c));
 		}
 
-		treeView_Connections.setRoot(root);
+		treeTableView_Connections.setRoot(root);
 		restoreExpanded(root, expanded, selectedValue);
 		// за замовчуванням розкриваємо перший рівень
 		if (expanded.isEmpty()) {
@@ -348,6 +664,7 @@ public class DBConnList_Controller {
 				ch.setExpanded(true);
 			}
 		}
+		restoreSort();
 	}
 
 	private TreeItem<Object> createFolderItem(DBConnFolder folder) {
@@ -390,7 +707,7 @@ public class DBConnList_Controller {
 		if (selectedValue != null) {
 			if (selectedValue instanceof DBConnFolder && item.getValue() instanceof DBConnFolder) {
 				if (((DBConnFolder) selectedValue).getFolderId() == ((DBConnFolder) item.getValue()).getFolderId()) {
-					treeView_Connections.getSelectionModel().select(item);
+					treeTableView_Connections.getSelectionModel().select(item);
 				}
 			} else if (selectedValue instanceof DBConn_Parameters && item.getValue() instanceof DBConn_Parameters) {
 				if (((DBConn_Parameters) selectedValue).getConnId() == ((DBConn_Parameters) item.getValue()).getConnId()) {
@@ -399,7 +716,11 @@ public class DBConnList_Controller {
 					if (fresh != null) {
 						item.setValue(fresh);
 					}
-					treeView_Connections.getSelectionModel().select(item);
+					treeTableView_Connections.getSelectionModel().select(item);
+				}
+			} else if (selectedValue instanceof String && item.getValue() instanceof String) {
+				if (selectedValue.equals(item.getValue())) {
+					treeTableView_Connections.getSelectionModel().select(item);
 				}
 			}
 		}
@@ -410,11 +731,10 @@ public class DBConnList_Controller {
 
 	private void refreshTree() {
 		buildTree();
-		treeView_Connections.refresh();
 	}
 
 	private DBConn_Parameters getSelectedConnection() {
-		TreeItem<Object> sel = treeView_Connections.getSelectionModel().getSelectedItem();
+		TreeItem<Object> sel = treeTableView_Connections.getSelectionModel().getSelectedItem();
 		if (sel != null && sel.getValue() instanceof DBConn_Parameters) {
 			return (DBConn_Parameters) sel.getValue();
 		}
@@ -422,7 +742,7 @@ public class DBConnList_Controller {
 	}
 
 	private DBConnFolder getSelectedFolder() {
-		TreeItem<Object> sel = treeView_Connections.getSelectionModel().getSelectedItem();
+		TreeItem<Object> sel = treeTableView_Connections.getSelectionModel().getSelectedItem();
 		if (sel != null && sel.getValue() instanceof DBConnFolder) {
 			return (DBConnFolder) sel.getValue();
 		}
@@ -433,7 +753,7 @@ public class DBConnList_Controller {
 	 * Папка-призначення для створення (папка вибору або батько з'єднання або корінь).
 	 */
 	private int getTargetFolderIdForAdd() {
-		TreeItem<Object> sel = treeView_Connections.getSelectionModel().getSelectedItem();
+		TreeItem<Object> sel = treeTableView_Connections.getSelectionModel().getSelectedItem();
 		if (sel == null || sel.getValue() == null) {
 			return DBConnTree_Parameters.ROOT_FOLDER_ID;
 		}
@@ -459,6 +779,16 @@ public class DBConnList_Controller {
 		prefs.putDouble("stageDBConnList_Height", dialogStage.getHeight());
 		prefs.putDouble("stageDBConnList_PosX", dialogStage.getX());
 		prefs.putDouble("stageDBConnList_PosY", dialogStage.getY());
+
+		//-------- sort
+		if (treeTableView_Connections.getSortOrder().size() > 0) {
+			currentSortColumn = (TreeTableColumn) treeTableView_Connections.getSortOrder().get(0);
+			prefs.put("stageDBConnList_sortColumnId", currentSortColumn.getId());
+			prefs.put("stageDBConnList_sortType", currentSortColumn.getSortType().toString());
+		} else {
+			prefs.remove("stageDBConnList_sortColumnId");
+			prefs.remove("stageDBConnList_sortType");
+		}
 	}
 
 	/**
@@ -499,7 +829,7 @@ public class DBConnList_Controller {
 	}
 
 	/**
-	 * Нова папка.
+	 * Нова папка. Без вибору або на корені — папка першого рівня.
 	 */
 	@FXML
 	private void handleButtonAddFolder() {
@@ -582,7 +912,7 @@ public class DBConnList_Controller {
 
 		DBConn_Parameters sel = getSelectedConnection();
 		if (sel == null) {
-			ShowAppMsg.showAlert("WARNING", "Немає вибору", "Не обрано з'єднання або папку", "Оберіть папку або з'єднання для редагування");
+			ShowAppMsg.showAlert("WARNING", "Немає вибору", "Не обрано з'єднання або папку", "Оберіть корінь, папку або з'єднання");
 			return;
 		}
 
@@ -621,12 +951,12 @@ public class DBConnList_Controller {
 	private void handleButtonDelete() {
 		DBConnFolder sf = getSelectedFolder();
 		if (sf != null) {
-			// забороняємо видалення папки з активними підключеннями
+			// забороняємо видалення папки з відкритими підключеннями
 			List<DBConn_Parameters> inside = new ArrayList<>();
 			collectFolderConnections(sf, inside);
 			for (DBConn_Parameters c : inside) {
 				if (isConnectionActive(c.getConnId())) {
-					ShowAppMsg.showAlert("WARNING", "Видалення", "Папка містить активне з'єднання '" + c.getConnName() + "'",
+					ShowAppMsg.showAlert("WARNING", "Видалення", "Папка містить відкрите з'єднання '" + c.getConnName() + "'",
 							"Спочатку від'єднайтесь");
 					return;
 				}
@@ -646,7 +976,7 @@ public class DBConnList_Controller {
 			return;
 		}
 		if (isConnectionActive(sel.getConnId())) {
-			ShowAppMsg.showAlert("WARNING", "Видалення", "З'єднання '" + sel.getConnName() + "' зараз активне",
+			ShowAppMsg.showAlert("WARNING", "Видалення", "З'єднання '" + sel.getConnName() + "' зараз відкрите",
 					"Спочатку від'єднайтесь");
 			return;
 		}
@@ -718,7 +1048,7 @@ public class DBConnList_Controller {
 			ShowAppMsg.showAlert("WARNING", "З'єднання", "З'єднання не відкрите", "");
 			return;
 		}
-		// коректно закриваємо та прибираємо зі списку активних
+		// коректно закриваємо та прибираємо зі списку відкритих
 		params.getConnDB().delete(toClose.Id);
 		params.getRootController().createConnectionIndicators();
 		refreshTree();
