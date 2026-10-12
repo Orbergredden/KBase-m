@@ -14,12 +14,22 @@ public class DBMainFactory {
 		DBMain retVal = null;
 		
 		switch (type) {
-		case DBConn_Parameters.TYPE_CONN_POSTGRES : 
+		case DBConn_Parameters.TYPE_CONN_POSTGRES :
 			retVal = new DBMainPostgres (params, host, port, name, user, password);
 			break;
 		case DBConn_Parameters.TYPE_CONN_SQLITE :
 			retVal = new DBMainSQLite (params, host, port, name, user, null);
 			break;
+		case DBConn_Parameters.TYPE_CONN_ORACLE :
+			throw new DataConnectionException(
+					DataConnectionException.ERRCODE_GET_CONNECTION, "newDBMain",
+					"Підключення типу Oracle поки не підтримується для бази знань",
+					null, 1, null, null);
+		default :
+			throw new DataConnectionException(
+					DataConnectionException.ERRCODE_GET_CONNECTION, "newDBMain",
+					"Невідомий тип підключення: " + type,
+					null, 1, null, null);
 		}
 		
 		return retVal;

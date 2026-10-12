@@ -29,6 +29,7 @@ public class DBConn_Parameters {
 	 */
 	public static final String TYPE_CONN_POSTGRES = "postgresql";
 	public static final String TYPE_CONN_SQLITE   = "sqlite";
+	public static final String TYPE_CONN_ORACLE   = "oracle";
 	
 	/**
 	 * Уникальное значение в списке соединений
@@ -38,6 +39,10 @@ public class DBConn_Parameters {
 	 * Название соединения в списке соединений
 	 */
 	private final StringProperty connName;
+	/**
+	 * Опис з'єднання (довільний текст)
+	 */
+	private final StringProperty descr;
 	// 
 	private final StringProperty type;
 	private final StringProperty host;
@@ -80,15 +85,35 @@ public class DBConn_Parameters {
 	 * Конструктор по умолчанию.
 	 */
 	public DBConn_Parameters() {
-		this(0, null, null, null, null, null, null, null, false,
+		this(0, null, null, null, null, null, null, null, null, false,
 			 null, 0,
 			 false, 0.0,0.0,0.0,0.0, 0.0,0.0,0.0,0.0, 0.0,0.0,0.0,0.0, 0.0,0.0,0.0,0.0);
 	}
 	
 	/**
 	 * Конструктор
+	 * @deprecated Використовуйте конструктор з descr
 	 */
+	@Deprecated
 	public DBConn_Parameters(int connId, String connName,
+			                 String type, String host, String port, String name, String login, KeyStorePrg.EncBlob password,
+			                 boolean autoConn, LocalDate lastConn, int counter, boolean colorEnable,
+			                 double colorTRed_A, double colorTGreen_A, double colorTBlue_A, double colorTOpacity_A,
+			                 double colorBRed_A, double colorBGreen_A, double colorBBlue_A, double colorBOpacity_A,
+			                 double colorTRed_N, double colorTGreen_N, double colorTBlue_N, double colorTOpacity_N,
+			                 double colorBRed_N, double colorBGreen_N, double colorBBlue_N, double colorBOpacity_N) {
+		this(connId, connName, "", type, host, port, name, login, password,
+			 autoConn, lastConn, counter, colorEnable,
+			 colorTRed_A, colorTGreen_A, colorTBlue_A, colorTOpacity_A,
+			 colorBRed_A, colorBGreen_A, colorBBlue_A, colorBOpacity_A,
+			 colorTRed_N, colorTGreen_N, colorTBlue_N, colorTOpacity_N,
+			 colorBRed_N, colorBGreen_N, colorBBlue_N, colorBOpacity_N);
+	}
+
+	/**
+	 * Конструктор
+	 */
+	public DBConn_Parameters(int connId, String connName, String descr,
 			                 String type, String host, String port, String name, String login, KeyStorePrg.EncBlob password,
 			                 boolean autoConn, LocalDate lastConn, int counter, boolean colorEnable,
 			                 double colorTRed_A, double colorTGreen_A, double colorTBlue_A, double colorTOpacity_A,
@@ -97,6 +122,7 @@ public class DBConn_Parameters {
 			                 double colorBRed_N, double colorBGreen_N, double colorBBlue_N, double colorBOpacity_N) {
 		this.connId   = new SimpleIntegerProperty(connId);
 		this.connName = new SimpleStringProperty(connName);
+		this.descr    = new SimpleStringProperty(descr);
 		this.type     = new SimpleStringProperty(type);
 		this.host     = new SimpleStringProperty(host);
 		this.port     = new SimpleStringProperty(port);
@@ -138,6 +164,7 @@ public class DBConn_Parameters {
 	public DBConn_Parameters(DBConn_Parameters connPar) {
 		this.connId   = new SimpleIntegerProperty(connPar.getConnId());
 		this.connName = new SimpleStringProperty(connPar.getConnName());
+		this.descr    = new SimpleStringProperty(connPar.getDescr());
 		this.type     = new SimpleStringProperty(connPar.getType());
 		this.host     = new SimpleStringProperty(connPar.getHost());
 		this.port     = new SimpleStringProperty(connPar.getPort());
@@ -192,6 +219,17 @@ public class DBConn_Parameters {
     }
     public StringProperty connNameProperty() {
         return connName;
+    }
+
+	// descr -- g,s,p
+	public String getDescr() {
+        return descr.get();
+    }
+    public void setDescr(String descr) {
+        this.descr.set(descr);
+    }
+    public StringProperty descrProperty() {
+        return descr;
     }
     
     // type -- g,s,p

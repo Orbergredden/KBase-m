@@ -10,7 +10,7 @@ import app.lib.LogFile;
 import app.lib.ShowAppMsg;
 import app.model.AppItem_Interface;
 import app.model.DBConCur_Parameters;
-import app.model.DBConnList_Parameters;
+import app.model.DBConnTree_Parameters;
 import app.model.DBConn_Parameters;
 import app.model.Params;
 import app.model.StateItem;
@@ -244,11 +244,12 @@ public class Main extends Application {
      * Открываем все соединения из списка с признаком Автоподключения
      */
     private void autoDbConnect () {
-    	DBConnList_Parameters dbConnList = new DBConnList_Parameters(params);
+    	DBConnTree_Parameters dbConnTree = new DBConnTree_Parameters(params);
+	java.util.List<DBConn_Parameters> allConns = dbConnTree.getAllConnections();
     	boolean autoConnPresent = false;
     
-    	for (int i=0; i<dbConnList.dbConnListParam.size(); i++) {
-    		DBConn_Parameters curConn = dbConnList.dbConnListParam.get(i);
+    	for (int i=0; i<allConns.size(); i++) {
+    		DBConn_Parameters curConn = allConns.get(i);
     		
     		if (curConn.getAutoConn()) {
     	    	if (dbConnect(new DBConn_Parameters(curConn)) != null) {          // передаем не ссылку а значения
@@ -263,7 +264,7 @@ public class Main extends Application {
     	
     	// save to disk
     	if (autoConnPresent) {
-    		dbConnList.saveToFile();
+    		dbConnTree.saveToFile();
     	}
     }
     
@@ -607,7 +608,7 @@ public class Main extends Application {
 				case "tabCreateAction" :
 					switch (tabName) {
 						case AppItem_Interface.ELEMENT_SECTION_LIST :
-							for (DBConn_Parameters cp : new DBConnList_Parameters(params).dbConnListParam) {
+							for (DBConn_Parameters cp : new DBConnTree_Parameters(params).getAllConnections()) {
 								if (cp.getConnId() == tabDbConnId) {
 									DBConCur_Parameters conCur = dbConnect(cp);
 									
@@ -625,7 +626,7 @@ public class Main extends Application {
 							break;
 						case AppItem_Interface.ELEMENT_DOCUMENT_VIEW :
 						case AppItem_Interface.ELEMENT_DICTIONARY_VIEW :
-							for (DBConn_Parameters cp : new DBConnList_Parameters(params).dbConnListParam) {
+							for (DBConn_Parameters cp : new DBConnTree_Parameters(params).getAllConnections()) {
 								if (cp.getConnId() == tabDbConnId) {
 									conn = dbConnect(cp);
 									if (conn != null) {
@@ -651,7 +652,7 @@ public class Main extends Application {
 							}
 							break;	
 						case AppItem_Interface.ELEMENT_INFO_EDIT :
-							for (DBConn_Parameters cp : new DBConnList_Parameters(params).dbConnListParam) {
+							for (DBConn_Parameters cp : new DBConnTree_Parameters(params).getAllConnections()) {
 								if (cp.getConnId() == tabDbConnId) {
 									conn = dbConnect(cp);
 									if (conn != null) {
@@ -674,7 +675,7 @@ public class Main extends Application {
 							}
 							break;	
 						case AppItem_Interface.ELEMENT_ICON_LIST :
-							for (DBConn_Parameters cp : new DBConnList_Parameters(params).dbConnListParam) {
+							for (DBConn_Parameters cp : new DBConnTree_Parameters(params).getAllConnections()) {
 								if (cp.getConnId() == tabDbConnId) {
 									if (dbConnect(cp) != null) {
 										params.getRootController().handleCatalogIcons();
@@ -683,7 +684,7 @@ public class Main extends Application {
 							}
 							break;
 						case AppItem_Interface.ELEMENT_TEMPLATE_LIST :
-							for (DBConn_Parameters cp : new DBConnList_Parameters(params).dbConnListParam) {
+							for (DBConn_Parameters cp : new DBConnTree_Parameters(params).getAllConnections()) {
 								if (cp.getConnId() == tabDbConnId) {
 									if (dbConnect(cp) != null) {
 										params.getRootController().handleCatalogTemplates();
@@ -693,7 +694,7 @@ public class Main extends Application {
 							break;
 						case AppItem_Interface.ELEMENT_TASK_LIST :
 							if (tabDbConnId != 0) {
-								for (DBConn_Parameters cp : new DBConnList_Parameters(params).dbConnListParam) {
+								for (DBConn_Parameters cp : new DBConnTree_Parameters(params).getAllConnections()) {
 									if (cp.getConnId() == tabDbConnId) {
 										if (dbConnect(cp) != null) {
 											params.getRootController().handleTasks();
@@ -759,7 +760,7 @@ public class Main extends Application {
 				case "winCreateAction" :
 					switch (winClassName) {
 						case AppItem_Interface.ELEMENT_SECTION_LIST :
-							for (DBConn_Parameters cp : new DBConnList_Parameters(params).dbConnListParam) {
+							for (DBConn_Parameters cp : new DBConnTree_Parameters(params).getAllConnections()) {
 								if (cp.getConnId() == winDbConnId) {
 									conn = dbConnect(cp);
 									if (conn != null) {
@@ -778,7 +779,7 @@ public class Main extends Application {
 							break;
 						case AppItem_Interface.ELEMENT_DOCUMENT_VIEW :
 						case AppItem_Interface.ELEMENT_DICTIONARY_VIEW :
-							for (DBConn_Parameters cp : new DBConnList_Parameters(params).dbConnListParam) {
+							for (DBConn_Parameters cp : new DBConnTree_Parameters(params).getAllConnections()) {
 								if (cp.getConnId() == winDbConnId) {
 									conn = dbConnect(cp);
 									if (conn != null) {
@@ -805,7 +806,7 @@ public class Main extends Application {
 							}
 							break;
 						case AppItem_Interface.ELEMENT_INFO_EDIT :
-							for (DBConn_Parameters cp : new DBConnList_Parameters(params).dbConnListParam) {
+							for (DBConn_Parameters cp : new DBConnTree_Parameters(params).getAllConnections()) {
 								if (cp.getConnId() == winDbConnId) {
 									conn = dbConnect(cp);
 									if (conn != null) {

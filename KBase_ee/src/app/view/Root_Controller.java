@@ -589,7 +589,7 @@ public class Root_Controller implements Container_Interface {
 		
 			// Создаём диалоговое окно Stage.
 			Stage dialogStage = new Stage();
-			dialogStage.setTitle("Список параметров подключений");
+			dialogStage.setTitle("Дерево підключень до БД");
 			dialogStage.initModality(Modality.WINDOW_MODAL);
 			dialogStage.initOwner(params.getMainStage());
 			Scene scene = new Scene(page);
@@ -597,8 +597,8 @@ public class Root_Controller implements Container_Interface {
 			dialogStage.getIcons().setAll(params.getMainStage().getIcons());
 			
 			Preferences prefs = Preferences.userNodeForPackage(DBConnList_Controller.class);
-			dialogStage.setWidth(prefs.getDouble("stageDBConnList_Width", 600));
-			dialogStage.setHeight(prefs.getDouble("stageDBConnList_Height", 400));
+			dialogStage.setWidth(prefs.getDouble("stageDBConnList_Width", 945));
+			dialogStage.setHeight(prefs.getDouble("stageDBConnList_Height", 450));
 			dialogStage.setX(prefs.getDouble("stageDBConnList_PosX", 0));
 			dialogStage.setY(prefs.getDouble("stageDBConnList_PosY", 0));
 		

@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<DBConnTree_Parameters>
+	<DBConnFolder>
+		<folderId>1001</folderId>
+		<folderName>PostgreSQL</folderName>
+		<descr>Робочі підключення PostgreSQL</descr>
+		<DBConnFolder>
+			<folderId>1002</folderId>
+			<folderName>Тестові</folderName>
+			<descr>Тестові бази</descr>
+			<DBConn_Parameters>
+				<connId>1490251533</connId>
+				<connName>тест</connName>
+				<descr>Тестова база для перевірок</descr>
+				<type>postgresql</type>
+				<host>127.0.0.1</host>
+				<port>5432</port>
+				<name>kbase_test</name>
+				<login>kbase_admin</login>
+				<password/>
+				<autoConn>false</autoConn>
+				<lastConn>2025-09-12</lastConn>
+				<counter>62</counter>
+				<colorEnable>true</colorEnable>
+				<colorTRed_A>1.0</colorTRed_A>
+				<colorTGreen_A>1.0</colorTGreen_A>
+				<colorTBlue_A>0.0</colorTBlue_A>
+				<colorTOpacity_A>1.0</colorTOpacity_A>
+				<colorBRed_A>0.3019607961177826</colorBRed_A>
+				<colorBGreen_A>0.3019607961177826</colorBGreen_A>
+				<colorBBlue_A>0.3019607961177826</colorBBlue_A>
+				<colorBOpacity_A>1.0</colorBOpacity_A>
+				<colorTRed_N>0.0</colorTRed_N>
+				<colorTGreen_N>0.0</colorTGreen_N>
+				<colorTBlue_N>0.0</colorTBlue_N>
+				<colorTOpacity_N>1.0</colorTOpacity_N>
+				<colorBRed_N>0.800000011920929</colorBRed_N>
+				<colorBGreen_N>0.800000011920929</colorBGreen_N>
+				<colorBBlue_N>0.800000011920929</colorBBlue_N>
+				<colorBOpacity_N>1.0</colorBOpacity_N>
+			</DBConn_Parameters>
+		</DBConnFolder>
+		<DBConn_Parameters>
+			<connId>2123139511</connId>
+			<connName>DEMO</connName>
+			<descr>Демонстраційна база</descr>
+			<type>postgresql</type>
+			<host>127.0.0.1</host>
+			<port>5432</port>
+			<name>kbase_demo</name>
+			<login>kbase_admin</login>
+			<password/>
+			<autoConn>false</autoConn>
+			<lastConn>2023-10-20</lastConn>
+			<counter>66</counter>
+			<colorEnable>true</colorEnable>
+			<colorTRed_A>0.9490196108818054</colorTRed_A>
+			<colorTGreen_A>0.9490196108818054</colorTGreen_A>
+			<colorTBlue_A>0.9490196108818054</colorTBlue_A>
+			<colorTOpacity_A>1.0</colorTOpacity_A>
+			<colorBRed_A>0.05524388700723648</colorBRed_A>
+			<colorBGreen_A>0.48164162039756775</colorBGreen_A>
+			<colorBBlue_A>0.5860655903816223</colorBBlue_A>
+			<colorBOpacity_A>1.0</colorBOpacity_A>
+			<colorTRed_N>0.501960813999176</colorTRed_N>
+			<colorTGreen_N>0.3019607961177826</colorTGreen_N>
+			<colorTBlue_N>0.501960813999176</colorTBlue_N>
+			<colorTOpacity_N>1.0</colorTOpacity_N>
+			<colorBRed_N>0.7019608020782471</colorBRed_N>
+			<colorBGreen_N>0.9019607901573181</colorBGreen_N>
+			<colorBBlue_N>0.9019607901573181</colorBBlue_N>
+			<colorBOpacity_N>1.0</colorBOpacity_N>
+		</DBConn_Parameters>
+	</DBConnFolder>
+	<DBConnFolder>
+		<folderId>1003</folderId>
+		<folderName>Локальні</folderName>
+		<descr>Локальні файли SQLite</descr>
+		<DBConn_Parameters>
+			<connId>-33134969</connId>
+			<connName>test lite</connName>
+			<descr>Локальна SQLite база для експериментів</descr>
+			<type>sqlite</type>
+			<host>C:\_prog\KBase_db\KBase_test.db</host>
+			<port></port>
+			<name></name>
+			<login></login>
+			<password/>
+			<autoConn>false</autoConn>
+			<lastConn>2025-03-11</lastConn>
+			<counter>4</counter>
+			<colorEnable>true</colorEnable>
+			<colorTRed_A>1.0</colorTRed_A>
+			<colorTGreen_A>1.0</colorTGreen_A>
+			<colorTBlue_A>0.501960813999176</colorTBlue_A>
+			<colorTOpacity_A>1.0</colorTOpacity_A>
+			<colorBRed_A>0.4000000059604645</colorBRed_A>
+			<colorBGreen_A>0.6000000238418579</colorBGreen_A>
+			<colorBBlue_A>0.4000000059604645</colorBBlue_A>
+			<colorBOpacity_A>1.0</colorBOpacity_A>
+			<colorTRed_N>0.10196078568696976</colorTRed_N>
+			<colorTGreen_N>0.3019607961177826</colorTGreen_N>
+			<colorTBlue_N>0.10196078568696976</colorTBlue_N>
+			<colorTOpacity_N>1.0</colorTOpacity_N>
+			<colorBRed_N>0.6000000238418579</colorBRed_N>
+			<colorBGreen_N>0.800000011920929</colorBGreen_N>
+			<colorBBlue_N>0.6000000238418579</colorBBlue_N>
+			<colorBOpacity_N>1.0</colorBOpacity_N>
+		</DBConn_Parameters>
+	</DBConnFolder>
+	<DBConnFolder>
+		<folderId>1004</folderId>
+		<folderName>Oracle</folderName>
+		<descr>Підключення Oracle (поки не підтримуються для бази знань)</descr>
+		<DBConn_Parameters>
+			<connId>1005</connId>
+			<connName>oracle demo</connName>
+			<descr>Приклад Oracle підключення</descr>
+			<type>oracle</type>
+			<host>127.0.0.1</host>
+			<port>1521</port>
+			<name>ORCL</name>
+			<login>kbase_admin</login>
+			<password/>
+			<autoConn>false</autoConn>
+			<counter>0</counter>
+			<colorEnable>false</colorEnable>
+			<colorTRed_A>0.0</colorTRed_A>
+			<colorTGreen_A>0.0</colorTGreen_A>
+			<colorTBlue_A>0.0</colorTBlue_A>
+			<colorTOpacity_A>1.0</colorTOpacity_A>
+			<colorBRed_A>1.0</colorBRed_A>
+			<colorBGreen_A>1.0</colorBGreen_A>
+			<colorBBlue_A>1.0</colorBBlue_A>
+			<colorBOpacity_A>1.0</colorBOpacity_A>
+			<colorTRed_N>0.0</colorTRed_N>
+			<colorTGreen_N>0.0</colorTGreen_N>
+			<colorTBlue_N>0.0</colorTBlue_N>
+			<colorTOpacity_N>1.0</colorTOpacity_N>
+			<colorBRed_N>1.0</colorBRed_N>
+			<colorBGreen_N>1.0</colorBGreen_N>
+			<colorBBlue_N>1.0</colorBBlue_N>
+			<colorBOpacity_N>1.0</colorBOpacity_N>
+		</DBConn_Parameters>
+	</DBConnFolder>
+</DBConnTree_Parameters>

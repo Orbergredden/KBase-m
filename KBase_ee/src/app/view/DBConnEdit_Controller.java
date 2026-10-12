@@ -52,6 +52,8 @@ public class DBConnEdit_Controller {
     
     @FXML
 	private TextField textField_ConnName;
+	@FXML
+	private TextField textField_Descr;
     @FXML
 	private ComboBox<String> comboBox_Type;
     @FXML
@@ -139,15 +141,26 @@ public class DBConnEdit_Controller {
     	// инициализируем ComboBox "Тип БД"
     	OList_DBType = FXCollections.observableArrayList(
     			DBConn_Parameters.TYPE_CONN_POSTGRES,
-    			DBConn_Parameters.TYPE_CONN_SQLITE);
+    			DBConn_Parameters.TYPE_CONN_SQLITE,
+    			DBConn_Parameters.TYPE_CONN_ORACLE);
     	comboBox_Type.setItems(OList_DBType);
     	
     	// Додаємо слухач змін до ComboBox
     	comboBox_Type.setOnAction(event -> {
     		String selectedValue = comboBox_Type.getValue(); // Отримуємо обране значення
     		
+    		if (selectedValue == null) {
+    			return;
+    		}
+    		
     		if (selectedValue.equals(DBConn_Parameters.TYPE_CONN_POSTGRES)) {
     			label_Host.setText("Сервер");
+    			textField_Port.setDisable(false);
+    			textField_Name.setDisable(false);
+    			textField_Login.setDisable(false);
+    			passwordField_Password.setDisable(false);
+    		} else if (selectedValue.equals(DBConn_Parameters.TYPE_CONN_ORACLE)) {
+    			label_Host.setText("Сервер (TNS/хост)");
     			textField_Port.setDisable(false);
     			textField_Name.setDisable(false);
     			textField_Login.setDisable(false);
@@ -172,6 +185,7 @@ public class DBConnEdit_Controller {
     	} else if (actionType == 2) {         // update
     		if (selectedConnPar != null) {
     			textField_ConnName.setText(selectedConnPar.getConnName());
+    			textField_Descr.setText(selectedConnPar.getDescr() == null ? "" : selectedConnPar.getDescr());
     			
     			comboBox_Type.setValue(selectedConnPar.getType());
     			comboBox_Type.setDisable(true);
@@ -212,7 +226,7 @@ public class DBConnEdit_Controller {
     			colorPicker_Bgnd_N.setValue(new Color(selectedConnPar.getColorBRed_N(),  selectedConnPar.getColorBGreen_N(),
                                                       selectedConnPar.getColorBBlue_N(), selectedConnPar.getColorBOpacity_N()));
     		} else {
-    			ShowAppMsg.showAlert("WARNING", "Нет выбора", "Не выбрано соединение", "Закройте окно и выберите соединение для редактирования");
+    			ShowAppMsg.showAlert("WARNING", "Немає вибору", "Не обрано з'єднання", "Закрийте вікно та оберіть з'єднання для редагування");
     		}
     	}
     	
@@ -274,26 +288,31 @@ public class DBConnEdit_Controller {
     	prefs.putDouble("stageDBConnEdit_PosX",  dialogStage.getX());
     	prefs.putDouble("stageDBConnEdit_PosY",  dialogStage.getY());
 
-        //---------- check data in fields
-    	if ((textField_ConnName.getText().equals("") || (textField_ConnName.getText() == null))) {
-    		ShowAppMsg.showAlert("WARNING", "Нет данных", "Не заполнено поле 'Название соединения'", "Укажите значение поля");
+        //---------- перевірка даних у полях
+    	if ((textField_ConnName.getText() == null) || (textField_ConnName.getText().equals(""))) {
+    		ShowAppMsg.showAlert("WARNING", "Немає даних", "Не заповнено поле 'Назва з'єднання'", "Вкажіть значення поля");
     		return;
         }
-    	if ((textField_Host.getText().equals("") || (textField_Host.getText() == null))) {
-    		ShowAppMsg.showAlert("WARNING", "Нет данных", "Не заполнено поле 'Сервер'", "Укажите значение поля");
+    	if ((textField_Host.getText() == null) || (textField_Host.getText().equals(""))) {
+    		ShowAppMsg.showAlert("WARNING", "Немає даних", "Не заповнено поле 'Сервер'", "Вкажіть значення поля");
     		return;
         }
-    	if (comboBox_Type.equals(DBConn_Parameters.TYPE_CONN_POSTGRES)) {
-    		if ((textField_Port.getText().equals("") || (textField_Port.getText() == null))) {
-        		ShowAppMsg.showAlert("WARNING", "Нет данных", "Не заполнено поле 'Порт'", "Укажите значение поля");
+    	String selType = comboBox_Type.getValue();
+    	if ((selType == null)) {
+    		ShowAppMsg.showAlert("WARNING", "Немає даних", "Не обрано тип БД", "Оберіть тип БД");
+    		return;
+        }
+    	if (selType.equals(DBConn_Parameters.TYPE_CONN_POSTGRES) || selType.equals(DBConn_Parameters.TYPE_CONN_ORACLE)) {
+    		if ((textField_Port.getText() == null) || (textField_Port.getText().equals(""))) {
+        		ShowAppMsg.showAlert("WARNING", "Немає даних", "Не заповнено поле 'Порт'", "Вкажіть значення поля");
         		return;
             }
-        	if ((textField_Name.getText().equals("") || (textField_Name.getText() == null))) {
-        		ShowAppMsg.showAlert("WARNING", "Нет данных", "Не заполнено поле 'Имя БД'", "Укажите значение поля");
+        	if ((textField_Name.getText() == null) || (textField_Name.getText().equals(""))) {
+        		ShowAppMsg.showAlert("WARNING", "Немає даних", "Не заповнено поле 'Ім'я БД'", "Вкажіть значення поля");
         		return;
             }
-        	if ((textField_Login.getText().equals("") || (textField_Login.getText() == null))) {
-        		ShowAppMsg.showAlert("WARNING", "Нет данных", "Не заполнено поле 'Логин'", "Укажите значение поля");
+        	if ((textField_Login.getText() == null) || (textField_Login.getText().equals(""))) {
+        		ShowAppMsg.showAlert("WARNING", "Немає даних", "Не заповнено поле 'Логін'", "Вкажіть значення поля");
         		return;
             }
     	}
@@ -310,7 +329,7 @@ public class DBConnEdit_Controller {
 		try {
 			blob = KeyStorePrg.encrypt(params, password, "aes-v1", "db-1");
 			dbConnListC.edit(actionType, 
-			         new DBConn_Parameters(connId, textField_ConnName.getText(), comboBox_Type.getValue(), 
+			         new DBConn_Parameters(connId, textField_ConnName.getText(), textField_Descr.getText() == null ? "" : textField_Descr.getText(), comboBox_Type.getValue(), 
 			        		               textField_Host.getText(), textField_Port.getText(), textField_Name.getText(), 
 			        		               textField_Login.getText(), blob,
 			        		               checkBox_AutoConn.isSelected() ,null, 0, checkBox_ColorUse.isSelected(),
