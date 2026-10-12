@@ -11,7 +11,9 @@ import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.Marshaller;
@@ -536,6 +538,94 @@ public class DBConnTree_Parameters {
 			}
 		}
 		return false;
+	}
+
+	/**
+	 * Копіювати підключення в іншу папку.
+	 * Копія отримує новий Id, суфікс " (копія)" в назві, скинуті лічильник і дату.
+	 * @return копія або null (якщо джерело не знайдено)
+	 */
+	public DBConn_Parameters copyConnection(int connId, int targetFolderId) {
+		DBConn_Parameters src = findConnectionById(connId);
+		if (src == null) {
+			return null;
+		}
+		DBConn_Parameters np = new DBConn_Parameters(src);
+		np.setConnId(generateUniqueId());
+		np.setConnName(src.getConnName() + " (копія)");
+		np.setLastConn(null);
+		np.setCounter(0);
+		if (targetFolderId == ROOT_FOLDER_ID) {
+			rootConnections.add(np);
+		} else {
+			DBConnFolder parent = findFolderById(targetFolderId);
+			if (parent == null) {
+				rootConnections.add(np);
+			} else {
+				parent.getConnections().add(np);
+			}
+		}
+		return np;
+	}
+
+	/**
+	 * Копіювати папку з усім вмістом в іншу папку.
+	 * Усі вкладені папки і підключення отримують нові Id.
+	 * @return копія або null (якщо джерело/ціль не знайдено або ціль усередині самої папки)
+	 */
+	public DBConnFolder copyFolder(int folderId, int targetFolderId) {
+		DBConnFolder src = findFolderById(folderId);
+		if (src == null) {
+			return null;
+		}
+		if (targetFolderId != ROOT_FOLDER_ID) {
+			if (findFolderById(targetFolderId) == null) {
+				return null;
+			}
+			if (targetFolderId == folderId || isDescendant(src, targetFolderId)) {
+				return null;
+			}
+		}
+		Set<Integer> reserved = new HashSet<>();
+		DBConnFolder np = deepCopyFolder(src, true, reserved);
+		if (targetFolderId == ROOT_FOLDER_ID) {
+			folders.add(np);
+		} else {
+			findFolderById(targetFolderId).getFolders().add(np);
+		}
+		return np;
+	}
+
+	/**
+	 * Глибока копія папки з новими Id (суфікс " (копія)" лише на верхньому рівні).
+	 */
+	private DBConnFolder deepCopyFolder(DBConnFolder src, boolean withSuffix, Set<Integer> reserved) {
+		DBConnFolder np = new DBConnFolder(newId(reserved),
+				withSuffix ? src.getFolderName() + " (копія)" : src.getFolderName(),
+				src.getDescr());
+		for (DBConn_Parameters c : src.getConnections()) {
+			DBConn_Parameters cp = new DBConn_Parameters(c);
+			cp.setConnId(newId(reserved));
+			cp.setLastConn(null);
+			cp.setCounter(0);
+			np.getConnections().add(cp);
+		}
+		for (DBConnFolder sub : src.getFolders()) {
+			np.getFolders().add(deepCopyFolder(sub, false, reserved));
+		}
+		return np;
+	}
+
+	/**
+	 * Новий Id з урахуванням вже зарезервованих у поточній операції.
+	 */
+	private int newId(Set<Integer> reserved) {
+		int id = generateUniqueId();
+		while (reserved.contains(id)) {
+			id++;
+		}
+		reserved.add(id);
+		return id;
 	}
 
 	/**

@@ -44,6 +44,14 @@ import javafx.scene.control.TreeTableRow;
 import javafx.scene.control.TreeTableView;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.ClipboardContent;
+import javafx.scene.input.DragEvent;
+import javafx.scene.input.Dragboard;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyCodeCombination;
+import javafx.scene.input.KeyCombination;
+import javafx.scene.input.KeyEvent;
+import javafx.scene.input.TransferMode;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.paint.Color;
@@ -96,6 +104,9 @@ public class DBConnList_Controller {
 	private TreeTableColumn<Object, Integer> treeTableColumn_counter;
 
 	@FXML
+	private CheckBox checkBox_ShowColors;
+
+	@FXML
 	private MenuItem menuitem_AddFolder;
 	@FXML
 	private MenuItem menuitem_Add;
@@ -103,6 +114,14 @@ public class DBConnList_Controller {
 	private MenuItem menuitem_Edit;
 	@FXML
 	private MenuItem menuitem_Delete;
+	@FXML
+	private MenuItem menuitem_Cut;
+	@FXML
+	private MenuItem menuitem_Copy;
+	@FXML
+	private MenuItem menuitem_Paste;
+	@FXML
+	private MenuItem menuitem_Duplicate;
 	@FXML
 	private MenuItem menuitem_Connect;
 	@FXML
@@ -132,6 +151,23 @@ public class DBConnList_Controller {
 	 * Папка-призначення для нового підключення (встановлюється перед діалогом додавання)
 	 */
 	private int pendingParentFolderId = DBConnTree_Parameters.ROOT_FOLDER_ID;
+
+	/**
+	 * Показувати елементи в кольорах з'єднань (стан чекбокса, зберігається).
+	 */
+	private boolean showColors = true;
+
+	/**
+	 * Буфер обміну для вирізання/копіювання (лише один з Id встановлено).
+	 */
+	private Integer clipboardFolderId = null;
+	private Integer clipboardConnId = null;
+	private boolean clipboardIsCut = false;
+
+	/**
+	 * Ctrl утримується під час перетягування (копія замість переміщення).
+	 */
+	private boolean dndCopyModifier = false;
 
 	private Image folderIcon;
 	private Image postgresIcon;
@@ -173,12 +209,25 @@ public class DBConnList_Controller {
 		loadIcons();
 		initColumns();
 
+		// чекбокс показу кольорів (стан зберігається)
+		showColors = prefs.getBoolean("DBConnList_showColors", true);
+		checkBox_ShowColors.setSelected(showColors);
+		checkBox_ShowColors.selectedProperty().addListener((obs, oldVal, newVal) -> {
+			showColors = newVal;
+			prefs.putBoolean("DBConnList_showColors", newVal);
+			treeTableView_Connections.refresh();
+		});
+
 		treeTableView_Connections.setShowRoot(true);
 		buildTree();
+		initDragAndDrop();
 
 		// перефарбування при навігації: вибраний елемент — активні кольори, решта — неактивні
 		treeTableView_Connections.getSelectionModel().selectedItemProperty().addListener(
-				(observable, oldValue, newValue) -> treeTableView_Connections.refresh());
+				(observable, oldValue, newValue) -> {
+					treeTableView_Connections.refresh();
+					updateClipboardMenuState();
+				});
 
 		treeTableView_Connections.setOnMouseClicked(event -> {
 			if (event.getClickCount() == 2) {
@@ -199,6 +248,10 @@ public class DBConnList_Controller {
 		menuitem_Add.setGraphic(new ImageView(new Image("file:resources/images/icon_add_16.png")));
 		menuitem_Edit.setGraphic(new ImageView(new Image("file:resources/images/icon_edit_16.png")));
 		menuitem_Delete.setGraphic(new ImageView(new Image("file:resources/images/icon_delete_16.png")));
+		menuitem_Cut.setGraphic(new ImageView(new Image("file:resources/images/icon_cut_16.png")));
+		menuitem_Copy.setGraphic(new ImageView(new Image("file:resources/images/icon_copy_16.png")));
+		menuitem_Paste.setGraphic(new ImageView(new Image("file:resources/images/icon_paste_16.png")));
+		menuitem_Duplicate.setGraphic(new ImageView(new Image("file:resources/images/icon_copy_16.png")));
 		menuitem_Connect.setGraphic(new ImageView(new Image("file:resources/images/icon_Connect_16.png")));
 		menuitem_Disconnect.setGraphic(new ImageView(new Image("file:resources/images/icon_disconnect_16.png")));
 
@@ -210,6 +263,20 @@ public class DBConnList_Controller {
 		button_Connect.setGraphic(new ImageView(new Image("file:resources/images/icon_Connect_16.png")));
 		button_Disconnect.setGraphic(new ImageView(new Image("file:resources/images/icon_disconnect_16.png")));
 		button_Exit.setGraphic(new ImageView(new Image("file:resources/images/icon_close_16.png")));
+
+		// гарячі клавіші буфера обміну (працюють і при закритому контекстному меню)
+		if (dialogStage != null && dialogStage.getScene() != null) {
+			dialogStage.getScene().getAccelerators().put(
+					new KeyCodeCombination(KeyCode.X, KeyCombination.CONTROL_DOWN), this::handleMenuCut);
+			dialogStage.getScene().getAccelerators().put(
+					new KeyCodeCombination(KeyCode.C, KeyCombination.CONTROL_DOWN), this::handleMenuCopy);
+			dialogStage.getScene().getAccelerators().put(
+					new KeyCodeCombination(KeyCode.V, KeyCombination.CONTROL_DOWN), this::handleMenuPaste);
+			dialogStage.getScene().getAccelerators().put(
+					new KeyCodeCombination(KeyCode.D, KeyCombination.CONTROL_DOWN), this::handleMenuDuplicate);
+		}
+
+		updateClipboardMenuState();
 	}
 
 	/**
@@ -492,24 +559,24 @@ public class DBConnList_Controller {
 	private void styleConnectionCell(TreeTableCell<?, ?> cell, DBConn_Parameters c) {
 		boolean selected = cell.getTreeTableRow() != null && cell.getTreeTableRow().isSelected();
 		boolean open = isConnectionActive(c.getConnId());
-		if (c.getColorEnable()) {
-			try {
-				Color tc;
-				Color bc;
-				if (selected) {
-					tc = new Color(c.getColorTRed_A(), c.getColorTGreen_A(), c.getColorTBlue_A(), c.getColorTOpacity_A());
-					bc = new Color(c.getColorBRed_A(), c.getColorBGreen_A(), c.getColorBBlue_A(), c.getColorBOpacity_A());
-				} else {
-					tc = new Color(c.getColorTRed_N(), c.getColorTGreen_N(), c.getColorTBlue_N(), c.getColorTOpacity_N());
-					bc = new Color(c.getColorBRed_N(), c.getColorBGreen_N(), c.getColorBBlue_N(), c.getColorBOpacity_N());
-				}
-				cell.setStyle("-fx-text-fill: #" + ConvertType.colorToHex(tc) + "; "
-						+ "-fx-background-color: #" + ConvertType.colorToHex(bc) + ";"
-						+ (open ? " -fx-font-weight: bold;" : ""));
-			} catch (Exception e) {
-				cell.setStyle(open ? "-fx-font-weight: bold;" : "");
+		if (!showColors || !c.getColorEnable()) {
+			cell.setStyle(open ? "-fx-font-weight: bold;" : "");
+			return;
+		}
+		try {
+			Color tc;
+			Color bc;
+			if (selected) {
+				tc = new Color(c.getColorTRed_A(), c.getColorTGreen_A(), c.getColorTBlue_A(), c.getColorTOpacity_A());
+				bc = new Color(c.getColorBRed_A(), c.getColorBGreen_A(), c.getColorBBlue_A(), c.getColorBOpacity_A());
+			} else {
+				tc = new Color(c.getColorTRed_N(), c.getColorTGreen_N(), c.getColorTBlue_N(), c.getColorTOpacity_N());
+				bc = new Color(c.getColorBRed_N(), c.getColorBGreen_N(), c.getColorBBlue_N(), c.getColorBOpacity_N());
 			}
-		} else {
+			cell.setStyle("-fx-text-fill: #" + ConvertType.colorToHex(tc) + "; "
+					+ "-fx-background-color: #" + ConvertType.colorToHex(bc) + ";"
+					+ (open ? " -fx-font-weight: bold;" : ""));
+		} catch (Exception e) {
 			cell.setStyle(open ? "-fx-font-weight: bold;" : "");
 		}
 	}
@@ -628,6 +695,278 @@ public class DBConnList_Controller {
 				treeTableView_Connections.sort();
 			}
 		}
+	}
+
+	/**
+	 * Drag&Drop: переміщення (перетягування) та копіювання (Ctrl+перетягування)
+	 * папок і з'єднань, як в інших деревах проєкту.
+	 */
+	private void initDragAndDrop() {
+		// відстеження Ctrl для вибору копії при перетягуванні
+		if (dialogStage != null && dialogStage.getScene() != null) {
+			dialogStage.getScene().addEventFilter(KeyEvent.KEY_PRESSED, e -> {
+				if (e.getCode() == KeyCode.CONTROL) {
+					dndCopyModifier = true;
+				}
+			});
+			dialogStage.getScene().addEventFilter(KeyEvent.KEY_RELEASED, e -> {
+				if (e.getCode() == KeyCode.CONTROL) {
+					dndCopyModifier = false;
+				}
+			});
+		}
+		treeTableView_Connections.setRowFactory(tv -> {
+			TreeTableRow<Object> row = new TreeTableRow<>();
+			row.setOnDragDetected(event -> {
+				TreeItem<Object> selected = treeTableView_Connections.getSelectionModel().getSelectedItem();
+				if (selected != null
+						&& (selected.getValue() instanceof DBConnFolder
+								|| selected.getValue() instanceof DBConn_Parameters)) {
+					Dragboard db = row.startDragAndDrop(TransferMode.COPY_OR_MOVE);
+					try {
+						db.setDragView(row.snapshot(null, null));
+					} catch (Exception e) {
+						// без мініатюри — не критично
+					}
+					ClipboardContent content = new ClipboardContent();
+					content.put(params.getMain().SERIALIZED_MIME_TYPE, row.getIndex());
+					db.setContent(content);
+					event.consume();
+				}
+			});
+			row.setOnDragOver(event -> {
+				if (acceptableForDragAndDrop(event.getDragboard(), row)) {
+					event.acceptTransferModes(TransferMode.COPY_OR_MOVE);
+					event.consume();
+				}
+			});
+			row.setOnDragDropped(event -> {
+				Dragboard db = event.getDragboard();
+				if (acceptableForDragAndDrop(db, row)) {
+					int index = (Integer) db.getContent(params.getMain().SERIALIZED_MIME_TYPE);
+					TreeItem<Object> dragItem = null;
+					try {
+						dragItem = treeTableView_Connections.getTreeItem(index);
+					} catch (Exception e) {
+						dragItem = null;
+					}
+					if (dragItem != null) {
+						boolean copy = dndCopyModifier || event.getTransferMode() == TransferMode.COPY;
+						dndCopyModifier = false;
+						if (copy) {
+							dropCopy(dragItem, row);
+						} else {
+							dropMove(dragItem, row);
+						}
+						event.setDropCompleted(true);
+					}
+					event.consume();
+				}
+			});
+			return row;
+		});
+	}
+
+	/**
+	 * Чи можна кинути перетягнуте на даний рядок (захист від циклів).
+	 */
+	private boolean acceptableForDragAndDrop(Dragboard db, TreeTableRow<Object> row) {
+		if (db == null || !db.hasContent(params.getMain().SERIALIZED_MIME_TYPE)) {
+			return false;
+		}
+		int index;
+		try {
+			index = (Integer) db.getContent(params.getMain().SERIALIZED_MIME_TYPE);
+		} catch (Exception e) {
+			return false;
+		}
+		if (row.getIndex() == index) {
+			return false;
+		}
+		TreeItem<Object> dragItem;
+		try {
+			dragItem = treeTableView_Connections.getTreeItem(index);
+		} catch (Exception e) {
+			return false;
+		}
+		if (dragItem == null || dragItem.getValue() == null) {
+			return false;
+		}
+		if (!(dragItem.getValue() instanceof DBConnFolder)
+				&& !(dragItem.getValue() instanceof DBConn_Parameters)) {
+			return false;
+		}
+		// папку не можна кидати в саму себе або у її вкладену папку
+		if (dragItem.getValue() instanceof DBConnFolder) {
+			int dragId = ((DBConnFolder) dragItem.getValue()).getFolderId();
+			Integer targetId = targetFolderIdForRow(row);
+			if (targetId != null && targetId != DBConnTree_Parameters.ROOT_FOLDER_ID) {
+				if (targetId == dragId) {
+					return false;
+				}
+				DBConnFolder target = dbTree.findFolderById(targetId);
+				while (target != null) {
+					if (target.getFolderId() == dragId) {
+						return false;
+					}
+					target = dbTree.findParentFolderOfFolder(target.getFolderId());
+				}
+			}
+		}
+		return true;
+	}
+
+	/**
+	 * Папка-призначення для рядка-приймача (порожній рядок — корінь).
+	 */
+	private Integer targetFolderIdForRow(TreeTableRow<Object> row) {
+		if (row == null || row.isEmpty() || row.getTreeItem() == null || row.getTreeItem().getValue() == null) {
+			return DBConnTree_Parameters.ROOT_FOLDER_ID;
+		}
+		Object v = row.getTreeItem().getValue();
+		if (v instanceof DBConnFolder) {
+			return ((DBConnFolder) v).getFolderId();
+		}
+		if (v instanceof DBConn_Parameters) {
+			DBConnFolder parent = dbTree.findParentFolderOfConnection(((DBConn_Parameters) v).getConnId());
+			return parent == null ? DBConnTree_Parameters.ROOT_FOLDER_ID : parent.getFolderId();
+		}
+		return DBConnTree_Parameters.ROOT_FOLDER_ID;
+	}
+
+	/**
+	 * Перетягнуто без Ctrl — переміщення (з підтвердженням, як в інших деревах).
+	 */
+	private void dropMove(TreeItem<Object> dragItem, TreeTableRow<Object> row) {
+		Object v = dragItem.getValue();
+		int targetId = targetFolderIdForRow(row);
+		if (v instanceof DBConn_Parameters) {
+			DBConn_Parameters c = (DBConn_Parameters) v;
+			if (ShowAppMsg.showQuestion("CONFIRMATION", "Переміщення з'єднання",
+					"Перемістити з'єднання '" + c.getConnName() + "' в " + targetFolderTitle(targetId) + "?", "Перемістити?")) {
+				if (dbTree.moveConnection(c.getConnId(), targetId)) {
+					expandTreeItemByFolderId(targetId);
+					dbTree.saveToFile();
+					refreshTree();
+					selectTreeItemById(null, c.getConnId());
+				} else {
+					ShowAppMsg.showAlert("WARNING", "Переміщення", "Неможливо перемістити з'єднання", "");
+				}
+			}
+		} else if (v instanceof DBConnFolder) {
+			DBConnFolder f = (DBConnFolder) v;
+			if (ShowAppMsg.showQuestion("CONFIRMATION", "Переміщення папки",
+					"Перемістити папку '" + f.getFolderName() + "' в " + targetFolderTitle(targetId) + "?", "Перемістити?")) {
+				if (dbTree.moveFolder(f.getFolderId(), targetId)) {
+					expandTreeItemByFolderId(targetId);
+					dbTree.saveToFile();
+					refreshTree();
+					selectTreeItemById(f.getFolderId(), null);
+				} else {
+					ShowAppMsg.showAlert("WARNING", "Переміщення", "Неможливо перемістити папку в її вкладену папку", "");
+				}
+			}
+		}
+	}
+
+	/**
+	 * Перетягнуто з Ctrl — копіювання.
+	 */
+	private void dropCopy(TreeItem<Object> dragItem, TreeTableRow<Object> row) {
+		Object v = dragItem.getValue();
+		int targetId = targetFolderIdForRow(row);
+		if (v instanceof DBConn_Parameters) {
+			DBConn_Parameters np = dbTree.copyConnection(((DBConn_Parameters) v).getConnId(), targetId);
+			if (np == null) {
+				ShowAppMsg.showAlert("WARNING", "Копіювання", "Неможливо скопіювати з'єднання", "");
+				return;
+			}
+			expandTreeItemByFolderId(targetId);
+			dbTree.saveToFile();
+			refreshTree();
+			selectTreeItemById(null, np.getConnId());
+		} else if (v instanceof DBConnFolder) {
+			DBConnFolder np = dbTree.copyFolder(((DBConnFolder) v).getFolderId(), targetId);
+			if (np == null) {
+				ShowAppMsg.showAlert("WARNING", "Копіювання", "Неможливо скопіювати папку в її вкладену папку", "");
+				return;
+			}
+			expandTreeItemByFolderId(targetId);
+			dbTree.saveToFile();
+			refreshTree();
+			selectTreeItemById(np.getFolderId(), null);
+		}
+	}
+
+	/**
+	 * Назва папки-призначення для повідомлень.
+	 */
+	private String targetFolderTitle(int folderId) {
+		if (folderId == DBConnTree_Parameters.ROOT_FOLDER_ID) {
+			return "корінь «Підключення»";
+		}
+		DBConnFolder f = dbTree.findFolderById(folderId);
+		return f == null ? "корінь" : "папку «" + f.getFolderName() + "»";
+	}
+
+	/**
+	 * Розкрити папку в поточному дереві (щоб вставлене було видно).
+	 */
+	private void expandTreeItemByFolderId(int folderId) {
+		if (folderId == DBConnTree_Parameters.ROOT_FOLDER_ID) {
+			return;
+		}
+		TreeItem<Object> item = findTreeItemByFolderId(treeTableView_Connections.getRoot(), folderId);
+		if (item != null) {
+			item.setExpanded(true);
+		}
+	}
+
+	/**
+	 * Вибрати елемент за Id папки або з'єднання (один з Id — null).
+	 */
+	private boolean selectTreeItemById(Integer folderId, Integer connId) {
+		return selectTreeItemById(treeTableView_Connections.getRoot(), folderId, connId);
+	}
+
+	private boolean selectTreeItemById(TreeItem<Object> item, Integer folderId, Integer connId) {
+		if (item == null) {
+			return false;
+		}
+		Object v = item.getValue();
+		if (folderId != null && v instanceof DBConnFolder
+				&& ((DBConnFolder) v).getFolderId() == folderId) {
+			treeTableView_Connections.getSelectionModel().select(item);
+			return true;
+		}
+		if (connId != null && v instanceof DBConn_Parameters
+				&& ((DBConn_Parameters) v).getConnId() == connId) {
+			treeTableView_Connections.getSelectionModel().select(item);
+			return true;
+		}
+		for (TreeItem<Object> ch : item.getChildren()) {
+			if (selectTreeItemById(ch, folderId, connId)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	private TreeItem<Object> findTreeItemByFolderId(TreeItem<Object> item, int folderId) {
+		if (item == null) {
+			return null;
+		}
+		if (item.getValue() instanceof DBConnFolder
+				&& ((DBConnFolder) item.getValue()).getFolderId() == folderId) {
+			return item;
+		}
+		for (TreeItem<Object> ch : item.getChildren()) {
+			TreeItem<Object> r = findTreeItemByFolderId(ch, folderId);
+			if (r != null) {
+				return r;
+			}
+		}
+		return null;
 	}
 
 	/**
@@ -988,6 +1327,174 @@ public class DBConnList_Controller {
 			dbTree.saveToFile();
 			refreshTree();
 		}
+	}
+
+	/**
+	 * Вирізати вибране (папку або з'єднання) в буфер обміну для переміщення.
+	 */
+	@FXML
+	private void handleMenuCut() {
+		DBConnFolder sf = getSelectedFolder();
+		if (sf != null) {
+			clipboardFolderId = sf.getFolderId();
+			clipboardConnId = null;
+			clipboardIsCut = true;
+			updateClipboardMenuState();
+			params.setMsgToStatusBar("Вирізано папку '" + sf.getFolderName() + "'. Оберіть місце та натисніть Вставити.");
+			return;
+		}
+		DBConn_Parameters sel = getSelectedConnection();
+		if (sel == null) {
+			ShowAppMsg.showAlert("WARNING", "Немає вибору", "Не обрано папку або з'єднання", "Оберіть елемент для вирізання");
+			return;
+		}
+		clipboardFolderId = null;
+		clipboardConnId = sel.getConnId();
+		clipboardIsCut = true;
+		updateClipboardMenuState();
+		params.setMsgToStatusBar("Вирізано з'єднання '" + sel.getConnName() + "'. Оберіть місце та натисніть Вставити.");
+	}
+
+	/**
+	 * Копіювати вибране (папку або з'єднання) в буфер обміну.
+	 */
+	@FXML
+	private void handleMenuCopy() {
+		DBConnFolder sf = getSelectedFolder();
+		if (sf != null) {
+			clipboardFolderId = sf.getFolderId();
+			clipboardConnId = null;
+			clipboardIsCut = false;
+			updateClipboardMenuState();
+			params.setMsgToStatusBar("Скопійовано папку '" + sf.getFolderName() + "'. Оберіть місце та натисніть Вставити.");
+			return;
+		}
+		DBConn_Parameters sel = getSelectedConnection();
+		if (sel == null) {
+			ShowAppMsg.showAlert("WARNING", "Немає вибору", "Не обрано папку або з'єднання", "Оберіть елемент для копіювання");
+			return;
+		}
+		clipboardFolderId = null;
+		clipboardConnId = sel.getConnId();
+		clipboardIsCut = false;
+		updateClipboardMenuState();
+		params.setMsgToStatusBar("Скопійовано з'єднання '" + sel.getConnName() + "'. Оберіть місце та натисніть Вставити.");
+	}
+
+	/**
+	 * Вставити з буфера обміну у вибрану папку (або корінь).
+	 */
+	@FXML
+	private void handleMenuPaste() {
+		if (clipboardFolderId == null && clipboardConnId == null) {
+			ShowAppMsg.showAlert("WARNING", "Буфер обміну", "Буфер порожній", "Спочатку виріжте або скопіюйте елемент");
+			return;
+		}
+		int targetId = getTargetFolderIdForAdd();
+		if (clipboardIsCut) {
+			if (clipboardFolderId != null) {
+				if (targetId == clipboardFolderId) {
+					ShowAppMsg.showAlert("INFORMATION", "Вставлення", "Папка вже знаходиться тут", "");
+					return;
+				}
+				if (dbTree.moveFolder(clipboardFolderId, targetId)) {
+					int movedId = clipboardFolderId;
+					clipboardFolderId = null;
+					expandTreeItemByFolderId(targetId);
+					dbTree.saveToFile();
+					refreshTree();
+					selectTreeItemById(movedId, null);
+					updateClipboardMenuState();
+				} else {
+					ShowAppMsg.showAlert("WARNING", "Переміщення",
+							"Неможливо перемістити папку (можливо, її видалено або ціль — її вкладена папка)", "");
+				}
+			} else {
+				if (dbTree.moveConnection(clipboardConnId, targetId)) {
+					int movedId = clipboardConnId;
+					clipboardConnId = null;
+					expandTreeItemByFolderId(targetId);
+					dbTree.saveToFile();
+					refreshTree();
+					selectTreeItemById(null, movedId);
+					updateClipboardMenuState();
+				} else {
+					ShowAppMsg.showAlert("WARNING", "Переміщення",
+							"Неможливо перемістити з'єднання (можливо, його видалено)", "");
+				}
+			}
+		} else {
+			if (clipboardFolderId != null) {
+				DBConnFolder np = dbTree.copyFolder(clipboardFolderId, targetId);
+				if (np == null) {
+					ShowAppMsg.showAlert("WARNING", "Копіювання",
+							"Неможливо скопіювати папку (можливо, її видалено або ціль — її вкладена папка)", "");
+					return;
+				}
+				expandTreeItemByFolderId(targetId);
+				dbTree.saveToFile();
+				refreshTree();
+				selectTreeItemById(np.getFolderId(), null);
+			} else {
+				DBConn_Parameters np = dbTree.copyConnection(clipboardConnId, targetId);
+				if (np == null) {
+					ShowAppMsg.showAlert("WARNING", "Копіювання",
+							"Неможливо скопіювати з'єднання (можливо, його видалено)", "");
+					return;
+				}
+				expandTreeItemByFolderId(targetId);
+				dbTree.saveToFile();
+				refreshTree();
+				selectTreeItemById(null, np.getConnId());
+			}
+		}
+	}
+
+	/**
+	 * Дублювати вибране в тій же папці.
+	 */
+	@FXML
+	private void handleMenuDuplicate() {
+		DBConnFolder sf = getSelectedFolder();
+		if (sf != null) {
+			DBConnFolder parent = dbTree.findParentFolderOfFolder(sf.getFolderId());
+			int parentId = parent == null ? DBConnTree_Parameters.ROOT_FOLDER_ID : parent.getFolderId();
+			DBConnFolder np = dbTree.copyFolder(sf.getFolderId(), parentId);
+			if (np == null) {
+				ShowAppMsg.showAlert("WARNING", "Дублювання", "Неможливо продублювати папку", "");
+				return;
+			}
+			dbTree.saveToFile();
+			refreshTree();
+			selectTreeItemById(np.getFolderId(), null);
+			return;
+		}
+		DBConn_Parameters sel = getSelectedConnection();
+		if (sel == null) {
+			ShowAppMsg.showAlert("WARNING", "Немає вибору", "Не обрано папку або з'єднання", "Оберіть елемент для дублювання");
+			return;
+		}
+		DBConnFolder parent = dbTree.findParentFolderOfConnection(sel.getConnId());
+		int parentId = parent == null ? DBConnTree_Parameters.ROOT_FOLDER_ID : parent.getFolderId();
+		DBConn_Parameters np = dbTree.copyConnection(sel.getConnId(), parentId);
+		if (np == null) {
+			ShowAppMsg.showAlert("WARNING", "Дублювання", "Неможливо продублювати з'єднання", "");
+			return;
+		}
+		dbTree.saveToFile();
+		refreshTree();
+		selectTreeItemById(null, np.getConnId());
+	}
+
+	/**
+	 * Стан пунктів буфера обміну: Вставити — лише коли буфер не порожній.
+	 */
+	private void updateClipboardMenuState() {
+		boolean hasSel = getSelectedFolder() != null || getSelectedConnection() != null;
+		menuitem_Cut.setDisable(!hasSel);
+		menuitem_Copy.setDisable(!hasSel);
+		menuitem_Duplicate.setDisable(!hasSel);
+		menuitem_Paste.setDisable(clipboardFolderId == null && clipboardConnId == null);
 	}
 
 	private void collectFolderConnections(DBConnFolder folder, List<DBConn_Parameters> out) {
