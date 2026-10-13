@@ -129,11 +129,15 @@ public class DBConnTree_Parameters {
 				}
 				// одразу зберігаємо у новому форматі
 				saveToFile();
-				ShowAppMsg.showAlert(
+				/*ShowAppMsg.showAlert(
 						"INFORMATION",
 						"Міграція",
 						"Виконано міграцію підключень",
-						"Дані з " + src.getPath() + " перенесено у " + file.getPath());
+						"Дані з " + src.getPath() + " перенесено у " + file.getPath());*/
+				System.out.println(
+						"Виконано міграцію підключень\n"+
+						"Дані з " + src.getPath() + " перенесено у " + file.getPath()
+				);
 				return true;
 			}
 		} catch (Exception e) {

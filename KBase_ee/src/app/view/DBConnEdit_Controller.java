@@ -141,8 +141,9 @@ public class DBConnEdit_Controller {
     	// инициализируем ComboBox "Тип БД"
     	OList_DBType = FXCollections.observableArrayList(
     			DBConn_Parameters.TYPE_CONN_POSTGRES,
-    			DBConn_Parameters.TYPE_CONN_SQLITE,
-    			DBConn_Parameters.TYPE_CONN_ORACLE);
+    			DBConn_Parameters.TYPE_CONN_SQLITE
+    			//DBConn_Parameters.TYPE_CONN_ORACLE
+    	);
     	comboBox_Type.setItems(OList_DBType);
     	
     	// Додаємо слухач змін до ComboBox

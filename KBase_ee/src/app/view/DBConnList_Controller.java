@@ -45,12 +45,10 @@ import javafx.scene.control.TreeTableView;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.ClipboardContent;
-import javafx.scene.input.DragEvent;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.input.KeyCombination;
-import javafx.scene.input.KeyEvent;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.GridPane;
@@ -165,9 +163,10 @@ public class DBConnList_Controller {
 	private boolean clipboardIsCut = false;
 
 	/**
-	 * Ctrl утримується під час перетягування (копія замість переміщення).
+	 * Ctrl на старті перетягування (на Linux режим дропа визначаємо по ньому,
+	 * як у дереві Розділів — там transferMode дропа недостовірний).
 	 */
-	private boolean dndCopyModifier = false;
+	private boolean dragStartedWithCtrl = false;
 
 	private Image folderIcon;
 	private Image postgresIcon;
@@ -702,19 +701,6 @@ public class DBConnList_Controller {
 	 * папок і з'єднань, як в інших деревах проєкту.
 	 */
 	private void initDragAndDrop() {
-		// відстеження Ctrl для вибору копії при перетягуванні
-		if (dialogStage != null && dialogStage.getScene() != null) {
-			dialogStage.getScene().addEventFilter(KeyEvent.KEY_PRESSED, e -> {
-				if (e.getCode() == KeyCode.CONTROL) {
-					dndCopyModifier = true;
-				}
-			});
-			dialogStage.getScene().addEventFilter(KeyEvent.KEY_RELEASED, e -> {
-				if (e.getCode() == KeyCode.CONTROL) {
-					dndCopyModifier = false;
-				}
-			});
-		}
 		treeTableView_Connections.setRowFactory(tv -> {
 			TreeTableRow<Object> row = new TreeTableRow<>();
 			row.setOnDragDetected(event -> {
@@ -722,6 +708,7 @@ public class DBConnList_Controller {
 				if (selected != null
 						&& (selected.getValue() instanceof DBConnFolder
 								|| selected.getValue() instanceof DBConn_Parameters)) {
+					dragStartedWithCtrl = event.isControlDown();
 					Dragboard db = row.startDragAndDrop(TransferMode.COPY_OR_MOVE);
 					try {
 						db.setDragView(row.snapshot(null, null));
@@ -751,12 +738,16 @@ public class DBConnList_Controller {
 						dragItem = null;
 					}
 					if (dragItem != null) {
-						boolean copy = dndCopyModifier || event.getTransferMode() == TransferMode.COPY;
-						dndCopyModifier = false;
-						if (copy) {
+						TransferMode actionTransferMode = event.getAcceptedTransferMode();
+						if (System.getProperty("os.name").toLowerCase().contains("linux")) {
+							actionTransferMode = dragStartedWithCtrl ? TransferMode.COPY : TransferMode.MOVE;
+						}
+						if (actionTransferMode == TransferMode.MOVE) {
+							dropMove(dragItem, row);
+						} else if (actionTransferMode == TransferMode.COPY) {
 							dropCopy(dragItem, row);
 						} else {
-							dropMove(dragItem, row);
+							ShowAppMsg.showAlert("WARNING", "Перетягування", "Невідомий режим перетягування", "Не обробляється.");
 						}
 						event.setDropCompleted(true);
 					}
